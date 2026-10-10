@@ -4,6 +4,7 @@
 //   node render.mjs --mode reel             → out/reel.mp4  (1080x1920, laptop framing)
 //   node render.mjs --stills 1,4.5,12       → stills/<mode>-*.png for quick review
 //   node render.mjs --cues                  → out/cues.json (sound-design cue list for audio.py)
+//   node render.mjs --page promo.html --size 1440x1080 --fps 24   → out/promo.mp4
 //   CHROME_PATH=/path/to/chrome node render.mjs
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -18,10 +19,12 @@ const arg = (k, d) => {
   return i >= 0 ? args[i + 1] : d;
 };
 const MODE = arg("mode", "film");
+const PAGE = arg("page", "film.html");
+const STEM = PAGE === "film.html" ? MODE : path.basename(PAGE, ".html");
 const FPS = Number(arg("fps", 30));
-const OUT = arg("out", path.join(here, "out", `${MODE}.mp4`));
+const OUT = arg("out", path.join(here, "out", `${STEM}.mp4`));
 const stills = arg("stills");
-const [W, H] = MODE === "reel" ? [1080, 1920] : [1920, 1080];
+const [W, H] = arg("size") ? arg("size").split("x").map(Number) : MODE === "reel" ? [1080, 1920] : [1920, 1080];
 
 const executablePath =
   process.env.CHROME_PATH ??
@@ -32,7 +35,7 @@ const browser = await chromium.launch({ executablePath });
 const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
-await page.goto(`file://${path.join(here, "film.html")}?mode=${MODE}`);
+await page.goto(`file://${path.join(here, PAGE)}?mode=${MODE}`);
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 }).catch(() => {
   throw new Error(`page never became ready: ${errors.join("; ")}`);
 });
@@ -41,8 +44,9 @@ fs.mkdirSync(path.join(here, "out"), { recursive: true });
 
 if (args.includes("--cues")) {
   const cues = await page.evaluate(() => ({ duration: window.DURATION, cues: window.CUES, scenes: window.SCENES }));
-  fs.writeFileSync(path.join(here, "out", "cues.json"), JSON.stringify(cues, null, 1));
-  console.log(`wrote out/cues.json (${cues.cues.length} cues)`);
+  const cuesFile = STEM === MODE ? "cues.json" : `${STEM}-cues.json`;
+  fs.writeFileSync(path.join(here, "out", cuesFile), JSON.stringify(cues, null, 1));
+  console.log(`wrote out/${cuesFile} (${cues.cues.length} cues)`);
   await browser.close();
   process.exit(0);
 }
@@ -51,7 +55,7 @@ if (stills) {
   fs.mkdirSync(path.join(here, "stills"), { recursive: true });
   for (const t of stills.split(",").map(Number)) {
     await page.evaluate((tt) => window.renderAt(tt), t);
-    await page.screenshot({ path: path.join(here, "stills", `${MODE}-${t.toFixed(2).padStart(6, "0")}.png`) });
+    await page.screenshot({ path: path.join(here, "stills", `${STEM}-${t.toFixed(2).padStart(6, "0")}.png`) });
   }
   console.log(`stills: ${stills}${errors.length ? `\nerrors: ${errors.join("; ")}` : ""}`);
   await browser.close();

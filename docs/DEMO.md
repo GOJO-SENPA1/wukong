@@ -32,6 +32,7 @@ Everything here runs against a local validator with `npm run demo`, or devnet af
 
 ## Ready-made videos
 
+- [`media/wukong-promo.mp4`](media/wukong-promo.mp4): 24-second promo, 4:3, music and effects, no voice. Lo-fi grain, pixel-art icons, the clone crowd and the coin-as-"o" logo. Built for X and Instagram feeds.
 - [`media/wukong-film.mp4`](media/wukong-film.mp4): 60-second motion-graphics film, 16:9, voiceover + soundtrack. Opens a pitch, or posts on X.
 - [`media/wukong-reel.mp4`](media/wukong-reel.mp4): the same film framed on a laptop, 9:16, captioned, for Instagram Reels / TikTok / Shorts. For the real filmed-on-a-laptop look, play the film full screen and record it with a phone.
 - [`media/wukong-demo.mp4`](media/wukong-demo.mp4): 2-minute captioned screen recording of the real app (post → crowd → judge → payout → profile → agent).

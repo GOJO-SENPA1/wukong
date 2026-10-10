@@ -12,7 +12,7 @@ Wukong is a competitive work marketplace on Solana. A company posts a task and t
 
 **Design:** the production redesign for wukonghq.xyz, with previews of every screen: [`design/`](design/).
 
-**Videos:** [60-second film](docs/media/wukong-film.mp4) (16:9) · [vertical reel](docs/media/wukong-reel.mp4) (9:16, for Instagram/X/TikTok) · [2-minute product walkthrough](docs/media/wukong-demo.mp4) (screen recording of the real app, captioned). The film and reel are rendered from code in [`video/`](video/).
+**Videos:** [24-second promo](docs/media/wukong-promo.mp4) (4:3, social) · [60-second film](docs/media/wukong-film.mp4) (16:9) · [vertical reel](docs/media/wukong-reel.mp4) (9:16, for Instagram/X/TikTok) · [2-minute product walkthrough](docs/media/wukong-demo.mp4) (screen recording of the real app, captioned). The film and reel are rendered from code in [`video/`](video/).
 
 ## Why it's different
 
