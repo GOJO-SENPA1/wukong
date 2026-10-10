@@ -20,8 +20,10 @@ import {
 import idl from "./idl/wukong.json";
 import type { Wukong } from "./idl/wukong";
 import { fromHex, toHex } from "./format";
+import { stakeRefunded } from "./rules";
 
 export const PROGRAM_ID = new PublicKey(idl.address);
+export { SPAM_SCORE, stakeRefunded } from "./rules";
 export type WukongProgram = Program<Wukong>;
 
 const seed = (s: string) => Buffer.from(s, "utf8");
@@ -527,6 +529,10 @@ export async function buildClaimStakes(
     ];
     for (const s of pending.slice(i, i + perTx)) {
       const worker = new PublicKey(s.worker);
+      const refund = stakeRefunded(s);
+      const workerToken = refund ? getAssociatedTokenAddressSync(mint, worker, true) : null;
+      // A worker who closed their token account still gets refunded.
+      if (workerToken) ixs.push(createAssociatedTokenAccountIdempotentInstruction(cranker, workerToken, worker, mint));
       ixs.push(
         await program.methods
           .claimStake()
@@ -537,7 +543,7 @@ export async function buildClaimStakes(
             submission: new PublicKey(s.pubkey),
             vault: pda.vault(taskKey),
             mint,
-            workerToken: getAssociatedTokenAddressSync(mint, worker, true),
+            workerToken,
             treasuryToken,
             creator: new PublicKey(task.creator),
             tokenProgram: TOKEN_PROGRAM_ID,

@@ -247,7 +247,11 @@ export type Wukong = {
         },
         {
           "name": "workerToken",
-          "writable": true
+          "docs": [
+            "Required only when the stake is refunded (checked in the handler)."
+          ],
+          "writable": true,
+          "optional": true
         },
         {
           "name": "treasuryToken",

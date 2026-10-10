@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Bot, Coins, Lock, Trophy, Users } from "lucide-react";
 import type { TaskCard as TaskCardData } from "@/lib/server/views";
+import { fmtUsdc } from "@/lib/format";
 import { CategoryBadge, Countdown, StatusPill, Usdc } from "./ui";
 
 export function TaskCard({ task }: { task: TaskCardData }) {
@@ -21,7 +22,7 @@ export function TaskCard({ task }: { task: TaskCardData }) {
         )}
         {task.entryStake > 0 && (
           <span className="inline-flex items-center gap-1 rounded-full border border-violet/30 bg-violet/10 px-2 py-0.5 text-xs font-semibold text-violet">
-            <Coins size={11} /> Stake {task.entryStake / 1e6}
+            <Coins size={11} /> Stake {fmtUsdc(task.entryStake)}
           </span>
         )}
         {task.minRating > 0 && (

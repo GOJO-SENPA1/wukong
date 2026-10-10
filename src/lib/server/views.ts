@@ -16,7 +16,7 @@ import {
   type SubmissionView,
   type TaskView,
 } from "../wukong";
-import { DEMO_MODE, connection, deployment, program } from "./env";
+import { demoMode, connection, deployment, program } from "./env";
 import { judgeEngine } from "./judge";
 import { store, type BriefRecord, type ReportRecord, type TxRecord } from "./store";
 
@@ -55,7 +55,7 @@ export async function stateView() {
       judge: dep.judge,
     },
     judge: judgeEngine(),
-    demoMode: DEMO_MODE,
+    demoMode: demoMode(),
     config,
     tasks: cards,
     stats: {

@@ -337,29 +337,30 @@ pub mod wukong {
         require!(task.status == TaskStatus::Judging, WukongError::TaskNotJudging);
         require!(task.scored_count == task.submission_count, WukongError::ScoringIncomplete);
 
-        if task.judge_mode == JudgeMode::CreatorPicks {
-            // The creator had their window and didn't pick: the AI's top
-            // entry wins outright, so workers are never left unpaid.
-            let now = Clock::get()?.unix_timestamp;
-            require!(
-                now > task.closed_at + task.pick_grace_secs as i64,
-                WukongError::PickWindowOpen
-            );
-            let winners: Vec<PodiumEntry> = task.podium[..1].iter().copied().filter(|e| e.filled).collect();
-            let shares = split_shares(PayoutMode::WinnerTakesAll, winners.len());
-            return pay_out(ctx, winners, shares);
-        }
-
-        let places: Vec<usize> = match task.payout_mode {
-            PayoutMode::WinnerTakesAll => vec![0],
-            PayoutMode::TopThree => vec![0, 1, 2],
+        let (places, mode) = if task.judge_mode == JudgeMode::CreatorPicks {
+            // The creator had their window and didn't pick: the AI's top entry
+            // wins outright, so workers are never left unpaid. An empty
+            // shortlist has nothing to pick from and refunds straight away.
+            if task.podium[0].filled {
+                let now = Clock::get()?.unix_timestamp;
+                require!(
+                    now > task.closed_at + task.pick_grace_secs as i64,
+                    WukongError::PickWindowOpen
+                );
+            }
+            (vec![0], PayoutMode::WinnerTakesAll)
+        } else {
+            match task.payout_mode {
+                PayoutMode::WinnerTakesAll => (vec![0], PayoutMode::WinnerTakesAll),
+                PayoutMode::TopThree => (vec![0, 1, 2], PayoutMode::TopThree),
+            }
         };
         let winners: Vec<PodiumEntry> = places
             .iter()
             .map(|&i| task.podium[i])
             .filter(|e| e.filled)
             .collect();
-        let shares = split_shares(task.payout_mode, winners.len());
+        let shares = split_shares(mode, winners.len());
         pay_out(ctx, winners, shares)
     }
 
@@ -395,24 +396,28 @@ pub mod wukong {
         let bump = [task.bump];
         let seeds: &[&[u8]] = &[TASK_SEED, creator.as_ref(), &nonce_bytes, &bump];
         let signer = &[seeds];
+        // Slashing needs nothing from the worker, so closing your own token
+        // account can't dodge it. Refunds go to any token account you own.
         let to = if refunded {
-            ctx.accounts.worker_token.to_account_info()
+            let worker_token = ctx
+                .accounts
+                .worker_token
+                .as_ref()
+                .ok_or(WukongError::StakeAccountMismatch)?;
+            require_keys_eq!(worker_token.owner, sub.worker, WukongError::StakeAccountMismatch);
+            require_keys_eq!(worker_token.mint, task.mint, WukongError::StakeAccountMismatch);
+            worker_token.to_account_info()
         } else {
             ctx.accounts.treasury_token.to_account_info()
         };
-        token_interface::transfer_checked(
-            CpiContext::new_with_signer(
-                ctx.accounts.token_program.to_account_info(),
-                TransferChecked {
-                    from: ctx.accounts.vault.to_account_info(),
-                    mint: ctx.accounts.mint.to_account_info(),
-                    to,
-                    authority: ctx.accounts.task.to_account_info(),
-                },
-                signer,
-            ),
+        vault_transfer(
+            &ctx.accounts.token_program,
+            &ctx.accounts.vault,
+            &ctx.accounts.mint,
+            &ctx.accounts.task,
+            to,
             amount,
-            ctx.accounts.mint.decimals,
+            signer,
         )?;
 
         let task = &mut ctx.accounts.task;
@@ -430,15 +435,15 @@ pub mod wukong {
         });
 
         if last {
-            token_interface::close_account(CpiContext::new_with_signer(
-                ctx.accounts.token_program.to_account_info(),
-                CloseAccount {
-                    account: ctx.accounts.vault.to_account_info(),
-                    destination: ctx.accounts.creator.to_account_info(),
-                    authority: ctx.accounts.task.to_account_info(),
-                },
+            sweep_and_close_vault(
+                &ctx.accounts.token_program,
+                &mut ctx.accounts.vault,
+                &ctx.accounts.mint,
+                &ctx.accounts.task,
+                ctx.accounts.treasury_token.to_account_info(),
+                ctx.accounts.creator.to_account_info(),
                 signer,
-            ))?;
+            )?;
         }
         Ok(())
     }
@@ -493,6 +498,61 @@ pub mod wukong {
     }
 }
 
+/// Move tokens out of a task vault, signed by the task PDA.
+fn vault_transfer<'info>(
+    token_program: &Interface<'info, TokenInterface>,
+    vault: &InterfaceAccount<'info, TokenAccount>,
+    mint: &InterfaceAccount<'info, Mint>,
+    task: &Account<'info, Task>,
+    to: AccountInfo<'info>,
+    amount: u64,
+    signer: &[&[&[u8]]],
+) -> Result<()> {
+    if amount == 0 {
+        return Ok(());
+    }
+    token_interface::transfer_checked(
+        CpiContext::new_with_signer(
+            token_program.to_account_info(),
+            TransferChecked {
+                from: vault.to_account_info(),
+                mint: mint.to_account_info(),
+                to,
+                authority: task.to_account_info(),
+            },
+            signer,
+        ),
+        amount,
+        mint.decimals,
+    )
+}
+
+/// Close a drained vault. Anything left over (e.g. tokens someone sent to the
+/// vault to block its closing) is swept to the treasury first, so a stray
+/// deposit can never freeze settlement.
+fn sweep_and_close_vault<'info>(
+    token_program: &Interface<'info, TokenInterface>,
+    vault: &mut Box<InterfaceAccount<'info, TokenAccount>>,
+    mint: &InterfaceAccount<'info, Mint>,
+    task: &Account<'info, Task>,
+    treasury_token: AccountInfo<'info>,
+    rent_to: AccountInfo<'info>,
+    signer: &[&[&[u8]]],
+) -> Result<()> {
+    vault.reload()?;
+    let residual = vault.amount;
+    vault_transfer(token_program, vault, mint, task, treasury_token, residual, signer)?;
+    token_interface::close_account(CpiContext::new_with_signer(
+        token_program.to_account_info(),
+        CloseAccount {
+            account: vault.to_account_info(),
+            destination: rent_to,
+            authority: task.to_account_info(),
+        },
+        signer,
+    ))
+}
+
 /// Keep the podium sorted by (score desc, submission index asc).
 pub fn insert_podium(podium: &mut [PodiumEntry; 3], entry: PodiumEntry) {
     for i in 0..podium.len() {
@@ -545,7 +605,6 @@ fn pay_out<'info>(
     let bump = [task.bump];
     let seeds: &[&[u8]] = &[TASK_SEED, creator.as_ref(), &nonce_bytes, &bump];
     let signer = &[seeds];
-    let decimals = ctx.accounts.mint.decimals;
     // The vault also holds entry stakes; only the reward is paid out here.
     let reward = task.reward;
     let keep_vault_open = task.stakes_outstanding > 0;
@@ -557,22 +616,14 @@ fn pay_out<'info>(
     );
 
     let transfer = |to: AccountInfo<'info>, amount: u64| -> Result<()> {
-        if amount == 0 {
-            return Ok(());
-        }
-        token_interface::transfer_checked(
-            CpiContext::new_with_signer(
-                ctx.accounts.token_program.to_account_info(),
-                TransferChecked {
-                    from: ctx.accounts.vault.to_account_info(),
-                    mint: ctx.accounts.mint.to_account_info(),
-                    to,
-                    authority: ctx.accounts.task.to_account_info(),
-                },
-                signer,
-            ),
+        vault_transfer(
+            &ctx.accounts.token_program,
+            &ctx.accounts.vault,
+            &ctx.accounts.mint,
+            &ctx.accounts.task,
+            to,
             amount,
-            decimals,
+            signer,
         )
     };
 
@@ -637,15 +688,17 @@ fn pay_out<'info>(
     }
 
     if !keep_vault_open {
-        token_interface::close_account(CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
-            CloseAccount {
-                account: ctx.accounts.vault.to_account_info(),
-                destination: ctx.accounts.creator.to_account_info(),
-                authority: ctx.accounts.task.to_account_info(),
-            },
+        let treasury = ctx.accounts.treasury_token.to_account_info();
+        let creator_info = ctx.accounts.creator.to_account_info();
+        sweep_and_close_vault(
+            &ctx.accounts.token_program,
+            &mut ctx.accounts.vault,
+            &ctx.accounts.mint,
+            &ctx.accounts.task,
+            treasury,
+            creator_info,
             signer,
-        ))?;
+        )?;
     }
 
     let config = &mut ctx.accounts.config;
@@ -876,13 +929,9 @@ pub struct ClaimStake<'info> {
     pub vault: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(address = task.mint)]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
-    #[account(
-        mut,
-        token::mint = mint,
-        token::authority = submission.worker,
-        token::token_program = token_program
-    )]
-    pub worker_token: Box<InterfaceAccount<'info, TokenAccount>>,
+    /// Required only when the stake is refunded (checked in the handler).
+    #[account(mut)]
+    pub worker_token: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
     #[account(
         mut,
         token::mint = mint,

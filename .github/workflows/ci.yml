@@ -44,6 +44,19 @@ jobs:
         run: |
           curl -sSfL "https://github.com/anza-xyz/agave/releases/download/${SOLANA_VERSION}/solana-release-x86_64-unknown-linux-gnu.tar.bz2" | tar xj -C "$HOME"
           echo "$HOME/solana-release/bin" >> "$GITHUB_PATH"
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/solana
+          key: solana-platform-tools-${{ env.SOLANA_VERSION }}
+      - name: Build the program from source (tests run against this, not the prebuilt artifact)
+        run: cargo build-sbf --manifest-path programs/wukong/Cargo.toml
+      - name: Prebuilt artifact drift check
+        run: |
+          if ! cmp -s target/deploy/wukong.so artifacts/wukong.so; then
+            echo "::warning::artifacts/wukong.so differs from a fresh build. If programs/ changed, run npm run program:build and commit."
+          fi
       - run: npm ci
       - run: bash scripts/ci-chain.sh
       - name: Logs on failure

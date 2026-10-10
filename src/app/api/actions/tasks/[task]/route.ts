@@ -4,7 +4,7 @@ import { fmtUsdc, timeLeft } from "@/lib/format";
 import { categoryById } from "@/lib/categories";
 import { sha256Hex } from "@/lib/hash";
 import { buildSubmitForTask, explainError, fetchTask, pda } from "@/lib/wukong";
-import { actionError, actionJson, originOf, preflight } from "@/lib/server/blinks";
+import { BLINK_MAX_CHARS, actionError, actionJson, originOf, parseKey, preflight } from "@/lib/server/blinks";
 import { connection, program } from "@/lib/server/env";
 import { store } from "@/lib/server/store";
 
@@ -13,11 +13,8 @@ export const dynamic = "force-dynamic";
 type Ctx = { params: Promise<{ task: string }> };
 
 async function loadTask(key: string) {
-  try {
-    return await fetchTask(program(), new PublicKey(key));
-  } catch {
-    return null;
-  }
+  const pk = parseKey(key);
+  return pk ? fetchTask(program(), pk).catch(() => null) : null;
 }
 
 export async function GET(req: Request, ctx: Ctx) {
@@ -46,7 +43,14 @@ export async function GET(req: Request, ctx: Ctx) {
           type: "transaction",
           label,
           href: `${origin}/api/actions/tasks/${key}?content={content}`,
-          parameters: [{ type: "textarea", name: "content", label: "Your entry (sealed until judging)", required: true }],
+          parameters: [
+            {
+              type: "textarea",
+              name: "content",
+              label: `Your entry (sealed until judging, ${BLINK_MAX_CHARS} characters max)`,
+              required: true,
+            },
+          ],
         },
       ],
     },
@@ -61,9 +65,11 @@ export async function POST(req: Request, ctx: Ctx) {
     if (task.status !== "open" || Date.now() / 1000 > task.deadline) return actionError("Task is not open for entries");
 
     const body = (await req.json().catch(() => ({}))) as { account?: string; data?: { content?: string } };
-    const content = (new URL(req.url).searchParams.get("content") ?? body.data?.content ?? "").trim();
+    const content = (body.data?.content ?? new URL(req.url).searchParams.get("content") ?? "").trim();
     if (!content) return actionError("Write your entry first");
-    if (content.length > 8000) return actionError("Entry is too long (8000 characters max)");
+    if (content.length > BLINK_MAX_CHARS) {
+      return actionError(`Entries via Blink are limited to ${BLINK_MAX_CHARS} characters; submit longer work in the app`);
+    }
     let worker: PublicKey;
     try {
       worker = new PublicKey(body.account ?? "");

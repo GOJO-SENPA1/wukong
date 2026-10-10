@@ -21,6 +21,7 @@ async function main() {
       t.crowd.map(async (entry, index) => {
         const signals = integritySignals(entry.content, t.crowd.slice(0, index).map((c, i) => ({ index: i, submittedAt: i, content: c.content })), {
           headline: t.category === 0,
+          brief: t.brief,
         });
         const input = {
           brief: t.brief,

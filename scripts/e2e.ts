@@ -89,6 +89,34 @@ async function main() {
   await act(worker, { kind: "submit", task, contentHash: sub.hash });
   console.log("✓ human worker submitted");
 
+  // A second worker enters through the Blink, as from a post on X.
+  const blinker = Keypair.generate();
+  await post("/api/faucet", { address: blinker.publicKey.toBase58(), role: "worker" });
+  const card = await (await fetch(`${BASE}/api/actions/tasks/${task}`)).json();
+  assert.equal(card.type, "action");
+  assert.equal(card.disabled, false);
+  const entry = "Altitude in every sip.\nCold brew for Kathmandu's late nights, grown high in Nuwakot.";
+  const href = card.links.actions[0].href.replace("{content}", encodeURIComponent(entry));
+  const blinkTx = await post<{ transaction: string; links: { next: { href: string } } }>(
+    href.replace(BASE, ""),
+    { account: blinker.publicKey.toBase58() },
+  );
+  const btx = Transaction.from(Buffer.from(blinkTx.transaction, "base64"));
+  btx.partialSign(blinker);
+  const { sig: blinkSig } = await post<{ sig: string }>("/api/tx/send", { tx: btx.serialize().toString("base64") });
+  const done = await post<{ type: string }>(blinkTx.links.next.href.replace(BASE, ""), {
+    account: blinker.publicKey.toBase58(),
+    signature: blinkSig,
+  });
+  assert.equal(done.type, "completed");
+  const forged = await fetch(blinkTx.links.next.href, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ account: worker.publicKey.toBase58(), signature: blinkSig }),
+  });
+  assert.equal(forged.status, 400, "next refuses a signature that isn't this wallet's entry");
+  console.log("✓ entered via Blink (card → tx → signed → verified next)");
+
   const sealed = await (await fetch(`${BASE}/api/tasks/${task}`)).json();
   assert.equal(sealed.submissions[0].content, undefined, "entries are sealed while open");
 
@@ -117,7 +145,7 @@ async function main() {
   const stakes = judge.filter((e) => e.type === "stake") as { refunded: boolean; index: number }[];
   assert.equal(stakes.length, view.submissions.length, "every stake settled");
   const slashed = stakes.filter((s) => !s.refunded).map((s) => s.index + 1).sort((a, b) => a - b);
-  assert.deepEqual(slashed, [6, 7, 8], "copycat, injection and spam lose their stake");
+  assert.deepEqual(slashed, [7, 8, 9], "copycat, injection and spam lose their stake");
   assert.equal(view.task.stakesOutstanding, 0);
   assert.equal(view.vaultBalance, 0, "vault drained and closed");
   console.log(`✓ stakes: ${stakes.length - slashed.length} refunded, slashed #${slashed.join(", #")}`);
