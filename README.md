@@ -149,6 +149,8 @@ Every open task is a Blink. `/actions.json` maps `/tasks/<id>` to `/api/actions/
 | `npm run agent [-- --auto]` | x402 agent buyer |
 | `npm run keeper [-- --once]` | Liveness loop: deadline judging, settlement, pick timeouts, stakes |
 | `npm run ci:chain` | Everything CI runs on-chain: tests, fresh chain, production build, e2e, x402 |
+| `npm run export:env` | Secrets for a hosted deploy (`.data/deploy.env`) |
+| `npm run start:prod` | Production entrypoint: `next start` + keeper |
 | `npm run judge:dryrun` | Score all demo crowds offline |
 | `npm run program:build` | `anchor build` + sync IDL/binary into the app |
 
@@ -163,6 +165,8 @@ npm run dev
 ```
 
 Server keys live in `.data/keys/` (or `WUKONG_<ROLE>_SECRET` env vars). Never commit them.
+
+To host it (Docker image with the app + keeper, Fly.io config, secrets from env): **[docs/DEPLOY.md](docs/DEPLOY.md)**.
 
 ## Repo map
 

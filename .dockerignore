@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+.data
+.anchor
+target
+test-ledger
+docs/img
+*.log
