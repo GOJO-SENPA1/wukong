@@ -365,6 +365,8 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
             </div>
           </div>
 
+          {task.status === "open" && <ShareBlink taskKey={taskKey} cluster={appState.deployment?.cluster} />}
+
           {task.podium.length > 0 && task.status !== "open" && (
             <div className="card p-4">
               <div className="label mb-2">On-chain podium</div>
@@ -592,6 +594,42 @@ function SettledSummary({ data, nameOf }: { data: TaskPayload; nameOf: (k: strin
         </div>
       )}
       {data.task.entryStake > 0 && <StakeSummary data={data} />}
+    </div>
+  );
+}
+
+function ShareBlink({ taskKey, cluster }: { taskKey: string; cluster?: string }) {
+  const [origin, setOrigin] = useState("");
+  const [copied, setCopied] = useState<string | null>(null);
+  useEffect(() => setOrigin(window.location.origin), []);
+  if (!origin) return null;
+  const action = `${origin}/api/actions/tasks/${taskKey}`;
+  const local = /localhost|127\.0\.0\.1/.test(origin) || cluster === "localnet";
+  const dial = `https://dial.to/?action=${encodeURIComponent(`solana-action:${action}`)}${cluster === "devnet" ? "&cluster=devnet" : ""}`;
+  const copy = (label: string, text: string) => {
+    navigator.clipboard?.writeText(text);
+    setCopied(label);
+    setTimeout(() => setCopied(null), 1200);
+  };
+  return (
+    <div className="card p-4">
+      <div className="label mb-2">Share as a Blink</div>
+      <p className="text-xs leading-relaxed text-muted">
+        Post this task anywhere Blinks unfurl (X, wallets, dial.to): workers enter and stake straight from the post.
+      </p>
+      <div className="mt-3 flex flex-col gap-2">
+        <button className="btn btn-ghost w-full justify-between text-xs" onClick={() => copy("action", action)}>
+          <span className="truncate font-mono">{action.replace(/^https?:\/\//, "")}</span>
+          <span className="text-gold">{copied === "action" ? "copied" : "copy"}</span>
+        </button>
+        {local ? (
+          <p className="text-[11px] text-faint">Blink clients need a public URL: deploy (devnet) to share it.</p>
+        ) : (
+          <a href={dial} target="_blank" rel="noreferrer" className="btn btn-ghost w-full text-xs">
+            Open in dial.to
+          </a>
+        )}
+      </div>
     </div>
   );
 }
