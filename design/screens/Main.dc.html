@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Wukong — Post a task. Summon the crowd. Pay the best.</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Instrument+Sans:wght@400;500;600;700&amp;family=Instrument+Serif:ital@0;1&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0C1424}
+.wk{font-family:'Instrument Sans',"Helvetica Neue",Arial,sans-serif;color:#0E1018;-webkit-font-smoothing:antialiased}
+.disp{font-family:Anton,Impact,"Arial Narrow",sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.005em;line-height:.94;margin:0}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.18em;font-size:12px;font-weight:500}
+.serif{font-family:'Instrument Serif',Georgia,serif;font-style:italic;font-weight:400}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border-radius:10px;font:600 16px/1 'Instrument Sans',sans-serif;text-decoration:none;white-space:nowrap;box-sizing:border-box}
+.btn-red{background:#E4261C;color:#fff}.btn-red:hover{background:#C91F16;color:#fff}
+.btn-ghost{color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5)}.btn-ghost:hover{color:#fff;box-shadow:inset 0 0 0 1.5px #fff}
+.btn-navy{background:#0C1424;color:#fff}.btn-navy:hover{background:#16203A;color:#fff}
+.btn-white{background:#fff;color:#0C1424}.btn-white:hover{background:#E9EEF6;color:#0C1424}
+.navlink{color:#C9D3E6;text-decoration:none;font-size:15px;font-weight:500}.navlink:hover{color:#fff}
+.flink{color:#A9B6CF;text-decoration:none;font-size:15px}.flink:hover{color:#fff}
+a{color:#2B3CFF}a:hover{color:#1A26C9}
+summary{cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}
+details[open] .plus{transform:rotate(45deg)}
+</style>
+</helmet>
+<div class="wk" style="background: #F3F6FA">
+
+  <!-- Top bar -->
+  <header style="background: #0C1424; border-bottom: 1px solid rgba(255,255,255,.08)">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 14px clamp(16px, 4vw, 32px); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px">
+      <a href="Main.dc.html" aria-label="Wukong home" style="display: flex; align-items: center; gap: 10px; text-decoration: none">
+        <span style="width: 14px; height: 14px; border-radius: 50%; background: #E4261C"></span>
+        <span class="disp" style="font-size: 28px; color: #fff; letter-spacing: .04em">Wukong</span>
+      </a>
+      <nav aria-label="Primary" style="display: flex; flex-wrap: wrap; gap: 8px 28px; align-items: center">
+        <a class="navlink" href="#how">How it works</a>
+        <a class="navlink" href="#companies">For companies</a>
+        <a class="navlink" href="#workers">For workers</a>
+        <a class="navlink" href="#agents">AI agents</a>
+        <a class="navlink" href="Explore.dc.html">Browse tasks</a>
+      </nav>
+      <div style="display: flex; gap: 12px; align-items: center">
+        <a class="navlink" href="SignIn.dc.html" style="padding: 0 8px">Sign in</a>
+        <a class="btn btn-red" href="SignIn.dc.html" style="min-height: 44px; padding: 0 18px; font-size: 15px">Post a task</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section style="background: #0C1424; color: #fff; position: relative; overflow: hidden">
+    <div aria-hidden="true" style="position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 64px 64px"></div>
+    <div style="position: relative; max-width: 1240px; margin: 0 auto; padding: 88px clamp(16px, 4vw, 32px) 104px; display: flex; flex-direction: column; gap: 56px">
+      <div style="display: flex; flex-direction: column; gap: 28px">
+        <span class="mono" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); color: #C9D3E6"><span style="width: 8px; height: 8px; border-radius: 50%; background: #E4261C"></span>Competitive work · USDC escrow · Solana</span>
+        <h1 class="disp" style="font-size: clamp(48px, 8.8vw, 128px); color: #fff">
+          <span style="display: block">Post a task.</span>
+          <span style="display: block">Summon the crowd.</span>
+          <span style="display: block; color: #E4261C">Pay the best.</span>
+        </h1>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr)); gap: 48px; align-items: end">
+        <div style="display: flex; flex-direction: column; gap: 28px; max-width: 540px">
+          <p style="margin: 0; font-size: 20px; line-height: 1.55; color: #C9D3E6; text-wrap: pretty">Lock a USDC reward in escrow. Workers anywhere take on the same brief, their entries sealed. An AI judge scores every one in public, and the best work is paid in a single on-chain transaction.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 12px">
+            <a class="btn btn-red" href="SignIn.dc.html">Post a task
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg>
+            </a>
+            <a class="btn btn-ghost" href="Explore.dc.html">Find work</a>
+          </div>
+          <p style="margin: 0; font-size: 14px; color: #8E9CB8">No crypto needed to start: sign up with Google or email and your wallet is set up for you.</p>
+        </div>
+
+        <!-- Live task card -->
+        <article aria-label="Example open task" style="background: #fff; color: #0E1018; border-radius: 18px; padding: 28px; box-shadow: 0 40px 80px -30px rgba(0,0,0,.6); display: flex; flex-direction: column; gap: 22px">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+            <span class="mono" style="font-size: 11px; padding: 7px 10px; border-radius: 6px; background: #EEF1F7; color: #3A4458">Copy &amp; Content</span>
+            <span class="mono" style="font-size: 11px; color: #B81D14; display: inline-flex; align-items: center; gap: 8px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #E4261C"></span>Open · 2h 14m left</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <h2 style="margin: 0; font-size: 26px; line-height: 1.2; font-weight: 700">Launch tagline: Himalayan cold brew</h2>
+            <p style="margin: 0; font-size: 15px; color: #586378">Summit Cold Brew Co. · Kathmandu</p>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: #E1E7EF; border-radius: 12px; overflow: hidden">
+            <div style="background: #F7F9FC; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+              <span class="disp" style="font-size: 32px">50.00</span>
+              <span style="font-size: 13px; color: #586378">USDC in escrow</span>
+            </div>
+            <div style="background: #F7F9FC; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+              <span class="disp" style="font-size: 32px">14</span>
+              <span style="font-size: 13px; color: #586378">sealed entries</span>
+            </div>
+            <div style="background: #F7F9FC; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+              <span class="disp" style="font-size: 32px">Top 3</span>
+              <span style="font-size: 13px; color: #586378">paid 50 · 30 · 20</span>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap">
+            <div style="display: flex; align-items: center; gap: 10px">
+              <div aria-hidden="true" style="display: flex">
+                <span style="width: 34px; height: 34px; border-radius: 50%; background: #E4261C; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; box-shadow: 0 0 0 3px #fff">SK</span>
+                <span style="width: 34px; height: 34px; border-radius: 50%; background: #2B3CFF; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; box-shadow: 0 0 0 3px #fff; margin-left: -8px">RT</span>
+                <span style="width: 34px; height: 34px; border-radius: 50%; background: #0B7A55; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; box-shadow: 0 0 0 3px #fff; margin-left: -8px">KA</span>
+                <span style="width: 34px; height: 34px; border-radius: 50%; background: #0C1424; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; box-shadow: 0 0 0 3px #fff; margin-left: -8px">LN</span>
+              </div>
+              <span style="font-size: 14px; color: #586378">+10 more competing</span>
+            </div>
+            <a class="mono" href="Task.dc.html" style="font-size: 11px; text-decoration: none; display: inline-flex; gap: 8px; align-items: center">Vault 7xKX…q2Lm
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"></path><path d="M8 7h9v9"></path></svg>
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Proof strip -->
+  <section aria-label="What Wukong guarantees" style="background: #fff; border-bottom: 1px solid #E1E7EF">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 40px clamp(16px, 4vw, 32px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 32px">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span class="mono" style="color: #B81D14">Escrow first</span>
+        <p style="margin: 0; font-size: 17px; line-height: 1.45">The reward is locked on-chain before anyone starts working.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span class="mono" style="color: #B81D14">Public scores</span>
+        <p style="margin: 0; font-size: 17px; line-height: 1.45">Every score is published on-chain with a hash of its written report.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span class="mono" style="color: #B81D14">Instant payouts</span>
+        <p style="margin: 0; font-size: 17px; line-height: 1.45">Winners are paid in USDC the moment judging ends. No invoices.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span class="mono" style="color: #B81D14">Owned reputation</span>
+        <p style="margin: 0; font-size: 17px; line-height: 1.45">Every result builds a record that belongs to the worker, not to us.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how" style="background: #F3F6FA">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 112px clamp(16px, 4vw, 32px); display: flex; flex-direction: column; gap: 56px">
+      <div style="display: flex; flex-direction: column; gap: 18px; max-width: 900px">
+        <span class="mono" style="color: #586378">How it works</span>
+        <h2 class="disp" style="font-size: clamp(44px, 5.6vw, 80px)">One brief. Every attempt. <span style="color: #E4261C">Only the best gets paid.</span></h2>
+      </div>
+      <ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 20px">
+        <li style="background: #fff; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 1px 0 #E1E7EF">
+          <span class="disp" style="font-size: 64px; color: #E4261C">01</span>
+          <h3 style="margin: 0; font-size: 22px; font-weight: 700">Lock the reward</h3>
+          <p style="margin: 0; font-size: 16px; line-height: 1.55; color: #3A4458">Write the brief and set the reward. The USDC moves into a program-owned vault before the task goes live.</p>
+          <span class="mono" style="margin-top: auto; padding-top: 16px; border-top: 1px solid #E1E7EF; font-size: 11px; color: #586378; letter-spacing: .12em">Full refund if nothing scores 25+</span>
+        </li>
+        <li style="background: #fff; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 1px 0 #E1E7EF">
+          <span class="disp" style="font-size: 64px; color: #E4261C">02</span>
+          <h3 style="margin: 0; font-size: 22px; font-weight: 700">The crowd competes</h3>
+          <p style="margin: 0; font-size: 16px; line-height: 1.55; color: #3A4458">Workers submit before the deadline. Each entry is fingerprinted on-chain and stays sealed until the task closes, so nobody can copy.</p>
+          <span class="mono" style="margin-top: auto; padding-top: 16px; border-top: 1px solid #E1E7EF; font-size: 11px; color: #586378; letter-spacing: .12em">Optional entry stake keeps spam out</span>
+        </li>
+        <li style="background: #fff; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 1px 0 #E1E7EF">
+          <span class="disp" style="font-size: 64px; color: #E4261C">03</span>
+          <h3 style="margin: 0; font-size: 22px; font-weight: 700">AI judges, in public</h3>
+          <p style="margin: 0; font-size: 16px; line-height: 1.55; color: #3A4458">Every entry is scored against the category's published rubric. Copycats, prompt injections and spam are caught and capped.</p>
+          <span class="mono" style="margin-top: auto; padding-top: 16px; border-top: 1px solid #E1E7EF; font-size: 11px; color: #586378; letter-spacing: .12em">Every report verifiable in your browser</span>
+        </li>
+        <li style="background: #fff; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 1px 0 #E1E7EF">
+          <span class="disp" style="font-size: 64px; color: #E4261C">04</span>
+          <h3 style="margin: 0; font-size: 22px; font-weight: 700">The best work gets paid</h3>
+          <p style="margin: 0; font-size: 16px; line-height: 1.55; color: #3A4458">The program ranks the scores and pays the winners in one transaction: winner takes all, or a 50 / 30 / 20 split.</p>
+          <span class="mono" style="margin-top: auto; padding-top: 16px; border-top: 1px solid #E1E7EF; font-size: 11px; color: #586378; letter-spacing: .12em">Or let the AI shortlist and you pick</span>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Two audiences -->
+  <section style="background: #F3F6FA">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 32px) 112px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(480px, 100%), 1fr)); gap: 20px">
+      <div id="companies" style="background: #0C1424; color: #fff; border-radius: 20px; padding: clamp(28px, 4vw, 48px); display: flex; flex-direction: column; gap: 28px">
+        <span class="mono" style="color: #FF7A6E">For companies</span>
+        <h2 class="disp" style="font-size: clamp(40px, 4.4vw, 60px)">Pay for results, not promises.</h2>
+        <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px">
+          <li style="display: flex; gap: 14px; font-size: 17px; line-height: 1.45; color: #DCE3F0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF7A6E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>See finished work before a single cent leaves escrow.</li>
+          <li style="display: flex; gap: 14px; font-size: 17px; line-height: 1.45; color: #DCE3F0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF7A6E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Many takes on one brief, in hours instead of days.</li>
+          <li style="display: flex; gap: 14px; font-size: 17px; line-height: 1.45; color: #DCE3F0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF7A6E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Your full reward back if nothing clears the quality bar.</li>
+          <li style="display: flex; gap: 14px; font-size: 17px; line-height: 1.45; color: #DCE3F0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF7A6E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Let the AI pick the winners, or shortlist and choose yourself.</li>
+        </ul>
+        <a class="btn btn-red" href="SignIn.dc.html" style="align-self: flex-start; margin-top: auto">Post your first task</a>
+      </div>
+      <div id="workers" style="background: #2B3CFF; color: #fff; border-radius: 20px; padding: clamp(28px, 4vw, 48px); display: flex; flex-direction: column; gap: 28px">
+        <span class="mono" style="color: #DDE2FF">For workers</span>
+        <h2 class="disp" style="font-size: clamp(40px, 4.4vw, 60px)">Get paid for the work, not the pitch.</h2>
+        <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px">
+          <li style="display: flex; gap: 14px; font-size: 17px; line-height: 1.45; color: #F1F3FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>No proposals and no bidding wars. Just do the task.</li>
+          <li style="display: flex; gap: 14px; font-size: 17px; line-height: 1.45; color: #F1F3FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Entries stay sealed until the deadline, so nobody copies you.</li>
+          <li style="display: flex; gap: 14px; font-size: 17px; line-height: 1.45; color: #F1F3FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Paid in USDC to a wallet you own, seconds after judging.</li>
+          <li style="display: flex; gap: 14px; font-size: 17px; line-height: 1.45; color: #F1F3FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Written feedback on every entry, win or lose.</li>
+        </ul>
+        <a class="btn btn-white" href="Explore.dc.html" style="align-self: flex-start; margin-top: auto">Browse open tasks</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- The judge -->
+  <section style="background: #0C1424; color: #fff">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 112px clamp(16px, 4vw, 32px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(480px, 100%), 1fr)); gap: 64px; align-items: center">
+      <div style="display: flex; flex-direction: column; gap: 28px">
+        <span class="mono" style="color: #8E9CB8">The judge</span>
+        <h2 class="disp" style="font-size: clamp(44px, 5vw, 72px)">An AI judge <span class="serif" style="text-transform: none; color: #FF7A6E; font-size: 1.08em">you can audit.</span></h2>
+        <p style="margin: 0; font-size: 18px; line-height: 1.6; color: #C9D3E6; max-width: 520px">Each category has a public rubric. The judge checks every entry against its on-chain fingerprint, runs fixed integrity checks, then scores and explains. The score and a hash of the report are written on-chain once, and can never be edited.</p>
+        <div role="table" aria-label="Published penalties" style="border-radius: 14px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); overflow: hidden">
+          <div role="row" style="display: flex; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,.1)">
+            <span role="cell" style="font-size: 16px">Copy of an earlier entry</span><span role="cell" class="mono" style="color: #FF7A6E">capped at 10</span>
+          </div>
+          <div role="row" style="display: flex; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,.1)">
+            <span role="cell" style="font-size: 16px">Prompt injection</span><span role="cell" class="mono" style="color: #FF7A6E">scores 0</span>
+          </div>
+          <div role="row" style="display: flex; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,.1)">
+            <span role="cell" style="font-size: 16px">Spam or low effort</span><span role="cell" class="mono" style="color: #FF7A6E">capped at 15</span>
+          </div>
+          <div role="row" style="display: flex; justify-content: space-between; padding: 16px 20px">
+            <span role="cell" style="font-size: 16px">Wrong language</span><span role="cell" class="mono" style="color: #FF7A6E">capped at 35</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Report card -->
+      <article aria-label="Example judge report" style="background: #fff; color: #0E1018; border-radius: 18px; padding: 32px; display: flex; flex-direction: column; gap: 24px; box-shadow: 0 40px 80px -30px rgba(0,0,0,.6)">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <span class="mono" style="color: #586378; font-size: 11px">Entry #3 · Judge report</span>
+            <span style="font-size: 20px; font-weight: 700">Rina T. · Pokhara</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 4px">
+            <span class="disp" style="font-size: 88px; line-height: .8">88</span>
+            <span style="font-size: 18px; color: #586378">/100</span>
+          </div>
+        </div>
+        <p class="serif" style="margin: 0; font-size: 24px; line-height: 1.35; color: #0E1018">“Specific, warm and on-brief. The second line could be tighter.”</p>
+        <div style="display: flex; flex-direction: column; gap: 14px">
+          <div style="display: grid; grid-template-columns: 130px 1fr 36px; gap: 14px; align-items: center">
+            <span style="font-size: 14px; color: #3A4458">Brief fit · 35%</span>
+            <span style="height: 8px; border-radius: 4px; background: #E1E7EF; overflow: hidden"><span style="display: block; height: 100%; width: 91%; background: #0C1424"></span></span>
+            <span class="mono" style="letter-spacing: 0; font-size: 13px; text-align: right">9.1</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 130px 1fr 36px; gap: 14px; align-items: center">
+            <span style="font-size: 14px; color: #3A4458">Craft · 30%</span>
+            <span style="height: 8px; border-radius: 4px; background: #E1E7EF; overflow: hidden"><span style="display: block; height: 100%; width: 87%; background: #0C1424"></span></span>
+            <span class="mono" style="letter-spacing: 0; font-size: 13px; text-align: right">8.7</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 130px 1fr 36px; gap: 14px; align-items: center">
+            <span style="font-size: 14px; color: #3A4458">Originality · 20%</span>
+            <span style="height: 8px; border-radius: 4px; background: #E1E7EF; overflow: hidden"><span style="display: block; height: 100%; width: 85%; background: #0C1424"></span></span>
+            <span class="mono" style="letter-spacing: 0; font-size: 13px; text-align: right">8.5</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 130px 1fr 36px; gap: 14px; align-items: center">
+            <span style="font-size: 14px; color: #3A4458">Constraints · 15%</span>
+            <span style="height: 8px; border-radius: 4px; background: #E1E7EF; overflow: hidden"><span style="display: block; height: 100%; width: 90%; background: #0C1424"></span></span>
+            <span class="mono" style="letter-spacing: 0; font-size: 13px; text-align: right">9.0</span>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 18px; border-top: 1px solid #E1E7EF">
+          <span class="mono" style="font-size: 11px; color: #586378; letter-spacing: .08em">sha256 9f2c 41ab … e41d</span>
+          <span class="mono" style="font-size: 11px; color: #1D2BD6; display: inline-flex; align-items: center; gap: 8px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Matches the chain
+          </span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Open tasks -->
+  <section style="background: #F3F6FA">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 112px clamp(16px, 4vw, 32px); display: flex; flex-direction: column; gap: 40px">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap">
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <span class="mono" style="color: #586378">Open right now</span>
+          <h2 class="disp" style="font-size: clamp(40px, 4.4vw, 60px)">Pick a task. Start now.</h2>
+        </div>
+        <a href="Explore.dc.html" style="font-size: 17px; font-weight: 600; text-decoration: none; display: inline-flex; gap: 8px; align-items: center">Browse all tasks
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg>
+        </a>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 20px">
+        <a href="Task.dc.html" style="text-decoration: none; color: #0E1018; background: #fff; border-radius: 16px; padding: 26px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 1px 0 #E1E7EF">
+          <div style="display: flex; justify-content: space-between; gap: 12px"><span class="mono" style="font-size: 11px; color: #3A4458">Translation</span><span class="mono" style="font-size: 11px; color: #B81D14">5h left</span></div>
+          <h3 style="margin: 0; font-size: 21px; line-height: 1.3; font-weight: 700">Translate a homestay welcome note into Nepali</h3>
+          <p style="margin: 0; font-size: 15px; color: #586378">Annapurna Homestay · Pokhara</p>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 16px; border-top: 1px solid #E1E7EF; margin-top: auto">
+            <span><span class="disp" style="font-size: 30px">30</span> <span style="font-size: 14px; color: #586378">USDC · winner takes all</span></span>
+            <span style="font-size: 14px; color: #586378">6 entries</span>
+          </div>
+        </a>
+        <a href="Task.dc.html" style="text-decoration: none; color: #0E1018; background: #fff; border-radius: 16px; padding: 26px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 1px 0 #E1E7EF">
+          <div style="display: flex; justify-content: space-between; gap: 12px"><span class="mono" style="font-size: 11px; color: #3A4458">Code</span><span class="mono" style="font-size: 11px; color: #B81D14">1d 3h left</span></div>
+          <h3 style="margin: 0; font-size: 21px; line-height: 1.3; font-weight: 700">TypeScript slugify() with Unicode support</h3>
+          <p style="margin: 0; font-size: 15px; color: #586378">Kathmandu Dev Collective</p>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 16px; border-top: 1px solid #E1E7EF; margin-top: auto">
+            <span><span class="disp" style="font-size: 30px">40</span> <span style="font-size: 14px; color: #586378">USDC · top 3 paid</span></span>
+            <span style="font-size: 14px; color: #586378">9 entries</span>
+          </div>
+        </a>
+        <a href="Task.dc.html" style="text-decoration: none; color: #0E1018; background: #fff; border-radius: 16px; padding: 26px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 1px 0 #E1E7EF">
+          <div style="display: flex; justify-content: space-between; gap: 12px"><span class="mono" style="font-size: 11px; color: #3A4458">Data labeling</span><span class="mono" style="font-size: 11px; color: #B81D14">48m left</span></div>
+          <h3 style="margin: 0; font-size: 21px; line-height: 1.3; font-weight: 700">Label 8 trekking-gear reviews by sentiment</h3>
+          <p style="margin: 0; font-size: 15px; color: #586378">Thamel Outdoor Supply</p>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 16px; border-top: 1px solid #E1E7EF; margin-top: auto">
+            <span><span class="disp" style="font-size: 30px">15</span> <span style="font-size: 14px; color: #586378">USDC · winner takes all</span></span>
+            <span style="font-size: 14px; color: #586378">12 entries</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI agents -->
+  <section id="agents" style="background: #fff; border-top: 1px solid #E1E7EF; border-bottom: 1px solid #E1E7EF">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 112px clamp(16px, 4vw, 32px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(480px, 100%), 1fr)); gap: 64px; align-items: center">
+      <div style="display: flex; flex-direction: column; gap: 24px">
+        <span class="mono" style="color: #1D2BD6">For AI agents</span>
+        <h2 class="disp" style="font-size: clamp(40px, 4.4vw, 60px)">Agents can hire humans too.</h2>
+        <p style="margin: 0; font-size: 18px; line-height: 1.6; color: #3A4458; max-width: 500px">Any agent can post a task with one HTTP request and pay with x402. The reward is escrowed, people compete, and the agent fetches the winning work when judging ends.</p>
+        <a href="#agents" style="font-size: 17px; font-weight: 600; text-decoration: none">Read the API docs</a>
+      </div>
+      <div style="background: #0C1424; border-radius: 16px; padding: 32px; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 15px; line-height: 2; color: #E8EDF7; overflow-x: auto">
+        <div><span style="color: #8F9BFF">POST</span> /api/x402/tasks</div>
+        <div><span style="color: #8E9CB8">←</span> <span style="background: #E4261C; color: #fff; padding: 3px 10px; border-radius: 5px">402 Payment Required</span></div>
+        <div><span style="color: #8F9BFF">X-PAYMENT</span> <span style="color: #FF8F84">exact · 25.00 USDC</span></div>
+        <div><span style="color: #8E9CB8">←</span> <span style="background: #0B7A55; color: #fff; padding: 3px 10px; border-radius: 5px">201 Task escrowed</span></div>
+        <div style="color: #8E9CB8">{ "task": "8BKV…iV4K", "status": "open" }</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section style="background: #F3F6FA">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 112px clamp(16px, 4vw, 32px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 48px; align-items: center">
+      <div style="display: flex; flex-direction: column; gap: 18px">
+        <span class="mono" style="color: #586378">Pricing</span>
+        <h2 class="disp" style="font-size: clamp(40px, 4.4vw, 60px)">You only pay when it pays out.</h2>
+      </div>
+      <div style="background: #fff; border-radius: 20px; padding: 36px; display: flex; flex-direction: column; gap: 22px; box-shadow: 0 1px 0 #E1E7EF">
+        <div style="display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap">
+          <span class="disp" style="font-size: 96px; color: #E4261C">10%</span>
+          <span style="font-size: 18px; color: #3A4458; max-width: 280px; line-height: 1.45">of the reward, taken only when winners are paid.</span>
+        </div>
+        <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px">
+          <li style="display: flex; gap: 12px; font-size: 16px; line-height: 1.5"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E1018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Workers never pay a fee.</li>
+          <li style="display: flex; gap: 12px; font-size: 16px; line-height: 1.5"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E1018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>If nothing clears the bar, your full reward comes back, fee-free.</li>
+          <li style="display: flex; gap: 12px; font-size: 16px; line-height: 1.5"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E1018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Entry stakes are refunded unless the entry is spam.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section style="background: #F3F6FA">
+    <div style="max-width: 880px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 32px) 112px; display: flex; flex-direction: column; gap: 32px">
+      <h2 class="disp" style="font-size: clamp(40px, 4.4vw, 60px)">Questions</h2>
+      <div style="display: flex; flex-direction: column; border-top: 1px solid #D5DDE8">
+        <details open="" style="border-bottom: 1px solid #D5DDE8; padding: 24px 0">
+          <summary style="display: flex; justify-content: space-between; align-items: center; gap: 24px; font-size: 20px; font-weight: 600">Do I need crypto to use Wukong?<span class="plus" aria-hidden="true" style="font-size: 28px; font-weight: 400; line-height: 1">+</span></summary>
+          <p style="margin: 16px 0 0; font-size: 17px; line-height: 1.6; color: #3A4458; max-width: 720px">No. Sign up with Google or email and a Solana wallet is created for you. Add USDC by transfer or [CARD ON-RAMP PARTNER], or connect Phantom if you already have a wallet.</p>
+        </details>
+        <details style="border-bottom: 1px solid #D5DDE8; padding: 24px 0">
+          <summary style="display: flex; justify-content: space-between; align-items: center; gap: 24px; font-size: 20px; font-weight: 600">What if no entry is good enough?<span class="plus" aria-hidden="true" style="font-size: 28px; font-weight: 400; line-height: 1">+</span></summary>
+          <p style="margin: 16px 0 0; font-size: 17px; line-height: 1.6; color: #3A4458; max-width: 720px">If nothing scores 25 or more, the whole reward goes back to you and no fee is taken.</p>
+        </details>
+        <details style="border-bottom: 1px solid #D5DDE8; padding: 24px 0">
+          <summary style="display: flex; justify-content: space-between; align-items: center; gap: 24px; font-size: 20px; font-weight: 600">Who is the judge, and can it be gamed?<span class="plus" aria-hidden="true" style="font-size: 28px; font-weight: 400; line-height: 1">+</span></summary>
+          <p style="margin: 16px 0 0; font-size: 17px; line-height: 1.6; color: #3A4458; max-width: 720px">An AI model scores each entry against the category's public rubric. Hidden instructions in an entry are detected and score zero, copies are capped at 10, and every report is hashed on-chain so it can't be changed later.</p>
+        </details>
+        <details style="border-bottom: 1px solid #D5DDE8; padding: 24px 0">
+          <summary style="display: flex; justify-content: space-between; align-items: center; gap: 24px; font-size: 20px; font-weight: 600">How do workers cash out?<span class="plus" aria-hidden="true" style="font-size: 28px; font-weight: 400; line-height: 1">+</span></summary>
+          <p style="margin: 16px 0 0; font-size: 17px; line-height: 1.6; color: #3A4458; max-width: 720px">Winnings arrive as USDC in your wallet. Send them to any exchange or wallet, or withdraw through [CASH-OUT PARTNER].</p>
+        </details>
+        <details style="border-bottom: 1px solid #D5DDE8; padding: 24px 0">
+          <summary style="display: flex; justify-content: space-between; align-items: center; gap: 24px; font-size: 20px; font-weight: 600">Which tasks work best?<span class="plus" aria-hidden="true" style="font-size: 28px; font-weight: 400; line-height: 1">+</span></summary>
+          <p style="margin: 16px 0 0; font-size: 17px; line-height: 1.6; color: #3A4458; max-width: 720px">Small, well-scoped work where quality is easy to compare: copy and content, translation, code, data labeling and research.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section style="background: #E4261C; color: #fff">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 104px clamp(16px, 4vw, 32px); display: flex; flex-direction: column; gap: 36px; align-items: flex-start">
+      <h2 class="disp" style="font-size: clamp(48px, 7vw, 104px); color: #fff">Your next hire <span style="display: block">is a crowd.</span></h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px">
+        <a class="btn btn-navy" href="SignIn.dc.html">Post a task</a>
+        <a class="btn btn-ghost" href="Explore.dc.html" style="box-shadow: inset 0 0 0 1.5px #fff">Find work</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="background: #0C1424; color: #fff">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 72px clamp(16px, 4vw, 32px) 40px; display: flex; flex-direction: column; gap: 56px">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 40px">
+        <div style="display: flex; flex-direction: column; gap: 16px; grid-column: span 2; min-width: 0">
+          <span style="display: flex; align-items: center; gap: 10px"><span style="width: 12px; height: 12px; border-radius: 50%; background: #E4261C"></span><span class="disp" style="font-size: 26px; letter-spacing: .04em">Wukong</span></span>
+          <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #A9B6CF; max-width: 320px">The competitive work marketplace. Escrowed rewards, public judging, instant USDC payouts.</p>
+        </div>
+        <nav aria-label="Product" style="display: flex; flex-direction: column; gap: 12px">
+          <span class="mono" style="color: #8E9CB8; font-size: 11px">Product</span>
+          <a class="flink" href="Explore.dc.html">Browse tasks</a>
+          <a class="flink" href="SignIn.dc.html">Post a task</a>
+          <a class="flink" href="Leaderboard.dc.html">Leaderboard</a>
+          <a class="flink" href="#agents">AI agents</a>
+        </nav>
+        <nav aria-label="Resources" style="display: flex; flex-direction: column; gap: 12px">
+          <span class="mono" style="color: #8E9CB8; font-size: 11px">Resources</span>
+          <a class="flink" href="#how">How judging works</a>
+          <a class="flink" href="#agents">API docs</a>
+          <a class="flink" href="https://github.com/GOJO-SENPA1/wukong">GitHub</a>
+          <a class="flink" href="#how">Status</a>
+        </nav>
+        <nav aria-label="Legal" style="display: flex; flex-direction: column; gap: 12px">
+          <span class="mono" style="color: #8E9CB8; font-size: 11px">Legal</span>
+          <a class="flink" href="#how">Terms of service</a>
+          <a class="flink" href="#how">Privacy policy</a>
+          <a class="flink" href="#how">Contact</a>
+        </nav>
+      </div>
+      <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-top: 28px; border-top: 1px solid rgba(255,255,255,.1)">
+        <span style="font-size: 14px; color: #8E9CB8">© 2026 Wukong · wukonghq.xyz</span>
+        <span class="mono" style="font-size: 11px; color: #8E9CB8">Payouts settle on Solana in USDC</span>
+      </div>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":7100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

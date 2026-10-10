@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sign in to Wukong</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Instrument+Sans:wght@400;500;600;700&amp;family=Instrument+Serif:ital@0;1&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F3F6FA}
+.wk{font-family:'Instrument Sans',"Helvetica Neue",Arial,sans-serif;color:#0E1018;-webkit-font-smoothing:antialiased}
+.disp{font-family:Anton,Impact,"Arial Narrow",sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.005em;line-height:.94;margin:0}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.18em;font-size:12px;font-weight:500}
+.serif{font-family:'Instrument Serif',Georgia,serif;font-style:italic;font-weight:400}
+.btn{display:flex;align-items:center;justify-content:center;gap:12px;min-height:52px;padding:0 20px;border-radius:10px;font:600 16px/1 'Instrument Sans',sans-serif;text-decoration:none;border:0;cursor:pointer;width:100%;box-sizing:border-box}
+.btn-red{background:#E4261C;color:#fff}.btn-red:hover{background:#C91F16;color:#fff}
+.btn-line{background:#fff;color:#0E1018;box-shadow:inset 0 0 0 1.5px #CBD5E3}.btn-line:hover{box-shadow:inset 0 0 0 1.5px #0E1018;color:#0E1018}
+.field{width:100%;box-sizing:border-box;min-height:52px;padding:0 16px;border-radius:10px;border:1.5px solid #CBD5E3;font:500 16px 'Instrument Sans',sans-serif;color:#0E1018;background:#fff}
+.field:focus{outline:none;border-color:#2B3CFF;box-shadow:0 0 0 3px rgba(43,60,255,.18)}
+a{color:#1D2BD6}a:hover{color:#121C9E}
+</style>
+</helmet>
+<div class="wk" style="min-height: 940px; display: flex; flex-wrap: wrap; background: #F3F6FA">
+
+  <!-- Brand panel -->
+  <aside style="flex: 1 1 520px; min-width: 0; background: #0C1424; color: #fff; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; gap: 48px; padding: clamp(28px, 5vw, 64px)">
+    <div aria-hidden="true" style="position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 64px 64px"></div>
+    <a href="Main.dc.html" aria-label="Wukong home" style="position: relative; display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff">
+      <span style="width: 14px; height: 14px; border-radius: 50%; background: #E4261C"></span>
+      <span class="disp" style="font-size: 28px; letter-spacing: .04em">Wukong</span>
+    </a>
+    <div style="position: relative; display: flex; flex-direction: column; gap: 28px; max-width: 520px">
+      <h2 class="disp" style="font-size: clamp(52px, 6vw, 92px)">The best work <span style="color: #E4261C">wins.</span></h2>
+      <p class="serif" style="margin: 0; font-size: 28px; line-height: 1.3; color: #DCE3F0">One account to post tasks and to compete on them.</p>
+      <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px">
+        <li style="display: flex; gap: 14px; align-items: center; font-size: 17px; color: #C9D3E6"><span class="mono" style="color: #FF7A6E; width: 28px">01</span>Every reward locked in USDC escrow</li>
+        <li style="display: flex; gap: 14px; align-items: center; font-size: 17px; color: #C9D3E6"><span class="mono" style="color: #FF7A6E; width: 28px">02</span>Every entry judged in public</li>
+        <li style="display: flex; gap: 14px; align-items: center; font-size: 17px; color: #C9D3E6"><span class="mono" style="color: #FF7A6E; width: 28px">03</span>Winners paid in one transaction</li>
+      </ul>
+    </div>
+    <span class="mono" style="position: relative; color: #8E9CB8; font-size: 11px">wukonghq.xyz · Settles on Solana</span>
+  </aside>
+
+  <!-- Form panel -->
+  <main style="flex: 1 1 520px; min-width: 0; display: flex; align-items: center; justify-content: center; padding: clamp(28px, 5vw, 64px) clamp(16px, 4vw, 32px)">
+    <div style="width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 28px">
+
+      <sc-if value="{{ atStart }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 28px">
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <h1 style="margin: 0; font-size: 34px; line-height: 1.15; font-weight: 700; letter-spacing: -.01em">Sign in or create an account</h1>
+            <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #586378">New here? The same steps create your account. No crypto needed.</p>
+          </div>
+
+          <a class="btn btn-line" href="Onboarding.dc.html">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="#0E1018" stroke-width="1.6"></circle><path d="M16.5 11.2h-4.3v2h2.5c-.3 1.3-1.3 2.1-2.7 2.1a3.3 3.3 0 1 1 0-6.6c.8 0 1.5.3 2 .8l1.4-1.4A5.3 5.3 0 1 0 12 17.3c3 0 4.6-2.1 4.6-5 0-.4 0-.7-.1-1.1z" fill="#0E1018"></path></svg>
+            Continue with Google
+          </a>
+
+          <div style="display: flex; align-items: center; gap: 14px"><span style="flex: 1; height: 1px; background: #D5DDE8"></span><span class="mono" style="font-size: 11px; color: #586378">or with email</span><span style="flex: 1; height: 1px; background: #D5DDE8"></span></div>
+
+          <form onSubmit="{{ sendCode }}" style="display: flex; flex-direction: column; gap: 12px">
+            <label for="email" style="font-size: 14px; font-weight: 600">Email</label>
+            <input class="field" id="email" type="email" autocomplete="email" placeholder="you@company.com" value="{{ email }}" onChange="{{ setEmail }}">
+            <button class="btn btn-red" type="submit">Email me a sign-in code</button>
+          </form>
+
+          <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 4px">
+            <div style="display: flex; align-items: center; gap: 14px"><span style="flex: 1; height: 1px; background: #D5DDE8"></span><span class="mono" style="font-size: 11px; color: #586378">Already have a wallet?</span><span style="flex: 1; height: 1px; background: #D5DDE8"></span></div>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+              <a class="btn btn-line" href="Onboarding.dc.html" style="font-size: 15px; padding: 0 10px; gap: 8px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"></rect><path d="M16 12.5h2"></path><path d="M3 9h15a3 3 0 0 0 0-3"></path></svg>Phantom
+              </a>
+              <a class="btn btn-line" href="Onboarding.dc.html" style="font-size: 15px; padding: 0 10px; gap: 8px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"></rect><path d="M16 12.5h2"></path><path d="M3 9h15a3 3 0 0 0 0-3"></path></svg>Solflare
+              </a>
+              <a class="btn btn-line" href="Onboarding.dc.html" style="font-size: 15px; padding: 0 10px; gap: 8px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"></rect><path d="M16 12.5h2"></path><path d="M3 9h15a3 3 0 0 0 0-3"></path></svg>Backpack
+              </a>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ atCode }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 28px">
+          <button type="button" onClick="{{ back }}" style="align-self: flex-start; display: inline-flex; gap: 8px; align-items: center; background: none; border: 0; padding: 8px 0; font: 600 15px 'Instrument Sans', sans-serif; color: #1D2BD6; cursor: pointer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="M11 6l-6 6 6 6"></path></svg>Use another method
+          </button>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <h1 style="margin: 0; font-size: 34px; line-height: 1.15; font-weight: 700; letter-spacing: -.01em">Check your email</h1>
+            <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #586378">We sent a 6-digit code to <strong style="color: #0E1018">{{ shownEmail }}</strong>. It expires in 10 minutes.</p>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <label for="code" style="font-size: 14px; font-weight: 600">Sign-in code</label>
+            <input class="field" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 26px; letter-spacing: .5em; text-align: center; min-height: 64px">
+          </div>
+          <a class="btn btn-red" href="Onboarding.dc.html">Continue</a>
+          <p style="margin: 0; font-size: 15px; color: #586378">Didn't get it? <a href="SignIn.dc.html" style="font-weight: 600">Send a new code</a></p>
+        </div>
+      </sc-if>
+
+      <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #586378">By continuing you agree to the <a href="#terms">Terms of Service</a> and <a href="#privacy">Privacy Policy</a>. Signing up with Google or email creates a self-custodial Solana wallet secured by your sign-in. You can export its key at any time.</p>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":940}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 'start', email: '' };
+  }
+  renderVals() {
+    const step = this.state.step;
+    return {
+      atStart: step === 'start',
+      atCode: step === 'code',
+      email: this.state.email,
+      shownEmail: this.state.email || 'you@company.com',
+      setEmail: (e) => this.setState({ email: e.target.value }),
+      sendCode: (e) => { e.preventDefault(); this.setState({ step: 'code' }); },
+      back: () => this.setState({ step: 'start' }),
+    };
+  }
+}
+</script>
+</body>
+</html>
