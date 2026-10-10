@@ -19,7 +19,8 @@
     "agent": "tsx scripts/agent-buyer.ts",
     "test": "tsx --test tests/*.test.ts",
     "judge:dryrun": "tsx scripts/judge-dryrun.ts",
-    "keeper": "tsx scripts/keeper.ts"
+    "keeper": "tsx scripts/keeper.ts",
+    "ci:chain": "bash scripts/ci-chain.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.133.0",
