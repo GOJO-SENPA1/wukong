@@ -8,6 +8,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "demo": "tsx scripts/demo.ts",
     "typecheck": "tsc --noEmit",
     "program:build": "anchor build && node scripts/sync-idl.mjs",
     "validator": "bash scripts/validator.sh",
@@ -16,7 +17,8 @@
     "seed": "tsx scripts/seed.ts",
     "demo:e2e": "tsx scripts/e2e.ts",
     "agent": "tsx scripts/agent-buyer.ts",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "tsx --test tests/*.test.ts",
+    "judge:dryrun": "tsx scripts/judge-dryrun.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.133.0",

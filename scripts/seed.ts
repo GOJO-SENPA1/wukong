@@ -19,7 +19,7 @@ async function postTask(t: TaskTemplate): Promise<string> {
   await fund(creator.publicKey.toBase58(), { sol: 2, usdc: t.rewardUsdc * 3, minSol: 0.5 });
   store.setName(creator.publicKey.toBase58(), t.creatorName);
   const hash = sha256Hex(t.brief);
-  store.putBrief({
+  if (!store.brief(hash)) store.putBrief({
     hash,
     title: t.title,
     category: t.category,
@@ -41,6 +41,7 @@ async function postTask(t: TaskTemplate): Promise<string> {
     maxSubmissions: 32,
   });
   const sig = await sendIxs(connection(), keypairSigner(creator), ixs);
+  store.setTaskMeta(task.toBase58(), { origin: "seed", creatorName: t.creatorName, template: t.id });
   store.addTx(task.toBase58(), { sig, kind: "create", label: `Task posted, ${t.rewardUsdc} USDC locked`, at: Date.now() });
   console.log(`  📌 ${t.title} → ${task.toBase58()}`);
   return task.toBase58();

@@ -1,0 +1,169 @@
+@import "tailwindcss" source("..");
+
+@theme {
+  --color-ink: #0b0a08;
+  --color-panel: #14120e;
+  --color-panel-2: #1b1813;
+  --color-line: #2b2720;
+  --color-line-2: #3a342a;
+  --color-text: #f6f1e7;
+  --color-muted: #a59c8c;
+  --color-faint: #6f675a;
+  --color-gold: #f5b83d;
+  --color-gold-2: #ffd77a;
+  --color-ember: #ff6b3d;
+  --color-jade: #3ecf8e;
+  --color-crimson: #ef4d5a;
+  --color-violet: #a78bfa;
+  --color-sky: #5ab0ff;
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --animate-rise: rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-pulse-gold: pulse-gold 1.6s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes pulse-gold {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgb(245 184 61 / 0.45);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgb(245 184 61 / 0);
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: -200% 0;
+    }
+    to {
+      background-position: 200% 0;
+    }
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-ink);
+  color: var(--color-text);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(1200px 600px at 85% -10%, rgb(245 184 61 / 0.09), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgb(239 77 90 / 0.06), transparent 60%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgb(245 184 61 / 0.35);
+}
+
+.card {
+  background: linear-gradient(180deg, var(--color-panel-2), var(--color-panel));
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition:
+    transform 0.12s ease,
+    background 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
+  white-space: nowrap;
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn-gold {
+  background: linear-gradient(180deg, var(--color-gold-2), var(--color-gold));
+  color: #1b1405;
+  box-shadow: 0 8px 30px -10px rgb(245 184 61 / 0.6);
+}
+.btn-gold:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+.btn-ghost {
+  border: 1px solid var(--color-line-2);
+  background: rgb(255 255 255 / 0.02);
+  color: var(--color-text);
+}
+.btn-ghost:hover:not(:disabled) {
+  border-color: var(--color-gold);
+}
+.btn-violet {
+  background: linear-gradient(180deg, #c4b2ff, var(--color-violet));
+  color: #150b33;
+  box-shadow: 0 8px 30px -10px rgb(167 139 250 / 0.6);
+}
+
+.input {
+  width: 100%;
+  background: var(--color-ink);
+  border: 1px solid var(--color-line-2);
+  border-radius: 12px;
+  padding: 0.65rem 0.8rem;
+  color: var(--color-text);
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.input:focus {
+  border-color: var(--color-gold);
+}
+
+.label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgb(167 139 250 / 0.18), transparent);
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+/* Wallet adapter button, restyled to match */
+.wallet-adapter-button {
+  height: 36px !important;
+  border-radius: 10px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.85rem !important;
+  background: rgb(255 255 255 / 0.04) !important;
+  border: 1px solid var(--color-line-2) !important;
+  padding: 0 0.8rem !important;
+}

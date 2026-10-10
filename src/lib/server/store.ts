@@ -34,6 +34,14 @@ export interface ReportRecord {
   txSig?: string;
 }
 
+/** Who/what posted a specific task. Briefs are keyed by hash and can be shared. */
+export interface TaskMeta {
+  origin: BriefRecord["origin"];
+  creatorName?: string;
+  agent?: BriefRecord["agent"];
+  template?: string;
+}
+
 export interface TxRecord {
   sig: string;
   kind: "create" | "submit" | "close" | "score" | "settle" | "cancel" | "x402";
@@ -46,11 +54,12 @@ interface StoreShape {
   submissions: Record<string, SubmissionRecord>;
   reports: Record<string, ReportRecord>;
   taskTxs: Record<string, TxRecord[]>;
+  taskMeta: Record<string, TaskMeta>;
   names: Record<string, string>;
 }
 
 const FILE = path.join(DATA_DIR, "store.json");
-const empty = (): StoreShape => ({ briefs: {}, submissions: {}, reports: {}, taskTxs: {}, names: {} });
+const empty = (): StoreShape => ({ briefs: {}, submissions: {}, reports: {}, taskTxs: {}, taskMeta: {}, names: {} });
 
 let cache: StoreShape | null = null;
 let cacheMtime = 0;
@@ -88,6 +97,13 @@ export const store = {
   putBrief(rec: BriefRecord) {
     mutate((s) => {
       s.briefs[rec.hash] = { ...s.briefs[rec.hash], ...rec };
+    });
+  },
+
+  taskMeta: (task: string): TaskMeta | undefined => load().taskMeta[task],
+  setTaskMeta(task: string, meta: TaskMeta) {
+    mutate((s) => {
+      s.taskMeta[task] = meta;
     });
   },
 
