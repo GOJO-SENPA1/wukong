@@ -1,0 +1,19 @@
+{
+  "name": "wukong-film",
+  "private": true,
+  "description": "Motion-graphics film for Wukong: a deterministic HTML timeline rendered frame by frame, with a synthesized voiceover and soundtrack",
+  "type": "module",
+  "scripts": {
+    "stills": "node render.mjs --stills 2.6,6.8,11.9,15.6,20.5,23.5,26.6,29.9,31.3,35.3,37.2,40.9,46.9,51.7,57.8",
+    "stills:reel": "node render.mjs --mode reel --stills 2.8,12.6,31.3,57.8",
+    "cues": "node render.mjs --cues",
+    "audio": "python3 audio.py",
+    "render:film": "node render.mjs --mode film",
+    "render:reel": "node render.mjs --mode reel",
+    "mux": "sh mux.sh",
+    "build": "npm run cues && npm run audio && npm run render:film && npm run render:reel && npm run mux"
+  },
+  "dependencies": {
+    "playwright-core": "1.56.1"
+  }
+}
