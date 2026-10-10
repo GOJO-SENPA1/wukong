@@ -22,7 +22,7 @@ Wukong uses Supabase as its Postgres database: user accounts, profiles, notifica
 2. **Run Vercel's functions in the same region:** Vercel → Settings → **Functions** → Function Region → **Mumbai (bom1)**. The app and the database then sit next to each other.
 3. **Connection strings:** in Supabase click **Connect** (top of the project page) and copy two of them, replacing `[YOUR-PASSWORD]`:
    - **Transaction pooler** (port `6543`) → `DATABASE_URL`. The app uses this one; it suits serverless functions.
-   - **Direct connection** or **Session pooler** (port `5432`) → `DIRECT_URL`. Used only to run database migrations.
+   - **Session pooler** (host `*.pooler.supabase.com`, port `5432`) → `DIRECT_URL`. Used only by the build, to apply the schema. Don't use the **Direct connection** (`db.<ref>.supabase.co`): it's IPv6-only and Vercel's build machines can't reach it. If `DIRECT_URL` is still the direct host, the build switches to the session pooler on its own.
 4. **API keys** (only needed if the code uses `supabase-js`, e.g. for file storage later): Project Settings → **API Keys** → the project URL as `NEXT_PUBLIC_SUPABASE_URL`, and the **secret** key (older dashboards call it `service_role`) as `SUPABASE_SECRET_KEY`. The secret key bypasses all security rules: server only, never `NEXT_PUBLIC_`.
 
 Alternatively, Vercel → **Storage → Supabase** can connect a Supabase project and fill in these variables for you.
@@ -68,7 +68,7 @@ Add these in Vercel (Production, plus Preview if you use preview deploys). Copy 
 | `NEXT_PUBLIC_PRIVY_APP_ID` | Privy → App ID | yes |
 | `PRIVY_APP_SECRET` | Privy → App secret | **no** |
 | `DATABASE_URL` | Supabase → Connect → Transaction pooler (6543) | **no** |
-| `DIRECT_URL` | Supabase → Connect → Direct / Session (5432) | **no** |
+| `DIRECT_URL` | Supabase → Connect → Session pooler (5432) | **no** |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → API Keys (only if supabase-js is used) | yes |
 | `SUPABASE_SECRET_KEY` | Supabase → API Keys → secret (only if supabase-js is used) | **no** |
 | `RESEND_API_KEY` | Resend → API Keys | **no** |

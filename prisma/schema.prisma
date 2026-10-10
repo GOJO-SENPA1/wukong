@@ -5,8 +5,9 @@
 // for money.
 //
 // On Supabase: DATABASE_URL is the transaction pooler (port 6543) used at
-// runtime, DIRECT_URL is the direct/session connection (port 5432) used for
-// schema changes. `npm run build` applies this schema and prisma/rls.sql (row
+// runtime, DIRECT_URL is the session pooler (port 5432) used for schema
+// changes. The direct db.<ref>.supabase.co host is IPv6-only, out of reach of
+// Vercel builds; scripts/db-sync.mjs falls back to the session pooler. `npm run build` applies this schema and prisma/rls.sql (row
 // level security on, no public access) when DIRECT_URL is set. See docs/LAUNCH.md.
 
 generator client {
