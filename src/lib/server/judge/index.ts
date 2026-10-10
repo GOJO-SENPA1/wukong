@@ -15,10 +15,13 @@ import {
   fetchTask,
   keypairSigner,
   sendIxs,
+  stakeRefunded,
   type SubmissionView,
   type TaskView,
 } from "../../wukong";
-import { DEMO_MODE, connection, loadKey, program } from "../env";
+import fs from "node:fs";
+import path from "node:path";
+import { DATA_DIR, demoMode, connection, loadKey, program } from "../env";
 import { store } from "../store";
 import { claudeAvailable, JUDGE_MODEL, scoreWithClaude } from "./claude";
 import { integritySignals, type PriorEntry, type Signal } from "./detect";
@@ -27,8 +30,6 @@ import { finalizeScore } from "./score";
 import type { JudgeEvent, JudgeReport, ScoringOutput } from "./types";
 
 const CONCURRENCY = Number(process.env.WUKONG_JUDGE_CONCURRENCY ?? 8);
-/** Mirrors the program's SPAM_SCORE: stakes under this are slashed. */
-const SPAM_SCORE = 2000;
 const running = new Set<string>();
 
 export function judgeEngine(): { engine: "claude" | "heuristic"; model: string } {
@@ -86,8 +87,33 @@ interface Prepared {
   peers: string[];
 }
 
+const LOCK_TTL_MS = 10 * 60 * 1000;
+
+/**
+ * Cross-process lock (the keeper and the web server both run the judge):
+ * an exclusive lock file per task, considered stale after LOCK_TTL_MS.
+ */
+function acquireLock(taskKey: string): (() => void) | null {
+  const dir = path.join(DATA_DIR, "locks");
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, `${taskKey}.lock`);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      fs.writeFileSync(file, `${process.pid} ${Date.now()}`, { flag: "wx" });
+      return () => fs.rmSync(file, { force: true });
+    } catch {
+      const age = Date.now() - (fs.statSync(file, { throwIfNoEntry: false })?.mtimeMs ?? 0);
+      if (age < LOCK_TTL_MS) return null;
+      fs.rmSync(file, { force: true }); // stale: a crashed judge left it behind
+    }
+  }
+  return null;
+}
+
 async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
   if (running.has(taskKey)) throw new Error("The judge is already working on this task");
+  const release = acquireLock(taskKey);
+  if (!release) throw new Error("The judge is already working on this task (another process)");
   running.add(taskKey);
   try {
     const conn = connection();
@@ -112,7 +138,7 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
     const { engine, model } = judgeEngine();
     emit({ type: "start", task: taskKey, count: task.submissionCount, engine, model });
 
-    if (task.status === "open" && !DEMO_MODE && Date.now() / 1000 <= task.deadline) {
+    if (task.status === "open" && !demoMode() && Date.now() / 1000 <= task.deadline) {
       throw new Error("Submissions are still open: the creator closes them on-chain, or the deadline does");
     }
     if (task.status === "open") {
@@ -147,7 +173,7 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
         detail: ok ? `sha256 ${sub.contentHash.slice(0, 10)}… matches chain` : "content missing or hash mismatch",
       });
       const signals: Signal[] = ok
-        ? integritySignals(rec!.content, earlier, { headline: task.category === 0 })
+        ? integritySignals(rec!.content, earlier, { headline: task.category === 0, brief: briefText })
         : [{ flag: "content_missing", detail: "no content matching the on-chain hash" }];
       for (const s of signals) {
         emit({ type: "signal", submission: sub.pubkey, index: sub.index, flag: s.flag, detail: s.detail });
@@ -167,6 +193,8 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
       emit({ type: "scoring", submission: p.sub.pubkey, index: p.sub.index });
       const report = await scoreOne(task!, briefText, p, engine);
       const reportHash = sha256Hex(canonicalJson(report));
+      // Never replace a report whose hash is already on-chain.
+      if (store.report(p.sub.pubkey)?.txSig) return;
       store.putReport({ submission: p.sub.pubkey, hash: reportHash, report });
       emit({
         type: "scored",
@@ -204,7 +232,7 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
 
     // 3. Settlement. AI-final tasks settle immediately (anyone could crank it;
     //    the judge does it as a courtesy). Creator-picks tasks wait.
-    if (task.judgeMode === "creatorPicks") {
+    if (task.judgeMode === "creatorPicks" && task.podium.length > 0) {
       emit({ type: "awaiting_pick", podium: task.podium });
     } else {
       const config = (await fetchConfig(prog))!;
@@ -226,40 +254,30 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
     emit({ type: "done" });
   } finally {
     running.delete(taskKey);
+    release();
   }
 }
 
-/** Refund honest entrants' stakes and slash spammers', a few per transaction. */
+/**
+ * Refund honest entrants' stakes and slash spammers'. One claim per
+ * transaction so a single bad entry can't block anyone else's refund; a
+ * failed claim is logged and retried on the keeper's next pass.
+ */
 async function settleStakes(task: TaskView, emit: (e: JudgeEvent) => void) {
   const prog = program();
   const judgeKey = loadKey("judge");
-  const taskPk = new PublicKey(task.pubkey);
-  const subs = await fetchSubmissions(prog, taskPk);
+  const subs = await fetchSubmissions(prog, new PublicKey(task.pubkey));
   const config = (await fetchConfig(prog))!;
-  const groups = await buildClaimStakes(prog, judgeKey.publicKey, task, config, subs);
   const pending = subs.filter((s) => s.stake > 0 && !s.stakeSettled);
-  let i = 0;
-  for (const ixs of groups) {
-    const sig = await sendIxs(connection(), keypairSigner(judgeKey), ixs);
-    const batch = pending.slice(i, i + ixs.length - 1);
-    i += batch.length;
-    const slashed = batch.filter((s) => !(s.scored && s.score >= SPAM_SCORE)).length;
-    store.addTx(task.pubkey, {
-      sig,
-      kind: "settle",
-      label: `Stakes: ${batch.length - slashed} refunded, ${slashed} slashed`,
-      at: Date.now(),
-    });
-    for (const s of batch) {
-      emit({
-        type: "stake",
-        submission: s.pubkey,
-        index: s.index,
-        worker: s.worker,
-        amount: s.stake,
-        refunded: s.scored && s.score >= SPAM_SCORE,
-        sig,
-      });
+  for (const s of pending) {
+    try {
+      const [ixs] = await buildClaimStakes(prog, judgeKey.publicKey, task, config, [s]);
+      const sig = await sendIxs(connection(), keypairSigner(judgeKey), ixs);
+      const ok = stakeRefunded(s);
+      store.addTx(task.pubkey, { sig, kind: "settle", label: `Stake #${s.index + 1} ${ok ? "refunded" : "slashed"}`, at: Date.now() });
+      emit({ type: "stake", submission: s.pubkey, index: s.index, worker: s.worker, amount: s.stake, refunded: ok, sig });
+    } catch (err) {
+      emit({ type: "log", message: `Stake for #${s.index + 1} not settled yet: ${explainError(err)}` });
     }
   }
 }
