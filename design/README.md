@@ -19,11 +19,11 @@ The same language as the demo film in [`video/`](../video/).
 
 ## Profile picture
 
-The Monkey King mark for X and other social accounts: golden circlet, fiery golden eyes, a smirk. Everything sits inside the circle X crops to, and it still reads at 32px.
+The W mark for X and other social accounts: a sharp W with the jewel from the Monkey King's circlet above it, in the same red as the dot in the wordmark. Everything sits inside the circle X crops to, and it still reads at 32px.
 
-| Main (signal red) | Alternate (navy) |
+| Main (navy) | Alternate (signal red) |
 |---|---|
-| ![Profile picture, red](brand/wukong-pfp-400.png) | ![Profile picture, navy](brand/wukong-pfp-navy-400.png) |
+| ![Profile picture, navy](brand/wukong-pfp-400.png) | ![Profile picture, red](brand/wukong-pfp-red-400.png) |
 
 Upload [`brand/wukong-pfp.png`](brand/wukong-pfp.png) (1000×1000). The SVGs in [`brand/`](brand/) are the sources, and [`brand/x-preview.png`](brand/x-preview.png) shows both at X's display sizes in light and dark mode.
 

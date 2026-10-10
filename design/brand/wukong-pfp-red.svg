@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+  <defs><clipPath id="top"><rect y="335" width="1000" height="1000"/></clipPath></defs>
+  <rect width="1000" height="1000" fill="#E4261C"/>
+  <g transform="translate(500 498) scale(0.76) translate(-500 -500)">
+    <!-- W: one mitred stroke, flat-topped by the clip; the gem is the Monkey King's circlet jewel -->
+    <polyline points="209.5,228.5 385,690 500,470 615,690 790.5,228.5" fill="none" stroke="#fff" stroke-width="112" stroke-miterlimit="20" clip-path="url(#top)"/>
+    <path d="M500 179.1 L556.0 249.1 L500 319.1 L444.0 249.1 Z" fill="#fff"/>
+  </g>
+</svg>
