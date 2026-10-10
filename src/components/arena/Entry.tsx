@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, Lock, ShieldAlert, ShieldCheck } from "lucide-react";
 import { canonicalJson, sha256Hex } from "@/lib/hash";
 import { fmtUsdc, shortAddr, timeAgo } from "@/lib/format";
 import { stakeRefunded } from "@/lib/rules";
-import { Avatar, ExplorerLink, ScoreBar, ScoreNumber, Spinner, cx } from "../ui";
+import { Counter, Scramble } from "../fx/motion";
+import { PixelIcon } from "../fx/PixelIcon";
+import { Avatar, ExplorerLink, ScoreBar, cx } from "../ui";
 import type { JudgeFlag, LiveState, SubmissionDetail } from "./types";
 
 const FLAG_LABEL: Record<JudgeFlag, string> = {
@@ -22,7 +25,14 @@ const FLAG_LABEL: Record<JudgeFlag, string> = {
 };
 const SEVERE: JudgeFlag[] = ["prompt_injection", "duplicate", "plagiarism_suspected", "low_effort", "unsafe", "content_missing", "wrong_language"];
 
-const MEDALS = ["", "🥇", "🥈", "🥉"];
+const RANK_STYLE = [
+  "",
+  "bg-gold text-navy",
+  "bg-[#C9D1E0] text-navy",
+  "bg-[#E2A06E] text-navy",
+];
+const PLACE = ["", "1st", "2nd", "3rd"];
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function Entry({
   sub,
@@ -30,12 +40,15 @@ export function Entry({
   live,
   mine,
   rankHint,
+  code = false,
 }: {
   sub: SubmissionDetail;
   sealed: boolean;
   live: LiveState;
   mine: boolean;
   rankHint?: number;
+  /** render the content as code */
+  code?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [verified, setVerified] = useState<boolean | null>(null);
@@ -43,6 +56,7 @@ export function Entry({
   const scoring = live.scoring.has(sub.pubkey) && !sub.scored;
   const liveScore = live.scored.get(sub.pubkey);
   const score = sub.scored ? sub.score : liveScore;
+  const hasScore = score !== undefined && (sub.scored || liveScore !== undefined);
   const flags: JudgeFlag[] = report?.flags ?? live.signals.get(sub.pubkey)?.map((s) => s.flag) ?? [];
   const severe = flags.some((f) => SEVERE.includes(f));
   const rank = sub.rank || rankHint || 0;
@@ -54,172 +68,245 @@ export function Entry({
   }, [report, sub.scored, sub.reportHash]);
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ layout: { type: "spring", stiffness: 260, damping: 30 }, duration: 0.5, ease: EASE }}
       className={cx(
-        "card animate-rise overflow-hidden transition-colors",
-        rank === 1 && "border-gold/60 shadow-[0_0_40px_-12px_rgba(245,184,61,0.5)]",
-        severe && sub.scored && "border-crimson/40",
-        scoring && "border-violet/50",
+        "card relative overflow-hidden transition-[border-color,box-shadow] duration-500",
+        rank === 1 && "!border-navy shadow-[0_0_0_3px_rgb(245_184_61/0.55),0_30px_60px_-30px_rgb(245_184_61/0.8)]",
+        severe && sub.scored && "!border-red/40",
+        scoring && "!border-blue",
       )}
     >
-      {scoring && <div className="shimmer h-0.5 w-full" />}
-      <div className="flex items-start gap-3 p-4">
-        <Link href={`/workers/${sub.worker}`}>
-          <Avatar id={sub.worker} name={sub.workerName} size={36} />
+      {/* the judge's scan beam, sweeping across while this entry is scored */}
+      {scoring && (
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 w-40 bg-gradient-to-r from-transparent via-blue/15 to-blue/0"
+          initial={{ left: "-20%" }}
+          animate={{ left: "110%" }}
+          transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }}
+        />
+      )}
+      {/* a flash the moment a score lands */}
+      <AnimatePresence>
+        {liveScore !== undefined && !sub.scored && (
+          <motion.div
+            key="flash"
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-blue/10"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 1.2 }}
+          />
+        )}
+      </AnimatePresence>
+
+      <div className="relative flex items-start gap-4 p-5">
+        <Link href={`/workers/${sub.worker}`} className="relative shrink-0">
+          <Avatar id={sub.worker} name={sub.workerName} size={42} />
+          {rank > 0 && (
+            <motion.span
+              initial={{ scale: 0, rotate: -40 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 16 }}
+              className={cx("display absolute -bottom-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full text-[12px] ring-2 ring-white", RANK_STYLE[rank])}
+            >
+              {rank}
+            </motion.span>
+          )}
         </Link>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="font-mono text-xs text-faint">#{sub.index + 1}</span>
-            <Link href={`/workers/${sub.worker}`} className="truncate font-semibold hover:text-gold">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            <span className="font-mono text-[11px] text-faint">#{sub.index + 1}</span>
+            <Link href={`/workers/${sub.worker}`} className="truncate font-semibold transition-colors hover:text-red">
               {sub.workerName ?? shortAddr(sub.worker)}
             </Link>
-            {mine && <span className="rounded bg-gold/15 px-1.5 text-[10px] font-bold uppercase text-gold">you</span>}
-            {rank > 0 && <span className="text-lg leading-none">{MEDALS[rank]}</span>}
+            {mine && <span className="mono-label rounded bg-red px-1.5 py-0.5 !text-[9.5px] text-white">You</span>}
+            {rank > 0 && <span className="mono-label !text-[10px] text-navy">{PLACE[rank]} place</span>}
             <span className="text-xs text-faint">{timeAgo(sub.submittedAt)}</span>
           </div>
 
           {sealed && !mine ? (
-            <div className="mt-2 flex items-center gap-2 rounded-lg border border-dashed border-line-2 px-3 py-2 font-mono text-xs text-muted">
-              <Lock size={12} /> sealed until judging · sha256 {sub.contentHash.slice(0, 16)}…
+            <div className="mt-3 rounded-xl border border-dashed border-line-2 bg-paper/60 px-4 py-3">
+              <div className="flex flex-col gap-1.5" aria-hidden>
+                {[92, 78, 54].map((w, i) => (
+                  <span key={i} className="shimmer h-2.5 rounded-full bg-paper-2" style={{ width: `${w}%` }} />
+                ))}
+              </div>
+              <div className="mt-3 flex items-center gap-2 font-mono text-[11px] text-muted">
+                <Lock size={12} /> Sealed until judging · sha256 <Scramble text={sub.contentHash.slice(0, 16)} />…
+              </div>
             </div>
           ) : (
-            <pre className="mt-2 whitespace-pre-wrap break-words font-sans text-[15px] leading-relaxed text-text">
+            <motion.pre
+              initial={sealed ? false : { opacity: 0, filter: "blur(6px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
+              transition={{ duration: 0.6 }}
+              className={cx("mt-2 whitespace-pre-wrap break-words text-text", code ? "rounded-xl bg-paper p-4 font-mono text-[12.5px] leading-relaxed" : "font-sans text-[15px] leading-relaxed")}
+            >
               {sub.content ?? "(content unavailable)"}
-            </pre>
+            </motion.pre>
           )}
 
           {flags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {flags.map((f) => (
-                <span
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {flags.map((f, i) => (
+                <motion.span
                   key={f}
-                  className={cx(
-                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                    SEVERE.includes(f) ? "bg-crimson/15 text-crimson" : "bg-ember/15 text-ember",
-                  )}
+                  initial={{ scale: 0.6, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: i * 0.06, type: "spring", stiffness: 500, damping: 20 }}
+                  className={cx("mono-label inline-flex items-center gap-1 rounded-full px-2 py-1 !text-[9.5px]", SEVERE.includes(f) ? "bg-red/10 text-red" : "bg-ember/10 text-ember")}
                   title={live.signals.get(sub.pubkey)?.find((s) => s.flag === f)?.detail}
                 >
                   <ShieldAlert size={11} /> {FLAG_LABEL[f]}
-                </span>
+                </motion.span>
               ))}
             </div>
           )}
         </div>
 
-        <div className="flex w-20 shrink-0 flex-col items-end sm:w-24 gap-1.5">
+        <div className="flex w-24 shrink-0 flex-col items-end gap-2 sm:w-28">
           {scoring ? (
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet">
-              <Spinner /> judging
+            <span className="mono-label flex items-center gap-2 !text-[10px] text-blue">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inset-0 animate-ping rounded-full bg-blue" />
+                <span className="relative h-2 w-2 rounded-full bg-blue" />
+              </span>
+              Judging
             </span>
-          ) : score !== undefined && (sub.scored || liveScore !== undefined) ? (
+          ) : hasScore ? (
             <>
-              <ScoreNumber score={score} className={cx("text-3xl", severe ? "text-crimson" : rank === 1 ? "text-gold" : "text-text")} />
-              <ScoreBar score={score} tone={severe ? "crimson" : rank === 1 ? "gold" : "violet"} />
+              <div className={cx("display text-[44px] leading-none", severe ? "text-red" : rank === 1 ? "text-navy" : "text-navy")}>
+                <Counter value={score! / 100} decimals={1} duration={1.2} />
+              </div>
+              <ScoreBar score={score!} tone={severe ? "red" : rank === 1 ? "gold" : "blue"} />
             </>
           ) : (
-            <span className="text-xs text-faint">{sealed ? "awaiting close" : "queued"}</span>
+            <span className="mono-label !text-[10px] text-faint">{sealed ? "Awaiting close" : "Queued"}</span>
           )}
-          {sub.payout > 0 && <span className="text-sm font-bold text-jade">+{fmtUsdc(sub.payout, { decimals: 2 })} USDC</span>}
+          {rank === 1 && hasScore && <PixelIcon name="trophy" px={1.6} motion="bob" className="-mr-1" />}
+          <AnimatePresence>
+            {sub.payout > 0 && (
+              <motion.span
+                initial={{ scale: 0, rotate: -12 }}
+                animate={{ scale: 1, rotate: -4 }}
+                transition={{ type: "spring", stiffness: 420, damping: 14 }}
+                className="rounded-lg border-2 border-green px-2 py-0.5 font-mono text-[12px] font-bold text-green"
+              >
+                +{fmtUsdc(sub.payout, { decimals: 2 })} USDC
+              </motion.span>
+            )}
+          </AnimatePresence>
           {sub.stake > 0 && (
             <span
               className={cx(
-                "rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                !sub.stakeSettled
-                  ? "bg-violet/10 text-violet"
-                  : stakeRefunded(sub)
-                    ? "bg-white/5 text-muted"
-                    : "bg-crimson/15 text-crimson",
+                "mono-label rounded-full px-2 py-0.5 !text-[9px]",
+                !sub.stakeSettled ? "bg-blue/10 text-blue" : stakeRefunded(sub) ? "bg-paper-2 text-muted" : "bg-red/10 text-red",
               )}
             >
-              {!sub.stakeSettled
-                ? `${fmtUsdc(sub.stake)} staked`
-                : stakeRefunded(sub)
-                  ? "stake refunded"
-                  : `−${fmtUsdc(sub.stake)} slashed`}
+              {!sub.stakeSettled ? `${fmtUsdc(sub.stake)} staked` : stakeRefunded(sub) ? "Stake refunded" : `−${fmtUsdc(sub.stake)} slashed`}
             </span>
           )}
         </div>
       </div>
 
       {report && (
-        <div className="border-t border-line">
-          <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-muted hover:text-text">
-            <span className="flex-1 truncate">
-              <span className="font-semibold text-violet">Judge: </span>
-              {report.summary}
-            </span>
-            <ChevronDown size={16} className={cx("transition-transform", open && "rotate-180")} />
+        <div className="relative border-t border-line">
+          <button onClick={() => setOpen((o) => !o)} className="group flex w-full items-center gap-3 px-5 py-3 text-left text-[14px] text-muted transition-colors hover:bg-paper/60">
+            <span className="mono-label shrink-0 !text-[10px] text-blue">Judge</span>
+            <span className="serif-quote flex-1 truncate text-[16px] text-navy">“{report.summary}”</span>
+            <motion.span animate={{ rotate: open ? 180 : 0 }}>
+              <ChevronDown size={16} />
+            </motion.span>
           </button>
-          {open && (
-            <div className="grid gap-4 px-4 pb-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                {report.criteria.map((c) => (
-                  <div key={c.key}>
-                    <div className="flex justify-between text-xs">
-                      <span className="font-semibold">
-                        {c.label} <span className="text-faint">· {Math.round(c.weight * 100)}%</span>
-                      </span>
-                      <span className="tabular-nums">{c.score}</span>
+          <AnimatePresence initial={false}>
+            {open && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.45, ease: EASE }}
+                className="overflow-hidden"
+              >
+                <div className="grid gap-6 px-5 pb-5 pt-1 sm:grid-cols-2">
+                  <div className="flex flex-col gap-3.5">
+                    {report.criteria.map((c, i) => (
+                      <div key={c.key}>
+                        <div className="flex justify-between text-[13px]">
+                          <span className="font-semibold">
+                            {c.label} <span className="font-normal text-faint">{Math.round(c.weight * 100)}%</span>
+                          </span>
+                          <span className="font-mono font-semibold tabular-nums">{c.score}</span>
+                        </div>
+                        <ScoreBar score={c.score} max={100} tone="navy" className="mt-1.5" delay={i * 0.08} />
+                        <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{c.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex flex-col gap-4 text-[14px]">
+                    {report.strengths.length > 0 && (
+                      <div>
+                        <div className="mono-label mb-1.5 !text-[10px] text-green">Strengths</div>
+                        <ul className="list-inside list-disc space-y-1 text-muted">
+                          {report.strengths.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {report.improvements.length > 0 && (
+                      <div>
+                        <div className="mono-label mb-1.5 !text-[10px] text-ember">Coaching for next time</div>
+                        <ul className="list-inside list-disc space-y-1 text-muted">
+                          {report.improvements.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {report.signals.length > 0 && (
+                      <div>
+                        <div className="mono-label mb-1.5 !text-[10px] text-red">Integrity signals</div>
+                        <ul className="space-y-1 font-mono text-[12px] text-muted">
+                          {report.signals.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <div className="rounded-xl bg-navy p-3.5 font-mono text-[11px] leading-relaxed text-white/60">
+                      <div>
+                        weighted {report.rawScore.toFixed(2)} → final {report.finalScore.toFixed(2)} → on-chain {report.onchainScore}
+                      </div>
+                      <div>
+                        {report.engine} · {report.model} · rubric {report.rubric}
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-3">
+                        {verified ? (
+                          <span className="inline-flex items-center gap-1 text-[#5ee6a0]">
+                            <ShieldCheck size={12} /> Report sha256 matches the chain
+                          </span>
+                        ) : verified === false ? (
+                          <span className="text-red-2">Report hash mismatch!</span>
+                        ) : null}
+                        {sub.report?.txSig && (
+                          <ExplorerLink id={sub.report.txSig} className="!text-blue-2">
+                            score tx
+                          </ExplorerLink>
+                        )}
+                      </div>
                     </div>
-                    <ScoreBar score={c.score} max={100} tone="violet" />
-                    <p className="mt-0.5 text-xs text-muted">{c.comment}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-3 text-sm">
-                {report.strengths.length > 0 && (
-                  <div>
-                    <div className="label mb-1 text-jade">Strengths</div>
-                    <ul className="list-inside list-disc space-y-0.5 text-muted">
-                      {report.strengths.map((s, i) => (
-                        <li key={i}>{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {report.improvements.length > 0 && (
-                  <div>
-                    <div className="label mb-1 text-gold">Coaching for next round</div>
-                    <ul className="list-inside list-disc space-y-0.5 text-muted">
-                      {report.improvements.map((s, i) => (
-                        <li key={i}>{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {report.signals.length > 0 && (
-                  <div>
-                    <div className="label mb-1 text-crimson">Integrity signals</div>
-                    <ul className="space-y-0.5 font-mono text-xs text-muted">
-                      {report.signals.map((s, i) => (
-                        <li key={i}>{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                <div className="rounded-lg bg-ink p-2.5 font-mono text-[11px] leading-relaxed text-muted">
-                  <div>
-                    weighted {report.rawScore.toFixed(2)} → final {report.finalScore.toFixed(2)} → on-chain {report.onchainScore}
-                  </div>
-                  <div>
-                    {report.engine} · {report.model} · rubric {report.rubric}
-                  </div>
-                  <div className="mt-1 flex items-center gap-1.5">
-                    {verified ? (
-                      <span className="inline-flex items-center gap-1 text-jade">
-                        <ShieldCheck size={12} /> report sha256 matches chain
-                      </span>
-                    ) : verified === false ? (
-                      <span className="text-crimson">report hash mismatch!</span>
-                    ) : null}
-                    {sub.report?.txSig && <ExplorerLink id={sub.report.txSig}>score tx</ExplorerLink>}
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
