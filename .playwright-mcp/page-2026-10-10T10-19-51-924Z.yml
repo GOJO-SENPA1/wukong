@@ -1,0 +1,155 @@
+- generic [active] [ref=f38e1]:
+  - banner [ref=f38e2]:
+    - generic [ref=f38e3]:
+      - link "WUKONG" [ref=f38e4] [cursor=pointer]:
+        - /url: /
+        - generic [aria-hidden] [ref=f38e5]: 🐒
+      - navigation [ref=f38e7]:
+        - link "Arena" [ref=f38e8] [cursor=pointer]:
+          - /url: /tasks
+        - link "Post a task" [ref=f38e9] [cursor=pointer]:
+          - /url: /tasks/new
+        - link "Leaderboard" [ref=f38e10] [cursor=pointer]:
+          - /url: /leaderboard
+        - link "Agents · x402" [ref=f38e11] [cursor=pointer]:
+          - /url: /agents
+      - generic [ref=f38e12]:
+        - generic [ref=f38e35]: localnet
+        - 'generic "No ANTHROPIC_API_KEY: transparent offline heuristics" [ref=f38e37]': ⚖️ Offline judge
+        - button "Himalayan Java · Kathmandu" [ref=f38e14]:
+          - generic [aria-hidden] [ref=f38e15]: H
+  - main [ref=f38e19]:
+    - generic [ref=f38e20]:
+      - generic [ref=f38e21]:
+        - heading "Leaderboard" [level=1] [ref=f38e22]
+        - paragraph [ref=f38e23]: Ranked straight from on-chain reputation accounts. No hidden algorithm.
+      - generic [ref=f38e24]:
+        - generic [ref=f38e38]:
+          - generic [ref=f38e39]: "#"
+          - generic [ref=f38e40]: Worker
+          - generic [ref=f38e41]: Rating
+          - generic [ref=f38e42]: Wins
+          - generic [ref=f38e43]: Avg
+          - generic [ref=f38e44]: Earned
+        - link "🥇 Dawa · Namche 1 entry 145 1 95.0 13.50USDC" [ref=f38e45] [cursor=pointer]:
+          - /url: /workers/BgFrPWethsyW3DkRjYpDuuob2YWmV2cCmuJxgXn5nWUK
+          - generic [ref=f38e46]: 🥇
+          - generic [ref=f38e47]:
+            - generic [aria-hidden] [ref=f38e48]: D
+            - generic [ref=f38e49]:
+              - generic [ref=f38e50]: Dawa · Namche
+              - generic [ref=f38e51]: 1 entry
+          - generic [ref=f38e52]: "145"
+          - generic [ref=f38e54]: "1"
+          - generic [ref=f38e55]: "95.0"
+          - generic [ref=f38e56]: 13.50USDC
+        - link "🥈 Priya · Bengaluru 1 entry 144 1 94.0 18.00USDC" [ref=f38e57] [cursor=pointer]:
+          - /url: /workers/8PmaXZv39ESkncVHU469YGeG13oh54uxg3Qyix94yao5
+          - generic [ref=f38e58]: 🥈
+          - generic [ref=f38e59]:
+            - generic [aria-hidden] [ref=f38e60]: P
+            - generic [ref=f38e61]:
+              - generic [ref=f38e62]: Priya · Bengaluru
+              - generic [ref=f38e63]: 1 entry
+          - generic [ref=f38e64]: "144"
+          - generic [ref=f38e66]: "1"
+          - generic [ref=f38e67]: "94.0"
+          - generic [ref=f38e68]: 18.00USDC
+        - link "🥉 Mateo · Bogotá 1 entry 91 0 91.5 10.80USDC" [ref=f38e69] [cursor=pointer]:
+          - /url: /workers/7tfmRqj3f8ncwjHuWz57cpzpgsvVn7z88YkZgmL2JGRc
+          - generic [ref=f38e70]: 🥉
+          - generic [ref=f38e71]:
+            - generic [aria-hidden] [ref=f38e72]: M
+            - generic [ref=f38e73]:
+              - generic [ref=f38e74]: Mateo · Bogotá
+              - generic [ref=f38e75]: 1 entry
+          - generic [ref=f38e76]: "91"
+          - generic [ref=f38e78]: "0"
+          - generic [ref=f38e79]: "91.5"
+          - generic [ref=f38e80]: 10.80USDC
+        - link "4 Ifeoma · Enugu 1 entry 37 0 87.0 0.00USDC" [ref=f38e81] [cursor=pointer]:
+          - /url: /workers/39VLKMcayHo1FKaCvBsow2BifvKxDjCM57dWxTHheCuA
+          - generic [ref=f38e82]: "4"
+          - generic [ref=f38e83]:
+            - generic [aria-hidden] [ref=f38e84]: I
+            - generic [ref=f38e85]:
+              - generic [ref=f38e86]: Ifeoma · Enugu
+              - generic [ref=f38e87]: 1 entry
+          - generic [ref=f38e88]: "37"
+          - generic [ref=f38e90]: "0"
+          - generic [ref=f38e91]: "87.0"
+          - generic [ref=f38e92]: 0.00USDC
+        - link "5 Kofi · Accra 1 entry 36 0 61.5 7.20USDC" [ref=f38e93] [cursor=pointer]:
+          - /url: /workers/8c1m51a3w8pp4C3JJMSPYuLWFNoTdsq9V5KcwU43QRbE
+          - generic [ref=f38e94]: "5"
+          - generic [ref=f38e95]:
+            - generic [aria-hidden] [ref=f38e96]: K
+            - generic [ref=f38e97]:
+              - generic [ref=f38e98]: Kofi · Accra
+              - generic [ref=f38e99]: 1 entry
+          - generic [ref=f38e100]: "36"
+          - generic [ref=f38e102]: "0"
+          - generic [ref=f38e103]: "61.5"
+          - generic [ref=f38e104]: 7.20USDC
+        - link "6 Sita · Pokhara 1 entry 0 0 – 0.00USDC" [ref=f38e105] [cursor=pointer]:
+          - /url: /workers/EPX51FFwFL6SSqXgttrWCGf3j9YY6vek2AJibRHccYB9
+          - generic [ref=f38e106]: "6"
+          - generic [ref=f38e107]:
+            - generic [aria-hidden] [ref=f38e108]: S
+            - generic [ref=f38e109]:
+              - generic [ref=f38e110]: Sita · Pokhara
+              - generic [ref=f38e111]: 1 entry
+          - generic [ref=f38e112]: "0"
+          - generic [ref=f38e114]: "0"
+          - generic [ref=f38e115]: –
+          - generic [ref=f38e116]: 0.00USDC
+        - link "7 Anita · Lalitpur 1 entry 0 0 – 0.00USDC" [ref=f38e117] [cursor=pointer]:
+          - /url: /workers/97GoUHni7GiVupCiTMw3Y2HTvj9nF2upUrenRpoPYACp
+          - generic [ref=f38e118]: "7"
+          - generic [ref=f38e119]:
+            - generic [aria-hidden] [ref=f38e120]: A
+            - generic [ref=f38e121]:
+              - generic [ref=f38e122]: Anita · Lalitpur
+              - generic [ref=f38e123]: 1 entry
+          - generic [ref=f38e124]: "0"
+          - generic [ref=f38e126]: "0"
+          - generic [ref=f38e127]: –
+          - generic [ref=f38e128]: 0.00USDC
+        - link "8 Bikash · Biratnagar 1 entry 0 0 – 0.00USDC" [ref=f38e129] [cursor=pointer]:
+          - /url: /workers/H6tpBibFk8PrQcPuuvVejs6SHU2w9itw2GfEYucJwBHc
+          - generic [ref=f38e130]: "8"
+          - generic [ref=f38e131]:
+            - generic [aria-hidden] [ref=f38e132]: B
+            - generic [ref=f38e133]:
+              - generic [ref=f38e134]: Bikash · Biratnagar
+              - generic [ref=f38e135]: 1 entry
+          - generic [ref=f38e136]: "0"
+          - generic [ref=f38e138]: "0"
+          - generic [ref=f38e139]: –
+          - generic [ref=f38e140]: 0.00USDC
+        - link "9 Arjun · Chennai 1 entry 0 0 6.3 0.00USDC" [ref=f38e141] [cursor=pointer]:
+          - /url: /workers/6Ve6V7i8DyctEVV5YxikfEKVYFPtFsNXrTh49bgrX1F1
+          - generic [ref=f38e142]: "9"
+          - generic [ref=f38e143]:
+            - generic [aria-hidden] [ref=f38e144]: A
+            - generic [ref=f38e145]:
+              - generic [ref=f38e146]: Arjun · Chennai
+              - generic [ref=f38e147]: 1 entry
+          - generic [ref=f38e148]: "0"
+          - generic [ref=f38e150]: "0"
+          - generic [ref=f38e151]: "6.3"
+          - generic [ref=f38e152]: 0.00USDC
+        - link "10 Rohan · Delhi 1 entry 0 0 – 0.00USDC" [ref=f38e153] [cursor=pointer]:
+          - /url: /workers/C6ADJEn57GKCWcocqpAGcqcRKPzfbf8jW78XS6HFPeos
+          - generic [ref=f38e154]: "10"
+          - generic [ref=f38e155]:
+            - generic [aria-hidden] [ref=f38e156]: R
+            - generic [ref=f38e157]:
+              - generic [ref=f38e158]: Rohan · Delhi
+              - generic [ref=f38e159]: 1 entry
+          - generic [ref=f38e160]: "0"
+          - generic [ref=f38e162]: "0"
+          - generic [ref=f38e163]: –
+          - generic [ref=f38e164]: 0.00USDC
+  - button "Open Next.js Dev Tools" [ref=f38e31] [cursor=pointer]
+  - alert [ref=f38e165]

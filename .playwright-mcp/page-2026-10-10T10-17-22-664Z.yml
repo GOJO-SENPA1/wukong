@@ -1,0 +1,176 @@
+- generic [active] [ref=f33e1]:
+  - banner [ref=f33e2]:
+    - generic [ref=f33e3]:
+      - link "WUKONG" [ref=f33e4] [cursor=pointer]:
+        - /url: /
+        - generic [aria-hidden] [ref=f33e5]: 🐒
+      - button [ref=f33e9]:
+        - generic [aria-hidden] [ref=f33e10]: H
+    - navigation [ref=f33e13]:
+      - link "Arena" [ref=f33e14] [cursor=pointer]:
+        - /url: /tasks
+      - link "Post a task" [ref=f33e15] [cursor=pointer]:
+        - /url: /tasks/new
+      - link "Leaderboard" [ref=f33e16] [cursor=pointer]:
+        - /url: /leaderboard
+      - link "Agents · x402" [ref=f33e17] [cursor=pointer]:
+        - /url: /agents
+  - main [ref=f33e18]:
+    - generic [ref=f33e19]:
+      - generic [ref=f33e30]:
+        - generic [ref=f33e31]:
+          - generic [ref=f33e32]:
+            - generic [ref=f33e33]: Paid out
+            - generic [ref=f33e35]:
+              - generic [ref=f33e36]: 🏷️
+              - text: Data Labeling
+          - heading "Label 8 trekking-gear reviews by sentiment" [level=1] [ref=f33e37]
+          - generic [ref=f33e38]:
+            - generic [ref=f33e39]:
+              - generic [aria-hidden] [ref=f33e40]: T
+              - text: Thamel Outdoor Supply
+            - generic [ref=f33e41]: 3 entries
+            - generic [ref=f33e47]: Winner takes all
+            - generic [ref=f33e54]: AI score is final
+            - link "task account" [ref=f33e55] [cursor=pointer]:
+              - /url: https://explorer.solana.com/address/DERnEQ46QFREKKb11YHqoLqrYpj1dDJPfMN289We1RJS?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+        - generic [ref=f33e60]:
+          - generic [ref=f33e61]: Paid out
+          - generic [ref=f33e62]: 13.50USDC
+      - generic [ref=f33e63]:
+        - generic [ref=f33e64]:
+          - group [ref=f33e65]:
+            - generic "The brief sha256 578bf38d79… on-chain" [ref=f33e66] [cursor=pointer]:
+              - generic [ref=f33e67]: The brief
+              - generic [ref=f33e68]: sha256 578bf38d79… on-chain
+          - generic [ref=f33e72]:
+            - heading "Entries (3)" [level=2] [ref=f33e74]:
+              - text: Entries
+              - generic [ref=f33e75]: (3)
+            - generic [ref=f33e76]:
+              - generic [ref=f33e77]:
+                - generic [ref=f33e78]:
+                  - link [ref=f33e79] [cursor=pointer]:
+                    - /url: /workers/BgFrPWethsyW3DkRjYpDuuob2YWmV2cCmuJxgXn5nWUK
+                    - generic [aria-hidden] [ref=f33e80]: D
+                  - generic [ref=f33e81]:
+                    - generic [ref=f33e82]:
+                      - generic [ref=f33e83]: "#1"
+                      - link "Dawa · Namche" [ref=f33e84] [cursor=pointer]:
+                        - /url: /workers/BgFrPWethsyW3DkRjYpDuuob2YWmV2cCmuJxgXn5nWUK
+                      - generic [ref=f33e85]: 🥇
+                      - generic [ref=f33e86]: 2m ago
+                    - generic [ref=f33e87]: 1. POSITIVE 2. NEGATIVE 3. MIXED 4. POSITIVE 5. NEGATIVE 6. MIXED 7. POSITIVE 8. NEGATIVE
+                  - generic [ref=f33e88]:
+                    - generic [ref=f33e89]: "95.0"
+                    - generic [ref=f33e92]: +13.50 USDC
+                - 'button "Judge: Strong entry that tracks the brief closely." [ref=f33e94]'
+              - generic [ref=f33e98]:
+                - generic [ref=f33e99]:
+                  - link [ref=f33e100] [cursor=pointer]:
+                    - /url: /workers/39VLKMcayHo1FKaCvBsow2BifvKxDjCM57dWxTHheCuA
+                    - generic [aria-hidden] [ref=f33e101]: I
+                  - generic [ref=f33e102]:
+                    - generic [ref=f33e103]:
+                      - generic [ref=f33e104]: "#2"
+                      - link "Ifeoma · Enugu" [ref=f33e105] [cursor=pointer]:
+                        - /url: /workers/39VLKMcayHo1FKaCvBsow2BifvKxDjCM57dWxTHheCuA
+                      - generic [ref=f33e106]: 2m ago
+                    - generic [ref=f33e107]: 1. POSITIVE 2. NEGATIVE 3. NEGATIVE 4. POSITIVE 5. NEGATIVE 6. POSITIVE 7. POSITIVE 8. NEGATIVE
+                  - generic [ref=f33e108]: "87.0"
+                - 'button "Judge: Strong entry that tracks the brief closely." [ref=f33e113]'
+              - generic [ref=f33e117]:
+                - generic [ref=f33e118]:
+                  - link [ref=f33e119] [cursor=pointer]:
+                    - /url: /workers/6Ve6V7i8DyctEVV5YxikfEKVYFPtFsNXrTh49bgrX1F1
+                    - generic [aria-hidden] [ref=f33e120]: A
+                  - generic [ref=f33e121]:
+                    - generic [ref=f33e122]:
+                      - generic [ref=f33e123]: "#3"
+                      - link "Arjun · Chennai" [ref=f33e124] [cursor=pointer]:
+                        - /url: /workers/6Ve6V7i8DyctEVV5YxikfEKVYFPtFsNXrTh49bgrX1F1
+                      - generic [ref=f33e125]: 2m ago
+                    - generic [ref=f33e126]: positive, negative, mixed, positive, negative, mixed, positive
+                    - generic [ref=f33e127]: Breaks the brief
+                  - generic [ref=f33e131]: "6.3"
+                - 'button "Judge: Does not meet the brief." [ref=f33e136]'
+        - complementary [ref=f33e140]:
+          - generic [ref=f33e141]:
+            - generic [ref=f33e142]: Control room
+            - generic [ref=f33e144]:
+              - link "🥇 Dawa · Namche +13.50" [ref=f33e145] [cursor=pointer]:
+                - /url: /workers/BgFrPWethsyW3DkRjYpDuuob2YWmV2cCmuJxgXn5nWUK
+                - generic [ref=f33e146]: 🥇
+                - generic [ref=f33e147]: Dawa · Namche
+                - generic [ref=f33e148]: "+13.50"
+              - generic [ref=f33e149]:
+                - text: Released in one transaction ·
+                - link "4DXVZ…xVtNd" [ref=f33e150] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/4DXVZwjM32Asu8pnsH3qBSL3pQHDacmSYyLGky7GVrroujyBfyKJRX2w4PysNpasaQxZD9JPqpkiCwynxV2xVtNd?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+            - generic [ref=f33e155]:
+              - generic [ref=f33e156]:
+                - generic [ref=f33e157]: Worker pool
+                - generic [ref=f33e158]: 13.50 USDC
+              - generic [ref=f33e159]:
+                - generic [ref=f33e160]: Platform fee (10%)
+                - generic [ref=f33e161]: 1.50 USDC
+              - generic [ref=f33e162]:
+                - generic [ref=f33e163]: Escrow vault
+                - link "SBGDH…LMPSD" [ref=f33e164] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/address/SBGDHsuBzNp7uNnhBdktEWXt8aZySoF6TQ4XFwLMPSD?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+          - generic [ref=f33e169]:
+            - generic [ref=f33e170]: On-chain podium
+            - generic [ref=f33e171]:
+              - link "🥇 Dawa · Namche 95.0" [ref=f33e172] [cursor=pointer]:
+                - /url: /workers/BgFrPWethsyW3DkRjYpDuuob2YWmV2cCmuJxgXn5nWUK
+                - generic [ref=f33e173]: 🥇
+                - generic [aria-hidden] [ref=f33e174]: D
+                - generic [ref=f33e175]: Dawa · Namche
+                - generic [ref=f33e176]: "95.0"
+              - link "🥈 Ifeoma · Enugu 87.0" [ref=f33e177] [cursor=pointer]:
+                - /url: /workers/39VLKMcayHo1FKaCvBsow2BifvKxDjCM57dWxTHheCuA
+                - generic [ref=f33e178]: 🥈
+                - generic [aria-hidden] [ref=f33e179]: I
+                - generic [ref=f33e180]: Ifeoma · Enugu
+                - generic [ref=f33e181]: "87.0"
+          - generic [ref=f33e182]:
+            - generic [ref=f33e183]: On-chain activity
+            - list [ref=f33e184]:
+              - listitem [ref=f33e185]:
+                - generic [ref=f33e186]: Escrow released
+                - link "4DXVZ…xVtNd" [ref=f33e187] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/4DXVZwjM32Asu8pnsH3qBSL3pQHDacmSYyLGky7GVrroujyBfyKJRX2w4PysNpasaQxZD9JPqpkiCwynxV2xVtNd?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+              - listitem [ref=f33e192]:
+                - generic [ref=f33e193]: "Score #3: 6.3"
+                - link "5bywD…P4qY6" [ref=f33e194] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/5bywDZaDvbjUJbrqasKLstaTj9rT8NPxsLPkRqZbfCzn1BtTQLPzDEcGRvuw5wGeU32RkE2j9tdV6iRFtceP4qY6?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+              - listitem [ref=f33e199]:
+                - generic [ref=f33e200]: "Score #2: 87.0"
+                - link "2bUUe…3dJDj" [ref=f33e201] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/2bUUereazx5CFhYDgWfk6rsFS3N5kDv2F55dMShKw5jD1tkvHcscpRyHdwdZuQM7D5dmE7s4MoUbQ2PgqMH3dJDj?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+              - listitem [ref=f33e206]:
+                - generic [ref=f33e207]: "Score #1: 95.0"
+                - link "29ny4…B34wL" [ref=f33e208] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/29ny4XEAiZwmLYkPmNrcWPR4xeY6cMrKQF8nmZGF9MpF1UUFsSrrc8n72b2CmBrnSwDHcJpn492eF1Em2QnB34wL?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+              - listitem [ref=f33e213]:
+                - generic [ref=f33e214]: Submissions closed
+                - link "4ByZq…PqcD3" [ref=f33e215] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/4ByZqiYnFZyfvNNABqSNRUqYCLpz1mcsVMykv4NfWiFV3vmR3YpdHVfAwRxARbLJAbtzy7Gmu5RmmpLaMyPqcD3?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+              - listitem [ref=f33e220]:
+                - generic [ref=f33e221]: Arjun submitted
+                - link "3f1A1…2dHch" [ref=f33e222] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/3f1A1ASFFxP6Y5Zs8GhYLMVQEgjVNc8nSaazyBzTpPxbsxwLxihzuKonTHME9pvEXuSzQ6S99Ck4opcq7JX2dHch?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+              - listitem [ref=f33e227]:
+                - generic [ref=f33e228]: Ifeoma submitted
+                - link "TQtMB…tSZBo" [ref=f33e229] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/TQtMBLkQQ7zNg3rammnioXs2ebDTAeNcB6GvqeFvMdxD3AnJtgV87yapabt8Ctm77LFGV4DeGg9mtxiSHutSZBo?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+              - listitem [ref=f33e234]:
+                - generic [ref=f33e235]: Dawa submitted
+                - link "5GqLm…SJsbq" [ref=f33e236] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/5GqLm54A67eaCAPeHhctXWMPwXzkXc8xbHS6vMyHke4FGgWMZoEGFXNXD5U5dbjSqQbawizg98GhTscsWxiSJsbq?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+              - listitem [ref=f33e241]:
+                - generic [ref=f33e242]: Task posted, 15 USDC locked
+                - link "nPPvu…htdUh" [ref=f33e243] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/nPPvutH1dBGDZunATyMDaJ7q74j3oEQnSptdfdSTna6UECRsP84E4AwRWDMLZYnJZ2g8cHazHYNy1PRLHohtdUh?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+  - button "Open Next.js Dev Tools" [ref=f33e26] [cursor=pointer]
+  - alert [ref=f33e248]

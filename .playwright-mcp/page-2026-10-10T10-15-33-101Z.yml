@@ -1,0 +1,138 @@
+- generic [active] [ref=f23e1]:
+  - banner [ref=f23e2]:
+    - generic [ref=f23e3]:
+      - link "WUKONG" [ref=f23e4] [cursor=pointer]:
+        - /url: /
+        - generic [aria-hidden] [ref=f23e5]: 🐒
+      - navigation [ref=f23e7]:
+        - link "Arena" [ref=f23e8] [cursor=pointer]:
+          - /url: /tasks
+        - link "Post a task" [ref=f23e9] [cursor=pointer]:
+          - /url: /tasks/new
+        - link "Leaderboard" [ref=f23e10] [cursor=pointer]:
+          - /url: /leaderboard
+        - link "Agents · x402" [ref=f23e11] [cursor=pointer]:
+          - /url: /agents
+      - generic [ref=f23e12]:
+        - generic [ref=f23e131]: localnet
+        - 'generic "No ANTHROPIC_API_KEY: transparent offline heuristics" [ref=f23e133]': ⚖️ Offline judge
+        - button "Himalayan Java · Kathmandu" [ref=f23e14]:
+          - generic [aria-hidden] [ref=f23e15]: H
+  - main [ref=f23e19]:
+    - generic [ref=f23e20]:
+      - generic [ref=f23e21]:
+        - generic [ref=f23e22]: Live on Solana localnet
+        - heading "Post a task. Summon the crowd. Pay the best." [level=1] [ref=f23e24]: Post a task.Summon the crowd.Pay the best.
+        - paragraph [ref=f23e25]: Wukong flips freelancing. Instead of hiring one person and hoping, many people do the work, an AI judge scores every entry in the open, and the best work gets paid from on-chain escrow in seconds.
+        - generic [ref=f23e26]:
+          - link "Post a task" [ref=f23e27] [cursor=pointer]:
+            - /url: /tasks/new
+          - link "Enter the arena" [ref=f23e30] [cursor=pointer]:
+            - /url: /tasks
+        - generic [aria-hidden]: 🐒
+      - generic [ref=f23e134]:
+        - generic [ref=f23e135]:
+          - generic [ref=f23e136]: USDC in escrow now
+          - generic [ref=f23e137]: 150USDC
+        - generic [ref=f23e139]:
+          - generic [ref=f23e140]: Paid to workers
+          - generic [ref=f23e141]: 49.50USDC
+        - generic [ref=f23e143]:
+          - generic [ref=f23e144]: Tasks posted
+          - generic [ref=f23e145]: "4"
+        - generic [ref=f23e146]:
+          - generic [ref=f23e147]: Entries judged + pending
+          - generic [ref=f23e148]: "10"
+      - generic [ref=f23e35]:
+        - heading "How it works" [level=2] [ref=f23e36]
+        - generic [ref=f23e37]:
+          - generic [ref=f23e38]:
+            - generic [ref=f23e39]: "1"
+            - heading "Post + lock" [level=3] [ref=f23e44]
+            - paragraph [ref=f23e45]: Company posts a brief. The full USDC reward locks in a program-owned vault before anyone lifts a finger.
+          - generic [ref=f23e46]:
+            - generic [ref=f23e47]: "2"
+            - heading "Crowd competes" [level=3] [ref=f23e54]
+            - paragraph [ref=f23e55]: Anyone can enter. Each entry is committed on-chain by hash; the content stays sealed until judging.
+          - generic [ref=f23e56]:
+            - generic [ref=f23e57]: "3"
+            - heading "AI judges" [level=3] [ref=f23e63]
+            - paragraph [ref=f23e64]: Claude scores every entry against a public rubric. Copycats, prompt-injection and spam get caught.
+          - generic [ref=f23e65]:
+            - generic [ref=f23e66]: "4"
+            - heading "Best gets paid" [level=3] [ref=f23e73]
+            - paragraph [ref=f23e74]: Scores land on-chain, the program ranks them, and escrow releases to the podium in one transaction.
+          - generic [ref=f23e75]:
+            - generic [ref=f23e76]: "5"
+            - heading "Rep compounds" [level=3] [ref=f23e81]
+            - paragraph [ref=f23e82]: Every score and win accrues to the worker's on-chain reputation. Portable to any app.
+      - generic [ref=f23e149]:
+        - generic [ref=f23e150]:
+          - heading "Live in the arena" [level=2] [ref=f23e151]
+          - link "All tasks →" [ref=f23e152] [cursor=pointer]:
+            - /url: /tasks
+        - generic [ref=f23e153]:
+          - link "Open 🔎 Research Rating 100+ Explain x402 to a Nepali SME owner (gated) by Nepal Fintech Forum Reward in escrow 120USDC 0 entries Top 3 · 50/30/20 2d left" [ref=f23e154] [cursor=pointer]:
+            - /url: /tasks/DYifSMp3MhMGvEebgsmaYxZHcQoqn8ZkLFHTRGr1dKRh
+            - generic [ref=f23e155]:
+              - generic [ref=f23e156]: Open
+              - generic [ref=f23e158]:
+                - generic [ref=f23e159]: 🔎
+                - text: Research
+              - generic [ref=f23e160]: Rating 100+
+            - generic [ref=f23e164]:
+              - heading "Explain x402 to a Nepali SME owner (gated)" [level=3] [ref=f23e165]
+              - paragraph [ref=f23e166]: by Nepal Fintech Forum
+            - generic [ref=f23e167]:
+              - generic [ref=f23e168]:
+                - generic [ref=f23e169]: Reward in escrow
+                - generic [ref=f23e170]: 120USDC
+              - generic [ref=f23e171]:
+                - generic [ref=f23e172]: 0 entries
+                - generic [ref=f23e178]: Top 3 · 50/30/20
+                - generic [ref=f23e185]: 2d left
+          - link "Open 🌏 Translation Translate homestay welcome note to Nepali by Annapurna Homestay Reward in escrow 30USDC 4 entries Winner takes all 47h 59m left" [ref=f23e186] [cursor=pointer]:
+            - /url: /tasks/57NDRkhr8dnvzQ4DuM8djQpWPCMbJVZfrnQRJgVuPrXZ
+            - generic [ref=f23e187]:
+              - generic [ref=f23e188]: Open
+              - generic [ref=f23e190]:
+                - generic [ref=f23e191]: 🌏
+                - text: Translation
+            - generic [ref=f23e192]:
+              - heading "Translate homestay welcome note to Nepali" [level=3] [ref=f23e193]
+              - paragraph [ref=f23e194]: by Annapurna Homestay
+            - generic [ref=f23e195]:
+              - generic [ref=f23e196]:
+                - generic [ref=f23e197]: Reward in escrow
+                - generic [ref=f23e198]: 30USDC
+              - generic [ref=f23e199]:
+                - generic [ref=f23e200]: 4 entries
+                - generic [ref=f23e206]: Winner takes all
+                - generic [ref=f23e213]: 47h 59m left
+      - generic [ref=f23e83]:
+        - heading "Where the chain is load-bearing" [level=2] [ref=f23e84]
+        - paragraph [ref=f23e85]: Not "we take crypto payments". Remove Solana and four things break.
+        - generic [ref=f23e86]:
+          - generic [ref=f23e87]:
+            - heading "Trustless escrow" [level=3] [ref=f23e91]
+            - paragraph [ref=f23e92]: Money is visibly locked before work starts and can only leave to the winners, or back to the buyer if nothing clears the quality bar. No ghosting, no chargebacks.
+          - generic [ref=f23e93]:
+            - heading "Transparent scoring" [level=3] [ref=f23e97]
+            - paragraph [ref=f23e98]: "Every score is published on-chain with the hash of a full written report. The winner is a pure function of those scores: the program, not a person, picks it."
+          - generic [ref=f23e99]:
+            - heading "Portable reputation" [level=3] [ref=f23e103]
+            - paragraph [ref=f23e104]: Submissions, scores, wins and earnings live in a PDA keyed by your wallet. Any platform can read it with one RPC call. Your track record outlives us.
+          - generic [ref=f23e105]:
+            - heading "Permissionless + global" [level=3] [ref=f23e111]
+            - paragraph [ref=f23e112]: Connect a wallet and compete. A developer in Lagos or a translator in Kathmandu gets paid in USDC instantly. No bank, no 14-day hold.
+      - generic [ref=f23e113]:
+        - generic [ref=f23e117]:
+          - heading "AI agents are buyers too" [level=3] [ref=f23e118]
+          - paragraph [ref=f23e119]:
+            - text: An agent that needs human judgment hits our API, gets
+            - code [ref=f23e120]: 402 Payment Required
+            - text: ", pays in USDC via x402, and its task lands in the arena with escrow locked. Humans compete, the agent gets the best result back."
+        - link "See the x402 flow" [ref=f23e121] [cursor=pointer]:
+          - /url: /agents
+  - button "Open Next.js Dev Tools" [ref=f23e127] [cursor=pointer]
+  - alert [ref=f23e214]

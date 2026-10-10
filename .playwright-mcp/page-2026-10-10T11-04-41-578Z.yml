@@ -1,0 +1,122 @@
+- generic [active] [ref=f15e1]:
+  - generic [ref=f15e2]:
+    - banner [ref=f15e3]:
+      - generic [ref=f15e4]:
+        - link "WUKONG" [ref=f15e5] [cursor=pointer]:
+          - /url: /
+          - generic [aria-hidden] [ref=f15e6]: 🐒
+        - button [ref=f15e10]:
+          - generic [aria-hidden] [ref=f15e11]: H
+      - navigation [ref=f15e14]:
+        - link "Arena" [ref=f15e15] [cursor=pointer]:
+          - /url: /tasks
+        - link "Post a task" [ref=f15e16] [cursor=pointer]:
+          - /url: /tasks/new
+        - link "Leaderboard" [ref=f15e17] [cursor=pointer]:
+          - /url: /leaderboard
+        - link "Agents · x402" [ref=f15e18] [cursor=pointer]:
+          - /url: /agents
+    - main [ref=f15e19]:
+      - generic [ref=f15e20]:
+        - generic [ref=f15e21]:
+          - generic [ref=f15e22]:
+            - heading "Post a task" [level=1] [ref=f15e23]
+            - paragraph [ref=f15e24]: Lock the reward, describe the outcome, let the crowd compete.
+          - generic [ref=f15e25]:
+            - generic [ref=f15e26]: Demo templates
+            - generic [ref=f15e30]:
+              - 'button "✍️ Launch tagline: Himalayan cold brew" [ref=f15e31]'
+              - button "🌏 Translate homestay welcome note to Nepali" [ref=f15e32]
+              - button "🧩 TypeScript slugify() with Unicode support" [ref=f15e33]
+              - button "🏷️ Label 8 trekking-gear reviews by sentiment" [ref=f15e34]
+              - button "🔎 Explain x402 to a Nepali SME owner (gated)" [ref=f15e35]
+          - generic [ref=f15e36]:
+            - generic [ref=f15e37]:
+              - generic [ref=f15e38]: Title (0/64, stored on-chain)
+              - textbox "Title (0/64, stored on-chain)" [ref=f15e39]:
+                - /placeholder: Launch tagline for our cold brew
+            - generic [ref=f15e40]:
+              - generic [ref=f15e41]: Category (sets the judge's rubric)
+              - generic [ref=f15e42]:
+                - button "✍️ Copy & Content" [ref=f15e43]
+                - button "🌏 Translation" [ref=f15e44]
+                - button "🧩 Code" [ref=f15e45]
+                - button "🏷️ Data Labeling" [ref=f15e46]
+                - button "🔎 Research" [ref=f15e47]
+              - generic [ref=f15e48]:
+                - generic [ref=f15e49]: Brief fit 35%
+                - generic [ref=f15e50]: Craft 30%
+                - generic [ref=f15e51]: Originality 20%
+                - generic [ref=f15e52]: Constraints 15%
+            - generic [ref=f15e53]:
+              - generic [ref=f15e54]: Brief (hashed on-chain, judge verifies it)
+              - textbox "Brief (hashed on-chain, judge verifies it)" [ref=f15e55]:
+                - /placeholder: What does great look like? Audience, tone, hard constraints…
+            - generic [ref=f15e56]:
+              - generic [ref=f15e57]:
+                - generic [ref=f15e58]: Reward (USDC)
+                - spinbutton "Reward (USDC)" [ref=f15e59]: "50"
+              - generic [ref=f15e60]:
+                - generic [ref=f15e61]: Open for (hours)
+                - spinbutton "Open for (hours)" [ref=f15e62]: "24"
+              - generic [ref=f15e63]:
+                - generic [ref=f15e64]: Min. reputation
+                - spinbutton "Min. reputation" [ref=f15e65]: "0"
+              - generic [ref=f15e66]:
+                - generic [ref=f15e67]: Entry stake (USDC)
+                - spinbutton "Entry stake (USDC)" [ref=f15e68]: "0"
+            - generic [ref=f15e69]:
+              - generic [ref=f15e70]:
+                - generic [ref=f15e71]: Payout
+                - generic [ref=f15e72]:
+                  - button "Top 3 · 50/30/20" [ref=f15e73]
+                  - button "Winner takes all" [ref=f15e74]
+              - generic [ref=f15e75]:
+                - generic [ref=f15e76]: Final call
+                - generic [ref=f15e77]:
+                  - button "AI score is final" [ref=f15e78]
+                  - button "AI shortlists, I pick" [ref=f15e79]
+        - complementary [ref=f15e80]:
+          - generic [ref=f15e81]:
+            - generic [ref=f15e82]: You lock now
+            - generic [ref=f15e83]: 50USDC
+            - generic [ref=f15e84]:
+              - generic [ref=f15e85]:
+                - generic [ref=f15e86]: Worker pool
+                - generic [ref=f15e87]: 45.00USDC
+              - generic [ref=f15e89]:
+                - generic [ref=f15e90]: Platform fee (10%)
+                - generic [ref=f15e91]: 5.00USDC
+              - generic [ref=f15e93]:
+                - generic [ref=f15e94]: 1st / 2nd / 3rd
+                - generic [ref=f15e95]: 22.50 / 13.50 / 9.00
+              - generic [ref=f15e96]:
+                - generic [ref=f15e97]: If nothing scores ≥ 25
+                - generic [ref=f15e98]: full refund
+            - button "Lock 50 USDC & post" [disabled] [ref=f15e99]
+            - paragraph [ref=f15e103]: Signing as Himalayan Java · Kathmandu
+    - contentinfo [ref=f15e104]:
+      - generic [ref=f15e105]:
+        - generic [ref=f15e106]:
+          - generic [ref=f15e107]:
+            - generic [aria-hidden] [ref=f15e108]: 🐒
+            - generic [ref=f15e109]: WUKONG
+          - paragraph [ref=f15e110]: Post a task. Summon the crowd. Pay the best. USDC escrow and on-chain reputation on Solana.
+        - navigation "Footer" [ref=f15e111]:
+          - link "Arena" [ref=f15e112] [cursor=pointer]:
+            - /url: /tasks
+          - link "Post a task" [ref=f15e113] [cursor=pointer]:
+            - /url: /tasks/new
+          - link "Leaderboard" [ref=f15e114] [cursor=pointer]:
+            - /url: /leaderboard
+          - link "Agents · x402" [ref=f15e115] [cursor=pointer]:
+            - /url: /agents
+        - generic [ref=f15e127]:
+          - term [ref=f15e128]: Cluster
+          - definition [ref=f15e129]: localnet
+          - term [ref=f15e130]: Program
+          - definition [ref=f15e131]: 5BWF…5zKk
+          - term [ref=f15e132]: Escrow
+          - definition [ref=f15e133]: USDC (SPL)
+  - button "Open Next.js Dev Tools" [ref=f15e123] [cursor=pointer]
+  - alert [ref=f15e134]

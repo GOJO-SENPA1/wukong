@@ -1,0 +1,81 @@
+- generic [active] [ref=f16e1]:
+  - banner [ref=f16e2]:
+    - generic [ref=f16e3]:
+      - link "WUKONG" [ref=f16e4] [cursor=pointer]:
+        - /url: /
+        - generic [aria-hidden] [ref=f16e5]: 🐒
+      - button [ref=f16e9]:
+        - generic [aria-hidden] [ref=f16e10]: H
+    - navigation [ref=f16e13]:
+      - link "Arena" [ref=f16e14] [cursor=pointer]:
+        - /url: /tasks
+      - link "Post a task" [ref=f16e15] [cursor=pointer]:
+        - /url: /tasks/new
+      - link "Leaderboard" [ref=f16e16] [cursor=pointer]:
+        - /url: /leaderboard
+      - link "Agents · x402" [ref=f16e17] [cursor=pointer]:
+        - /url: /agents
+  - main [ref=f16e18]:
+    - generic [ref=f16e19]:
+      - generic [ref=f16e20]:
+        - generic [ref=f16e21]: Live on Solana
+        - heading "Post a task. Summon the crowd. Pay the best." [level=1] [ref=f16e23]: Post a task.Summon the crowd.Pay the best.
+        - paragraph [ref=f16e24]: Wukong flips freelancing. Instead of hiring one person and hoping, many people do the work, an AI judge scores every entry in the open, and the best work gets paid from on-chain escrow in seconds.
+        - generic [ref=f16e25]:
+          - link "Post a task" [ref=f16e26] [cursor=pointer]:
+            - /url: /tasks/new
+          - link "Enter the arena" [ref=f16e29] [cursor=pointer]:
+            - /url: /tasks
+      - generic [ref=f16e30]:
+        - generic [ref=f16e31]: Waiting for the chain
+        - paragraph [ref=f16e32]: Connecting…
+        - generic [ref=f16e33]: "npm run validator # terminal 1: local Solana with the program preloaded npm run setup:localnet # mint demo USDC, init config, judge + treasury keys npm run seed # optional: history, reputation, open tasks npm run dev"
+      - generic [ref=f16e34]:
+        - heading "How it works" [level=2] [ref=f16e35]
+        - generic [ref=f16e36]:
+          - generic [ref=f16e37]:
+            - generic [ref=f16e38]: "1"
+            - heading "Post + lock" [level=3] [ref=f16e43]
+            - paragraph [ref=f16e44]: Company posts a brief. The full USDC reward locks in a program-owned vault before anyone lifts a finger.
+          - generic [ref=f16e45]:
+            - generic [ref=f16e46]: "2"
+            - heading "Crowd competes" [level=3] [ref=f16e53]
+            - paragraph [ref=f16e54]: Anyone can enter. Each entry is committed on-chain by hash; the content stays sealed until judging.
+          - generic [ref=f16e55]:
+            - generic [ref=f16e56]: "3"
+            - heading "AI judges" [level=3] [ref=f16e62]
+            - paragraph [ref=f16e63]: Claude scores every entry against a public rubric. Copycats, prompt-injection and spam get caught.
+          - generic [ref=f16e64]:
+            - generic [ref=f16e65]: "4"
+            - heading "Best gets paid" [level=3] [ref=f16e72]
+            - paragraph [ref=f16e73]: Scores land on-chain, the program ranks them, and escrow releases to the podium in one transaction.
+          - generic [ref=f16e74]:
+            - generic [ref=f16e75]: "5"
+            - heading "Rep compounds" [level=3] [ref=f16e80]
+            - paragraph [ref=f16e81]: Every score and win accrues to the worker's on-chain reputation. Portable to any app.
+      - generic [ref=f16e82]:
+        - heading "Where the chain is load-bearing" [level=2] [ref=f16e83]
+        - paragraph [ref=f16e84]: Not "we take crypto payments". Remove Solana and four things break.
+        - generic [ref=f16e85]:
+          - generic [ref=f16e86]:
+            - heading "Trustless escrow" [level=3] [ref=f16e90]
+            - paragraph [ref=f16e91]: Money is visibly locked before work starts and can only leave to the winners, or back to the buyer if nothing clears the quality bar. No ghosting, no chargebacks.
+          - generic [ref=f16e92]:
+            - heading "Transparent scoring" [level=3] [ref=f16e96]
+            - paragraph [ref=f16e97]: "Every score is published on-chain with the hash of a full written report. The winner is a pure function of those scores: the program, not a person, picks it."
+          - generic [ref=f16e98]:
+            - heading "Portable reputation" [level=3] [ref=f16e102]
+            - paragraph [ref=f16e103]: Submissions, scores, wins and earnings live in a PDA keyed by your wallet. Any platform can read it with one RPC call. Your track record outlives us.
+          - generic [ref=f16e104]:
+            - heading "Permissionless + global" [level=3] [ref=f16e110]
+            - paragraph [ref=f16e111]: Connect a wallet and compete. A developer in Lagos or a translator in Kathmandu gets paid in USDC instantly. No bank, no 14-day hold.
+      - generic [ref=f16e112]:
+        - generic [ref=f16e116]:
+          - heading "AI agents are buyers too" [level=3] [ref=f16e117]
+          - paragraph [ref=f16e118]:
+            - text: An agent that needs human judgment hits our API, gets
+            - code [ref=f16e119]: 402 Payment Required
+            - text: ", pays in USDC via x402, and its task lands in the arena with escrow locked. Humans compete, the agent gets the best result back."
+        - link "See the x402 flow" [ref=f16e120] [cursor=pointer]:
+          - /url: /agents
+  - button "Open Next.js Dev Tools" [ref=f16e126] [cursor=pointer]

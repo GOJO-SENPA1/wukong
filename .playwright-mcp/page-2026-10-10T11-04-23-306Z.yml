@@ -1,0 +1,38 @@
+- generic [active] [ref=f12e1]:
+  - generic [ref=f12e2]:
+    - banner [ref=f12e3]:
+      - generic [ref=f12e4]:
+        - link "WUKONG" [ref=f12e5] [cursor=pointer]:
+          - /url: /
+          - generic [aria-hidden] [ref=f12e6]: 🐒
+        - navigation [ref=f12e8]:
+          - link "Arena" [ref=f12e9] [cursor=pointer]:
+            - /url: /tasks
+          - link "Post a task" [ref=f12e10] [cursor=pointer]:
+            - /url: /tasks/new
+          - link "Leaderboard" [ref=f12e11] [cursor=pointer]:
+            - /url: /leaderboard
+          - link "Agents · x402" [ref=f12e12] [cursor=pointer]:
+            - /url: /agents
+        - button "Himalayan Java · Kathmandu" [ref=f12e15]:
+          - generic [aria-hidden] [ref=f12e16]: H
+    - main [ref=f12e20]:
+      - generic "loading" [ref=f12e22]
+    - contentinfo [ref=f12e23]:
+      - generic [ref=f12e24]:
+        - generic [ref=f12e25]:
+          - generic [ref=f12e26]:
+            - generic [aria-hidden] [ref=f12e27]: 🐒
+            - generic [ref=f12e28]: WUKONG
+          - paragraph [ref=f12e29]: Post a task. Summon the crowd. Pay the best. USDC escrow and on-chain reputation on Solana.
+        - navigation "Footer" [ref=f12e30]:
+          - link "Arena" [ref=f12e31] [cursor=pointer]:
+            - /url: /tasks
+          - link "Post a task" [ref=f12e32] [cursor=pointer]:
+            - /url: /tasks/new
+          - link "Leaderboard" [ref=f12e33] [cursor=pointer]:
+            - /url: /leaderboard
+          - link "Agents · x402" [ref=f12e34] [cursor=pointer]:
+            - /url: /agents
+        - paragraph [ref=f12e36]: Not connected to a cluster. Run npm run setup:localnet to bring the chain up.
+  - button "Open Next.js Dev Tools" [ref=f12e42] [cursor=pointer]

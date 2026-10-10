@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
-import "@solana/wallet-adapter-react-ui/styles.css";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { SmoothScroll } from "@/components/ui/SmoothScroll";
 
 const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk", weight: ["500", "600", "700"] });
 const sans = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -18,16 +18,18 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
-      <body className="min-h-screen">
-        <Providers>
-          <div className="flex min-h-screen flex-col">
-            <Nav />
-            <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 sm:px-6">{children}</main>
-            <Footer />
-          </div>
-        </Providers>
-      </body>
-    </html>
+    <SmoothScroll>
+      <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
+        <body className="min-h-screen">
+          <Providers>
+            <div className="flex min-h-screen flex-col">
+              <Nav />
+              <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 sm:px-6">{children}</main>
+              <Footer />
+            </div>
+          </Providers>
+        </body>
+      </html>
+    </SmoothScroll>
   );
 }

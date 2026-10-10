@@ -1,0 +1,20 @@
+- generic [active] [ref=f35e1]:
+  - banner [ref=f35e2]:
+    - generic [ref=f35e3]:
+      - link "WUKONG" [ref=f35e4] [cursor=pointer]:
+        - /url: /
+        - generic [aria-hidden] [ref=f35e5]: 🐒
+      - button [ref=f35e9]:
+        - generic [aria-hidden] [ref=f35e10]: H
+    - navigation [ref=f35e13]:
+      - link "Arena" [ref=f35e14] [cursor=pointer]:
+        - /url: /tasks
+      - link "Post a task" [ref=f35e15] [cursor=pointer]:
+        - /url: /tasks/new
+      - link "Leaderboard" [ref=f35e16] [cursor=pointer]:
+        - /url: /leaderboard
+      - link "Agents · x402" [ref=f35e17] [cursor=pointer]:
+        - /url: /agents
+  - main [ref=f35e18]:
+    - generic "loading" [ref=f35e20]
+  - button "Open Next.js Dev Tools" [ref=f35e26] [cursor=pointer]

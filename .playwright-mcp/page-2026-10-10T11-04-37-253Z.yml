@@ -1,0 +1,135 @@
+- generic [active] [ref=f14e1]:
+  - generic [ref=f14e2]:
+    - banner [ref=f14e3]:
+      - generic [ref=f14e4]:
+        - link "WUKONG" [ref=f14e5] [cursor=pointer]:
+          - /url: /
+          - generic [aria-hidden] [ref=f14e6]: 🐒
+        - button [ref=f14e10]:
+          - generic [aria-hidden] [ref=f14e11]: H
+      - navigation [ref=f14e14]:
+        - link "Arena" [ref=f14e15] [cursor=pointer]:
+          - /url: /tasks
+        - link "Post a task" [ref=f14e16] [cursor=pointer]:
+          - /url: /tasks/new
+        - link "Leaderboard" [ref=f14e17] [cursor=pointer]:
+          - /url: /leaderboard
+        - link "Agents · x402" [ref=f14e18] [cursor=pointer]:
+          - /url: /agents
+    - main [ref=f14e19]:
+      - generic [ref=f14e20]:
+        - generic [ref=f14e21]:
+          - generic [ref=f14e22]:
+            - heading "The Arena" [level=1] [ref=f14e23]
+            - paragraph [ref=f14e24]: Every reward here is already locked in escrow. Pick a task, do your best work, get paid if you win.
+          - link "Post a task" [ref=f14e25] [cursor=pointer]:
+            - /url: /tasks/new
+        - generic [ref=f14e27]:
+          - group "Filter by status" [ref=f14e28]:
+            - button "All" [pressed] [ref=f14e29]
+            - button "Open" [ref=f14e30]
+            - button "Judging" [ref=f14e31]
+            - button "Paid out" [ref=f14e32]
+          - group "Filter by category" [ref=f14e33]:
+            - button "✍️ Copy & Content" [ref=f14e34]
+            - button "🌏 Translation" [ref=f14e35]
+            - button "🧩 Code" [ref=f14e36]
+            - button "🏷️ Data Labeling" [ref=f14e37]
+            - button "🔎 Research" [ref=f14e38]
+        - generic [ref=f14e66]:
+          - link "Open 🔎 Research Rating 100+ Explain x402 to a Nepali SME owner (gated) by Nepal Fintech Forum Reward in escrow 120USDC 0 entries Top 3 · 50/30/20 2d left" [ref=f14e67] [cursor=pointer]:
+            - /url: /tasks/9EViMy5LPpmmW1ZocXy6B5vXd8C7LY69swXeMm3FEQUU
+            - generic [ref=f14e68]:
+              - generic [ref=f14e69]: Open
+              - generic [ref=f14e71]:
+                - generic [ref=f14e72]: 🔎
+                - text: Research
+              - generic [ref=f14e73]: Rating 100+
+            - generic [ref=f14e77]:
+              - heading "Explain x402 to a Nepali SME owner (gated)" [level=3] [ref=f14e78]
+              - paragraph [ref=f14e79]: by Nepal Fintech Forum
+            - generic [ref=f14e80]:
+              - generic [ref=f14e81]:
+                - generic [ref=f14e82]: Reward in escrow
+                - generic [ref=f14e83]: 120USDC
+              - generic [ref=f14e84]:
+                - generic [ref=f14e85]: 0 entries
+                - generic [ref=f14e91]: Top 3 · 50/30/20
+                - generic [ref=f14e98]: 2d left
+          - link "Open 🌏 Translation Translate homestay welcome note to Nepali by Annapurna Homestay Reward in escrow 30USDC 4 entries Winner takes all 47h 49m left" [ref=f14e99] [cursor=pointer]:
+            - /url: /tasks/EGaXZhEsw1w1W3wZ87hpqAj43jjRMxrRxp7vJfmN5MpJ
+            - generic [ref=f14e100]:
+              - generic [ref=f14e101]: Open
+              - generic [ref=f14e103]:
+                - generic [ref=f14e104]: 🌏
+                - text: Translation
+            - generic [ref=f14e105]:
+              - heading "Translate homestay welcome note to Nepali" [level=3] [ref=f14e106]
+              - paragraph [ref=f14e107]: by Annapurna Homestay
+            - generic [ref=f14e108]:
+              - generic [ref=f14e109]:
+                - generic [ref=f14e110]: Reward in escrow
+                - generic [ref=f14e111]: 30USDC
+              - generic [ref=f14e112]:
+                - generic [ref=f14e113]: 4 entries
+                - generic [ref=f14e119]: Winner takes all
+                - generic [ref=f14e126]: 47h 49m left
+          - link "Paid out 🏷️ Data Labeling Label 8 trekking-gear reviews by sentiment by Thamel Outdoor Supply Paid out 13.50USDC 3 entries Winner takes all" [ref=f14e127] [cursor=pointer]:
+            - /url: /tasks/JBCJixV5imdphZboqM8mr859jLPzH9Xk4u7HM7616eKn
+            - generic [ref=f14e128]:
+              - generic [ref=f14e129]: Paid out
+              - generic [ref=f14e131]:
+                - generic [ref=f14e132]: 🏷️
+                - text: Data Labeling
+            - generic [ref=f14e133]:
+              - heading "Label 8 trekking-gear reviews by sentiment" [level=3] [ref=f14e134]
+              - paragraph [ref=f14e135]: by Thamel Outdoor Supply
+            - generic [ref=f14e136]:
+              - generic [ref=f14e137]:
+                - generic [ref=f14e138]: Paid out
+                - generic [ref=f14e139]: 13.50USDC
+              - generic [ref=f14e140]:
+                - generic [ref=f14e141]: 3 entries
+                - generic [ref=f14e147]: Winner takes all
+          - link "Paid out 🧩 Code TypeScript slugify() with Unicode support by Kathmandu Dev Collective Paid out 36USDC 3 entries Top 3 · 50/30/20" [ref=f14e154] [cursor=pointer]:
+            - /url: /tasks/CzkAWvHEfmZPtRcmbrsfjTvU7Dexaj1tTpAyGBxBAC9B
+            - generic [ref=f14e155]:
+              - generic [ref=f14e156]: Paid out
+              - generic [ref=f14e158]:
+                - generic [ref=f14e159]: 🧩
+                - text: Code
+            - generic [ref=f14e160]:
+              - heading "TypeScript slugify() with Unicode support" [level=3] [ref=f14e161]
+              - paragraph [ref=f14e162]: by Kathmandu Dev Collective
+            - generic [ref=f14e163]:
+              - generic [ref=f14e164]:
+                - generic [ref=f14e165]: Paid out
+                - generic [ref=f14e166]: 36USDC
+              - generic [ref=f14e167]:
+                - generic [ref=f14e168]: 3 entries
+                - generic [ref=f14e174]: Top 3 · 50/30/20
+    - contentinfo [ref=f14e43]:
+      - generic [ref=f14e44]:
+        - generic [ref=f14e45]:
+          - generic [ref=f14e46]:
+            - generic [aria-hidden] [ref=f14e47]: 🐒
+            - generic [ref=f14e48]: WUKONG
+          - paragraph [ref=f14e49]: Post a task. Summon the crowd. Pay the best. USDC escrow and on-chain reputation on Solana.
+        - navigation "Footer" [ref=f14e50]:
+          - link "Arena" [ref=f14e51] [cursor=pointer]:
+            - /url: /tasks
+          - link "Post a task" [ref=f14e52] [cursor=pointer]:
+            - /url: /tasks/new
+          - link "Leaderboard" [ref=f14e53] [cursor=pointer]:
+            - /url: /leaderboard
+          - link "Agents · x402" [ref=f14e54] [cursor=pointer]:
+            - /url: /agents
+        - generic [ref=f14e181]:
+          - term [ref=f14e182]: Cluster
+          - definition [ref=f14e183]: localnet
+          - term [ref=f14e184]: Program
+          - definition [ref=f14e185]: 5BWF…5zKk
+          - term [ref=f14e186]: Escrow
+          - definition [ref=f14e187]: USDC (SPL)
+  - button "Open Next.js Dev Tools" [ref=f14e62] [cursor=pointer]
+  - alert [ref=f14e188]

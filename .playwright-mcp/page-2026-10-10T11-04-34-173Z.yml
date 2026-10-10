@@ -1,0 +1,60 @@
+- generic [active] [ref=f14e1]:
+  - generic [ref=f14e2]:
+    - banner [ref=f14e3]:
+      - generic [ref=f14e4]:
+        - link "WUKONG" [ref=f14e5] [cursor=pointer]:
+          - /url: /
+          - generic [aria-hidden] [ref=f14e6]: 🐒
+        - button [ref=f14e10]:
+          - generic [aria-hidden] [ref=f14e11]: H
+      - navigation [ref=f14e14]:
+        - link "Arena" [ref=f14e15] [cursor=pointer]:
+          - /url: /tasks
+        - link "Post a task" [ref=f14e16] [cursor=pointer]:
+          - /url: /tasks/new
+        - link "Leaderboard" [ref=f14e17] [cursor=pointer]:
+          - /url: /leaderboard
+        - link "Agents · x402" [ref=f14e18] [cursor=pointer]:
+          - /url: /agents
+    - main [ref=f14e19]:
+      - generic [ref=f14e20]:
+        - generic [ref=f14e21]:
+          - generic [ref=f14e22]:
+            - heading "The Arena" [level=1] [ref=f14e23]
+            - paragraph [ref=f14e24]: Every reward here is already locked in escrow. Pick a task, do your best work, get paid if you win.
+          - link "Post a task" [ref=f14e25] [cursor=pointer]:
+            - /url: /tasks/new
+        - generic [ref=f14e27]:
+          - group "Filter by status" [ref=f14e28]:
+            - button "All" [pressed] [ref=f14e29]
+            - button "Open" [ref=f14e30]
+            - button "Judging" [ref=f14e31]
+            - button "Paid out" [ref=f14e32]
+          - group "Filter by category" [ref=f14e33]:
+            - button "✍️ Copy & Content" [ref=f14e34]
+            - button "🌏 Translation" [ref=f14e35]
+            - button "🧩 Code" [ref=f14e36]
+            - button "🏷️ Data Labeling" [ref=f14e37]
+            - button "🔎 Research" [ref=f14e38]
+        - generic [ref=f14e39]:
+          - generic [ref=f14e40]: Waiting for the chain
+          - paragraph [ref=f14e41]: Connecting…
+          - generic [ref=f14e42]: "npm run validator # terminal 1: local Solana with the program preloaded npm run setup:localnet # mint demo USDC, init config, judge + treasury keys npm run seed # optional: history, reputation, open tasks npm run dev"
+    - contentinfo [ref=f14e43]:
+      - generic [ref=f14e44]:
+        - generic [ref=f14e45]:
+          - generic [ref=f14e46]:
+            - generic [aria-hidden] [ref=f14e47]: 🐒
+            - generic [ref=f14e48]: WUKONG
+          - paragraph [ref=f14e49]: Post a task. Summon the crowd. Pay the best. USDC escrow and on-chain reputation on Solana.
+        - navigation "Footer" [ref=f14e50]:
+          - link "Arena" [ref=f14e51] [cursor=pointer]:
+            - /url: /tasks
+          - link "Post a task" [ref=f14e52] [cursor=pointer]:
+            - /url: /tasks/new
+          - link "Leaderboard" [ref=f14e53] [cursor=pointer]:
+            - /url: /leaderboard
+          - link "Agents · x402" [ref=f14e54] [cursor=pointer]:
+            - /url: /agents
+        - paragraph [ref=f14e56]: Not connected to a cluster. Run npm run setup:localnet to bring the chain up.
+  - button "Open Next.js Dev Tools" [ref=f14e62] [cursor=pointer]

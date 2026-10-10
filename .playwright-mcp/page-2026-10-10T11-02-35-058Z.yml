@@ -1,0 +1,46 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - banner [ref=f5e3]:
+      - generic [ref=f5e4]:
+        - link "WUKONG" [ref=f5e5] [cursor=pointer]:
+          - /url: /
+          - generic [aria-hidden] [ref=f5e6]: 🐒
+        - button [ref=f5e10]:
+          - generic [aria-hidden] [ref=f5e11]: H
+      - navigation [ref=f5e14]:
+        - link "Arena" [ref=f5e15] [cursor=pointer]:
+          - /url: /tasks
+        - link "Post a task" [ref=f5e16] [cursor=pointer]:
+          - /url: /tasks/new
+        - link "Leaderboard" [ref=f5e17] [cursor=pointer]:
+          - /url: /leaderboard
+        - link "Agents · x402" [ref=f5e18] [cursor=pointer]:
+          - /url: /agents
+    - main [ref=f5e19]:
+      - generic [ref=f5e20]:
+        - generic [ref=f5e21]:
+          - heading "Leaderboard" [level=1] [ref=f5e22]
+          - paragraph [ref=f5e23]: Ranked straight from on-chain reputation accounts. No hidden algorithm.
+        - generic [ref=f5e24]:
+          - generic [ref=f5e25]: Waiting for the chain
+          - paragraph [ref=f5e26]: Connecting…
+          - generic [ref=f5e27]: "npm run validator # terminal 1: local Solana with the program preloaded npm run setup:localnet # mint demo USDC, init config, judge + treasury keys npm run seed # optional: history, reputation, open tasks npm run dev"
+        - generic "loading" [ref=f5e29]
+    - contentinfo [ref=f5e30]:
+      - generic [ref=f5e31]:
+        - generic [ref=f5e32]:
+          - generic [ref=f5e33]:
+            - generic [aria-hidden] [ref=f5e34]: 🐒
+            - generic [ref=f5e35]: WUKONG
+          - paragraph [ref=f5e36]: Post a task. Summon the crowd. Pay the best. USDC escrow and on-chain reputation on Solana.
+        - navigation "Footer" [ref=f5e37]:
+          - link "Arena" [ref=f5e38] [cursor=pointer]:
+            - /url: /tasks
+          - link "Post a task" [ref=f5e39] [cursor=pointer]:
+            - /url: /tasks/new
+          - link "Leaderboard" [ref=f5e40] [cursor=pointer]:
+            - /url: /leaderboard
+          - link "Agents · x402" [ref=f5e41] [cursor=pointer]:
+            - /url: /agents
+        - paragraph [ref=f5e43]: Not connected to a cluster. Run npm run setup:localnet to bring the chain up.
+  - button "Open Next.js Dev Tools" [ref=f5e49] [cursor=pointer]

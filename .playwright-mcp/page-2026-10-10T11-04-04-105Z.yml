@@ -1,0 +1,116 @@
+- generic [active] [ref=f8e1]:
+  - generic [ref=f8e2]:
+    - banner [ref=f8e3]:
+      - generic [ref=f8e4]:
+        - link "WUKONG" [ref=f8e5] [cursor=pointer]:
+          - /url: /
+          - generic [aria-hidden] [ref=f8e6]: 🐒
+        - navigation [ref=f8e8]:
+          - link "Arena" [ref=f8e9] [cursor=pointer]:
+            - /url: /tasks
+          - link "Post a task" [ref=f8e10] [cursor=pointer]:
+            - /url: /tasks/new
+          - link "Leaderboard" [ref=f8e11] [cursor=pointer]:
+            - /url: /leaderboard
+          - link "Agents · x402" [ref=f8e12] [cursor=pointer]:
+            - /url: /agents
+        - button "Himalayan Java · Kathmandu" [ref=f8e15]:
+          - generic [aria-hidden] [ref=f8e16]: H
+    - main [ref=f8e20]:
+      - generic [ref=f8e21]:
+        - generic [ref=f8e22]:
+          - generic [ref=f8e23]:
+            - heading "Post a task" [level=1] [ref=f8e24]
+            - paragraph [ref=f8e25]: Lock the reward, describe the outcome, let the crowd compete.
+          - generic [ref=f8e26]:
+            - generic [ref=f8e27]: Demo templates
+            - generic [ref=f8e31]:
+              - 'button "✍️ Launch tagline: Himalayan cold brew" [ref=f8e32]'
+              - button "🌏 Translate homestay welcome note to Nepali" [ref=f8e33]
+              - button "🧩 TypeScript slugify() with Unicode support" [ref=f8e34]
+              - button "🏷️ Label 8 trekking-gear reviews by sentiment" [ref=f8e35]
+              - button "🔎 Explain x402 to a Nepali SME owner (gated)" [ref=f8e36]
+          - generic [ref=f8e37]:
+            - generic [ref=f8e38]:
+              - generic [ref=f8e39]: Title (0/64, stored on-chain)
+              - textbox "Title (0/64, stored on-chain)" [ref=f8e40]:
+                - /placeholder: Launch tagline for our cold brew
+            - generic [ref=f8e41]:
+              - generic [ref=f8e42]: Category (sets the judge's rubric)
+              - generic [ref=f8e43]:
+                - button "✍️ Copy & Content" [ref=f8e44]
+                - button "🌏 Translation" [ref=f8e45]
+                - button "🧩 Code" [ref=f8e46]
+                - button "🏷️ Data Labeling" [ref=f8e47]
+                - button "🔎 Research" [ref=f8e48]
+              - generic [ref=f8e49]:
+                - generic [ref=f8e50]: Brief fit 35%
+                - generic [ref=f8e51]: Craft 30%
+                - generic [ref=f8e52]: Originality 20%
+                - generic [ref=f8e53]: Constraints 15%
+            - generic [ref=f8e54]:
+              - generic [ref=f8e55]: Brief (hashed on-chain, judge verifies it)
+              - textbox "Brief (hashed on-chain, judge verifies it)" [ref=f8e56]:
+                - /placeholder: What does great look like? Audience, tone, hard constraints…
+            - generic [ref=f8e57]:
+              - generic [ref=f8e58]:
+                - generic [ref=f8e59]: Reward (USDC)
+                - spinbutton "Reward (USDC)" [ref=f8e60]: "50"
+              - generic [ref=f8e61]:
+                - generic [ref=f8e62]: Open for (hours)
+                - spinbutton "Open for (hours)" [ref=f8e63]: "24"
+              - generic [ref=f8e64]:
+                - generic [ref=f8e65]: Min. reputation
+                - spinbutton "Min. reputation" [ref=f8e66]: "0"
+              - generic [ref=f8e67]:
+                - generic [ref=f8e68]: Entry stake (USDC)
+                - spinbutton "Entry stake (USDC)" [ref=f8e69]: "0"
+            - generic [ref=f8e70]:
+              - generic [ref=f8e71]:
+                - generic [ref=f8e72]: Payout
+                - generic [ref=f8e73]:
+                  - button "Top 3 · 50/30/20" [ref=f8e74]
+                  - button "Winner takes all" [ref=f8e75]
+              - generic [ref=f8e76]:
+                - generic [ref=f8e77]: Final call
+                - generic [ref=f8e78]:
+                  - button "AI score is final" [ref=f8e79]
+                  - button "AI shortlists, I pick" [ref=f8e80]
+        - complementary [ref=f8e81]:
+          - generic [ref=f8e82]:
+            - generic [ref=f8e83]: You lock now
+            - generic [ref=f8e84]: 50USDC
+            - generic [ref=f8e85]:
+              - generic [ref=f8e86]:
+                - generic [ref=f8e87]: Worker pool
+                - generic [ref=f8e88]: 45.00USDC
+              - generic [ref=f8e90]:
+                - generic [ref=f8e91]: Platform fee (10%)
+                - generic [ref=f8e92]: 5.00USDC
+              - generic [ref=f8e94]:
+                - generic [ref=f8e95]: 1st / 2nd / 3rd
+                - generic [ref=f8e96]: 22.50 / 13.50 / 9.00
+              - generic [ref=f8e97]:
+                - generic [ref=f8e98]: If nothing scores ≥ 25
+                - generic [ref=f8e99]: full refund
+            - button "Lock 50 USDC & post" [disabled] [ref=f8e100]
+            - paragraph [ref=f8e104]: Signing as Himalayan Java · Kathmandu
+    - contentinfo [ref=f8e105]:
+      - generic [ref=f8e106]:
+        - generic [ref=f8e107]:
+          - generic [ref=f8e108]:
+            - generic [aria-hidden] [ref=f8e109]: 🐒
+            - generic [ref=f8e110]: WUKONG
+          - paragraph [ref=f8e111]: Post a task. Summon the crowd. Pay the best. USDC escrow and on-chain reputation on Solana.
+        - navigation "Footer" [ref=f8e112]:
+          - link "Arena" [ref=f8e113] [cursor=pointer]:
+            - /url: /tasks
+          - link "Post a task" [ref=f8e114] [cursor=pointer]:
+            - /url: /tasks/new
+          - link "Leaderboard" [ref=f8e115] [cursor=pointer]:
+            - /url: /leaderboard
+          - link "Agents · x402" [ref=f8e116] [cursor=pointer]:
+            - /url: /agents
+        - paragraph [ref=f8e118]: Not connected to a cluster. Run npm run setup:localnet to bring the chain up.
+  - button "Open Next.js Dev Tools" [ref=f8e124] [cursor=pointer]
+  - alert [ref=f8e128]

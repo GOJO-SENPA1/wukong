@@ -1,94 +1,72 @@
-@import "tailwindcss" source("..");
+/* src/app/globals.css — Wukong cinematic dark-first aesthetic */
+@import "tailwindcss";
 
 @theme {
-  --color-ink: #0b0a08;
-  --color-panel: #14120e;
-  --color-panel-2: #1b1813;
-  --color-line: #2b2720;
-  --color-line-2: #3a342a;
-  --color-text: #f6f1e7;
-  --color-muted: #a59c8c;
-  --color-faint: #6f675a;
-  --color-gold: #f5b83d;
-  --color-gold-2: #ffd77a;
-  --color-ember: #ff6b3d;
-  --color-jade: #3ecf8e;
-  --color-crimson: #ef4d5a;
-  --color-violet: #a78bfa;
-  --color-sky: #5ab0ff;
+  /* Canvas — pure black for maximum contrast */
+  --color-bg: #000000;
+  --color-bg-elevated: #0a0a0a;
 
-  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  /* Surfaces — elevation via color, never shadow */
+  --color-surface-1: #111111;
+  --color-surface-2: #1a1a1a;
+  --color-surface-3: #262626;
+  --color-border: #222222;
+  --color-border-strong: #333333;
 
-  --animate-rise: rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  --animate-pulse-gold: pulse-gold 1.6s ease-in-out infinite;
-  --animate-shimmer: shimmer 1.6s linear infinite;
+  /* Text */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #666666;
+  --color-text-ghost: #3f3f3f;
 
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(8px) scale(0.98);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  @keyframes pulse-gold {
-    0%,
-    100% {
-      box-shadow: 0 0 0 0 rgb(245 184 61 / 0.45);
-    }
-    50% {
-      box-shadow: 0 0 0 8px rgb(245 184 61 / 0);
-    }
-  }
-  @keyframes shimmer {
-    from {
-      background-position: -200% 0;
-    }
-    to {
-      background-position: 200% 0;
-    }
-  }
+  /* Accent — SPARINGLY, primary CTA only */
+  --color-accent: #ffa41c;
+  --color-accent-hover: #ffb84d;
+  --color-accent-soft: rgba(255, 164, 28, 0.1);
+
+  /* Signal colors — state only */
+  --color-success: #00ff77;
+  --color-success-soft: rgba(0, 255, 119, 0.1);
+  --color-danger: #ff3366;
+  --color-danger-soft: rgba(255, 51, 102, 0.1);
+  --color-info: #60a5fa;
+  --color-info-soft: rgba(96, 165, 250, 0.1);
+  --color-solana: #9945ff;
+  --color-solana-soft: rgba(153, 69, 255, 0.1);
+
+  /* Typography */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+  /* Radii — 4px / 6px / 8px / 12px only */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* Easing */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-:root {
-  color-scheme: dark;
-}
-
-html,
-body {
-  background: var(--color-ink);
-  color: var(--color-text);
-}
+/* --- Body & base -------------------------------------------------------- */
 
 body {
-  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
-  background-image:
-    radial-gradient(1200px 600px at 85% -10%, rgb(245 184 61 / 0.09), transparent 60%),
-    radial-gradient(900px 500px at -10% 10%, rgb(239 77 90 / 0.06), transparent 60%);
-  background-attachment: fixed;
 }
 
-::selection {
-  background: rgb(245 184 61 / 0.35);
-}
+/* --- Focus (accent underline) ---------------------------------------- */
 
-/* Keyboard focus. The UA default outline is nearly invisible on this palette,
-   and .input:focus was the only focus affordance in the app. :where() keeps
-   specificity at 0 so any component can still override it. */
 :where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
-  outline: 2px solid var(--color-gold);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
-/* Honour the OS "reduce motion" setting. Several animations here are infinite
-   (pulse, pulse-gold, the Spinner's spin) and the rise-on-mount fires on every
-   card. Dropping the animation leaves elements at their natural, fully-visible
-   state rather than stuck at a keyframe's from-value. */
+/* --- Reduced motion ---------------------------------------------------- */
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -99,20 +77,23 @@ body {
   }
 }
 
+/* --- Card base -------------------------------------------------------- */
+
 .card {
-  background: linear-gradient(180deg, var(--color-panel-2), var(--color-panel));
-  border: 1px solid var(--color-line);
-  border-radius: 16px;
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 }
+
+/* --- Buttons (will be overridden by Button component) ----------------- */
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 12px;
   padding: 0.6rem 1rem;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.9rem;
   transition:
     transform 0.12s ease,
@@ -128,64 +109,86 @@ body {
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* --- Legacy button variants — map old gold/ember/jade to new palette --- */
+
 .btn-gold {
-  background: linear-gradient(180deg, var(--color-gold-2), var(--color-gold));
-  color: #1b1405;
-  box-shadow: 0 8px 30px -10px rgb(245 184 61 / 0.6);
+  --bg: var(--color-accent);
+  --text: black;
+  background: var(--color-accent);
+  color: black;
+  border-radius: var(--radius-md);
 }
 .btn-gold:hover:not(:disabled) {
   filter: brightness(1.06);
 }
-.btn-ghost {
-  border: 1px solid var(--color-line-2);
-  background: rgb(255 255 255 / 0.02);
-  color: var(--color-text);
-}
-.btn-ghost:hover:not(:disabled) {
-  border-color: var(--color-gold);
-}
-.btn-violet {
-  background: linear-gradient(180deg, #c4b2ff, var(--color-violet));
-  color: #150b33;
-  box-shadow: 0 8px 30px -10px rgb(167 139 250 / 0.6);
-}
+
+/* --- Input ----------------------------------------------------------- */
 
 .input {
   width: 100%;
-  background: var(--color-ink);
-  border: 1px solid var(--color-line-2);
-  border-radius: 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   padding: 0.65rem 0.8rem;
-  color: var(--color-text);
+  color: var(--color-text-primary);
   font-size: 0.92rem;
   outline: none;
   transition: border-color 0.15s ease;
 }
 .input:focus {
-  border-color: var(--color-gold);
+  border-color: var(--color-accent);
 }
 
+/* --- Label ------------------------------------------------------------ */
+
 .label {
-  font-size: 0.72rem;
+  font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--color-muted);
+  color: var(--color-text-muted);
   font-weight: 600;
 }
 
+/* --- Shimmer (kept minimal) ------------------------------------------- */
+
 .shimmer {
-  background: linear-gradient(90deg, transparent, rgb(167 139 250 / 0.18), transparent);
+  background: linear-gradient(90deg, transparent, var(--color-text-secondary) / 0.18, transparent);
   background-size: 200% 100%;
-  animation: var(--animate-shimmer);
+  animation: shimmer 2s linear infinite;
 }
 
-/* Wallet adapter button, restyled to match */
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+/* --- Wallet adapter button, restyled to match ------------------------ */
+
 .wallet-adapter-button {
   height: 36px !important;
   border-radius: 10px !important;
   font-family: var(--font-sans) !important;
   font-size: 0.85rem !important;
   background: rgb(255 255 255 / 0.04) !important;
-  border: 1px solid var(--color-line-2) !important;
+  border: 1px solid var(--color-border) !important;
   padding: 0 0.8rem !important;
+}
+
+/* --- Remove any old gold gradients, radial gradients, animate-rise ----- */
+
+html,
+body {
+  background-image: none;
+}
+
+/* --- Ensure no horizontal scroll ------------------------------------- */
+
+html,
+body {
+  overflow-x: hidden;
 }

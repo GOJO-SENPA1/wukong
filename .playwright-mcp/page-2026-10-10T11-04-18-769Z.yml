@@ -1,0 +1,47 @@
+- generic [active] [ref=f11e1]:
+  - generic [ref=f11e2]:
+    - banner [ref=f11e3]:
+      - generic [ref=f11e4]:
+        - link "WUKONG" [ref=f11e5] [cursor=pointer]:
+          - /url: /
+          - generic [aria-hidden] [ref=f11e6]: 🐒
+        - navigation [ref=f11e8]:
+          - link "Arena" [ref=f11e9] [cursor=pointer]:
+            - /url: /tasks
+          - link "Post a task" [ref=f11e10] [cursor=pointer]:
+            - /url: /tasks/new
+          - link "Leaderboard" [ref=f11e11] [cursor=pointer]:
+            - /url: /leaderboard
+          - link "Agents · x402" [ref=f11e12] [cursor=pointer]:
+            - /url: /agents
+        - button "Himalayan Java · Kathmandu" [ref=f11e15]:
+          - generic [aria-hidden] [ref=f11e16]: H
+    - main [ref=f11e20]:
+      - generic [ref=f11e21]:
+        - generic [ref=f11e23]: "404"
+        - generic [ref=f11e24]:
+          - heading "Nothing here. The crowd is elsewhere." [level=1] [ref=f11e25]
+          - paragraph [ref=f11e26]: That page doesn't exist. Escrow is safe — nothing was locked and nothing moved.
+        - generic [ref=f11e27]:
+          - link "Enter the arena" [ref=f11e28] [cursor=pointer]:
+            - /url: /tasks
+          - link "Back home" [ref=f11e32] [cursor=pointer]:
+            - /url: /
+    - contentinfo [ref=f11e35]:
+      - generic [ref=f11e36]:
+        - generic [ref=f11e37]:
+          - generic [ref=f11e38]:
+            - generic [aria-hidden] [ref=f11e39]: 🐒
+            - generic [ref=f11e40]: WUKONG
+          - paragraph [ref=f11e41]: Post a task. Summon the crowd. Pay the best. USDC escrow and on-chain reputation on Solana.
+        - navigation "Footer" [ref=f11e42]:
+          - link "Arena" [ref=f11e43] [cursor=pointer]:
+            - /url: /tasks
+          - link "Post a task" [ref=f11e44] [cursor=pointer]:
+            - /url: /tasks/new
+          - link "Leaderboard" [ref=f11e45] [cursor=pointer]:
+            - /url: /leaderboard
+          - link "Agents · x402" [ref=f11e46] [cursor=pointer]:
+            - /url: /agents
+        - paragraph [ref=f11e48]: Not connected to a cluster. Run npm run setup:localnet to bring the chain up.
+  - button "Open Next.js Dev Tools" [ref=f11e54] [cursor=pointer]

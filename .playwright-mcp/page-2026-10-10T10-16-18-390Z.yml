@@ -1,0 +1,161 @@
+- generic [active] [ref=f27e1]:
+  - banner [ref=f27e2]:
+    - generic [ref=f27e3]:
+      - link "WUKONG" [ref=f27e4] [cursor=pointer]:
+        - /url: /
+        - generic [aria-hidden] [ref=f27e5]: 🐒
+      - navigation [ref=f27e7]:
+        - link "Arena" [ref=f27e8] [cursor=pointer]:
+          - /url: /tasks
+        - link "Post a task" [ref=f27e9] [cursor=pointer]:
+          - /url: /tasks/new
+        - link "Leaderboard" [ref=f27e10] [cursor=pointer]:
+          - /url: /leaderboard
+        - link "Agents · x402" [ref=f27e11] [cursor=pointer]:
+          - /url: /agents
+      - generic [ref=f27e12]:
+        - generic [ref=f27e31]: localnet
+        - 'generic "No ANTHROPIC_API_KEY: transparent offline heuristics" [ref=f27e33]': ⚖️ Offline judge
+        - button "Himalayan Java · Kathmandu" [ref=f27e14]:
+          - generic [aria-hidden] [ref=f27e15]: H
+  - main [ref=f27e19]:
+    - generic [ref=f27e20]:
+      - generic [ref=f27e34]:
+        - generic [ref=f27e35]:
+          - generic [ref=f27e36]:
+            - generic [ref=f27e37]: Open
+            - generic [ref=f27e39]:
+              - generic [ref=f27e40]: 🌏
+              - text: Translation
+          - heading "Translate homestay welcome note to Nepali" [level=1] [ref=f27e41]
+          - generic [ref=f27e42]:
+            - generic [ref=f27e43]:
+              - generic [aria-hidden] [ref=f27e44]: A
+              - text: Annapurna Homestay
+            - generic [ref=f27e45]: 4 entries
+            - generic [ref=f27e51]: Winner takes all
+            - generic [ref=f27e58]: AI score is final
+            - generic [ref=f27e59]: 47h 58m left
+            - link "task account" [ref=f27e60] [cursor=pointer]:
+              - /url: https://explorer.solana.com/address/57NDRkhr8dnvzQ4DuM8djQpWPCMbJVZfrnQRJgVuPrXZ?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+        - generic [ref=f27e65]:
+          - generic [ref=f27e66]: Locked in escrow
+          - generic [ref=f27e67]: 30USDC
+      - generic [ref=f27e68]:
+        - generic [ref=f27e69]:
+          - group [ref=f27e70]:
+            - generic "The brief sha256 84fd3e0a48… on-chain" [ref=f27e71] [cursor=pointer]:
+              - generic [ref=f27e72]: The brief
+              - generic [ref=f27e73]: sha256 84fd3e0a48… on-chain
+            - generic [ref=f27e77]: Translate our guest welcome note into natural, warm Nepali (Devanagari script). Keep the friendly tone; this is printed on a card in every room. "Welcome to Annapurna Homestay! Breakfast is served from 7 to 9 AM. Please tell us if you have any allergies. Hot water is available in the evening. Enjoy the mountain views!"
+          - generic [ref=f27e78]:
+            - generic [ref=f27e79]:
+              - heading "Enter the arena" [level=2] [ref=f27e80]
+              - button "fill a sample" [ref=f27e81]
+            - textbox "Your best work. It is hashed and committed on-chain; nobody sees it until submissions close." [ref=f27e85]
+            - button "Submit as Himalayan Java" [disabled] [ref=f27e87]
+          - generic [ref=f27e91]:
+            - generic [ref=f27e92]:
+              - heading "Entries (4)" [level=2] [ref=f27e93]:
+                - text: Entries
+                - generic [ref=f27e94]: (4)
+              - generic [ref=f27e95]: sealed until submissions close
+            - generic [ref=f27e99]:
+              - generic [ref=f27e101]:
+                - link [ref=f27e102] [cursor=pointer]:
+                  - /url: /workers/EPX51FFwFL6SSqXgttrWCGf3j9YY6vek2AJibRHccYB9
+                  - generic [aria-hidden] [ref=f27e103]: S
+                - generic [ref=f27e104]:
+                  - generic [ref=f27e105]:
+                    - generic [ref=f27e106]: "#1"
+                    - link "Sita · Pokhara" [ref=f27e107] [cursor=pointer]:
+                      - /url: /workers/EPX51FFwFL6SSqXgttrWCGf3j9YY6vek2AJibRHccYB9
+                    - generic [ref=f27e108]: 1m ago
+                  - generic [ref=f27e109]: sealed until judging · sha256 8664fe152778d62f…
+                - generic [ref=f27e113]: awaiting close
+              - generic [ref=f27e116]:
+                - link [ref=f27e117] [cursor=pointer]:
+                  - /url: /workers/C6ADJEn57GKCWcocqpAGcqcRKPzfbf8jW78XS6HFPeos
+                  - generic [aria-hidden] [ref=f27e118]: R
+                - generic [ref=f27e119]:
+                  - generic [ref=f27e120]:
+                    - generic [ref=f27e121]: "#2"
+                    - link "Rohan · Delhi" [ref=f27e122] [cursor=pointer]:
+                      - /url: /workers/C6ADJEn57GKCWcocqpAGcqcRKPzfbf8jW78XS6HFPeos
+                    - generic [ref=f27e123]: 1m ago
+                  - generic [ref=f27e124]: sealed until judging · sha256 63c86a334cd61053…
+                - generic [ref=f27e128]: awaiting close
+              - generic [ref=f27e131]:
+                - link [ref=f27e132] [cursor=pointer]:
+                  - /url: /workers/H6tpBibFk8PrQcPuuvVejs6SHU2w9itw2GfEYucJwBHc
+                  - generic [aria-hidden] [ref=f27e133]: B
+                - generic [ref=f27e134]:
+                  - generic [ref=f27e135]:
+                    - generic [ref=f27e136]: "#3"
+                    - link "Bikash · Biratnagar" [ref=f27e137] [cursor=pointer]:
+                      - /url: /workers/H6tpBibFk8PrQcPuuvVejs6SHU2w9itw2GfEYucJwBHc
+                    - generic [ref=f27e138]: 1m ago
+                  - generic [ref=f27e139]: sealed until judging · sha256 98acf12e408babf4…
+                - generic [ref=f27e143]: awaiting close
+              - generic [ref=f27e146]:
+                - link [ref=f27e147] [cursor=pointer]:
+                  - /url: /workers/97GoUHni7GiVupCiTMw3Y2HTvj9nF2upUrenRpoPYACp
+                  - generic [aria-hidden] [ref=f27e148]: A
+                - generic [ref=f27e149]:
+                  - generic [ref=f27e150]:
+                    - generic [ref=f27e151]: "#4"
+                    - link "Anita · Lalitpur" [ref=f27e152] [cursor=pointer]:
+                      - /url: /workers/97GoUHni7GiVupCiTMw3Y2HTvj9nF2upUrenRpoPYACp
+                    - generic [ref=f27e153]: 1m ago
+                  - generic [ref=f27e154]: sealed until judging · sha256 e1b501160797a456…
+                - generic [ref=f27e158]: awaiting close
+        - complementary [ref=f27e160]:
+          - generic [ref=f27e161]:
+            - generic [ref=f27e162]: Control room
+            - generic [ref=f27e163]:
+              - button "Close & judge (demo)" [ref=f27e164]
+              - button "Summon the crowd" [ref=f27e171]
+            - generic [ref=f27e177]:
+              - generic [ref=f27e178]:
+                - generic [ref=f27e179]: Worker pool
+                - generic [ref=f27e180]: 27.00 USDC
+              - generic [ref=f27e181]:
+                - generic [ref=f27e182]: Platform fee (10%)
+                - generic [ref=f27e183]: 3.00 USDC
+              - generic [ref=f27e184]:
+                - generic [ref=f27e185]: Escrow vault
+                - link "Dxo6X…ijkuA" [ref=f27e186] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/address/Dxo6X2u8c4fBAN2q3ZHXW1eHqnrfhgWSnyfxQjhijkuA?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+          - generic [ref=f27e191]:
+            - generic [ref=f27e192]: Share as a Blink
+            - paragraph [ref=f27e193]: "Post this task anywhere Blinks unfurl (X, wallets, dial.to): workers enter and stake straight from the post."
+            - generic [ref=f27e194]:
+              - button "localhost:3000/api/actions/tasks/57NDRkhr8dnvzQ4DuM8djQpWPCMbJVZfrnQRJgVuPrXZ copy" [ref=f27e195]:
+                - generic [ref=f27e196]: localhost:3000/api/actions/tasks/57NDRkhr8dnvzQ4DuM8djQpWPCMbJVZfrnQRJgVuPrXZ
+                - generic [ref=f27e197]: copy
+              - paragraph [ref=f27e198]: "Blink clients need a public URL: deploy (devnet) to share it."
+          - generic [ref=f27e199]:
+            - generic [ref=f27e200]: On-chain activity
+            - list [ref=f27e201]:
+              - listitem [ref=f27e202]:
+                - generic [ref=f27e203]: Anita submitted
+                - link "4ksrz…FwMkG" [ref=f27e204] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/4ksrzAmbfcDj3UY8z9UuCV3AWf3GbvCGBLopFLbj3yzqg9vXSwciPTtVH9BEuSMnhRUF1oCkwZU7Y8mwMF2FwMkG?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+              - listitem [ref=f27e209]:
+                - generic [ref=f27e210]: Bikash submitted
+                - link "5c9h7…nAz9N" [ref=f27e211] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/5c9h7zrWK6RAMncrZHjwx5X6Tr96HnKG3ZSg4qUdscrcuGHiciGYeqDC6pYBHgtWkJ5PP16regAgHqGPtPtnAz9N?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+              - listitem [ref=f27e216]:
+                - generic [ref=f27e217]: Rohan submitted
+                - link "3HESk…Agrhp" [ref=f27e218] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/3HESkVcy25y5ucykY7ckSwvpSfCJmgCEtpqwmbC25Snn9YgYmn4gkToVcETJXzkoPe4NKj9mDcoGM8RTVhjAgrhp?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+              - listitem [ref=f27e223]:
+                - generic [ref=f27e224]: Sita submitted
+                - link "67d4F…RohfN" [ref=f27e225] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/67d4FNU89fFkWfzTs472ZyxEn9eSBYanEMS8VpwE4qUgZvkVYQUEkz1dWyjmrBGnpXtJCGFxqPzYq5WTapXRohfN?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+              - listitem [ref=f27e230]:
+                - generic [ref=f27e231]: Task posted, 30 USDC locked
+                - link "NA7iG…i27r2" [ref=f27e232] [cursor=pointer]:
+                  - /url: https://explorer.solana.com/tx/NA7iGcHzzdnpwrFRJYRZFgzh3Cr4PzQ3QGgUBpeZYQD7QfXNeCz65zVH7Gt8BAG63uSvdiU9rQQ7FmyY6Ji27r2?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899
+  - button "Open Next.js Dev Tools" [ref=f27e27] [cursor=pointer]
+  - alert [ref=f27e237]
