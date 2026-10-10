@@ -1,0 +1,173 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-10T13:10:00Z"
+  },
+  "title": "Wukong — Production Redesign",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 7100,
+      "title": "Landing · wukonghq.xyz",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "SignIn.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 940,
+      "title": "Sign in / Sign up",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Onboarding.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 1440,
+      "h": 1120,
+      "title": "Onboarding",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Explore.dc.html": {
+      "x": 0,
+      "y": 7500,
+      "w": 1440,
+      "h": 1760,
+      "title": "Explore tasks",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Task.dc.html": {
+      "x": 1520,
+      "y": 7500,
+      "w": 1440,
+      "h": 1900,
+      "title": "Task · worker view",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "PostTask.dc.html": {
+      "x": 3040,
+      "y": 7500,
+      "w": 1440,
+      "h": 2140,
+      "title": "Post a task",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Results.dc.html": {
+      "x": 0,
+      "y": 10140,
+      "w": 1440,
+      "h": 2300,
+      "title": "Task results · company view",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Dashboard.dc.html": {
+      "x": 1520,
+      "y": 10140,
+      "w": 1440,
+      "h": 1460,
+      "title": "Dashboard",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Profile.dc.html": {
+      "x": 3040,
+      "y": 10140,
+      "w": 1440,
+      "h": 1560,
+      "title": "Public profile",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Wallet.dc.html": {
+      "x": 4560,
+      "y": 10140,
+      "w": 1440,
+      "h": 1520,
+      "title": "Wallet",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "MobileHome.dc.html": {
+      "x": 0,
+      "y": 12940,
+      "w": 390,
+      "h": 844,
+      "title": "Phone · Home"
+    },
+    "MobileTask.dc.html": {
+      "x": 470,
+      "y": 12940,
+      "w": 390,
+      "h": 844,
+      "title": "Phone · Enter a task"
+    },
+    "Leaderboard.dc.html": {
+      "x": 6080,
+      "y": 10140,
+      "w": 1440,
+      "h": 1300,
+      "title": "Leaderboard",
+      "expand": "fill",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "SignIn.dc.html",
+    "Onboarding.dc.html",
+    "Explore.dc.html",
+    "Task.dc.html",
+    "PostTask.dc.html",
+    "Results.dc.html",
+    "Dashboard.dc.html",
+    "Profile.dc.html",
+    "Wallet.dc.html",
+    "Leaderboard.dc.html",
+    "MobileHome.dc.html",
+    "MobileTask.dc.html"
+  ],
+  "notes": {
+    "row1": {
+      "x": 0,
+      "y": -300,
+      "text": "Website and sign-up",
+      "kind": "title1",
+      "maxW": 4480
+    },
+    "row2": {
+      "x": 0,
+      "y": 7200,
+      "text": "Hiring and working",
+      "kind": "title1",
+      "maxW": 4480
+    },
+    "row3": {
+      "x": 0,
+      "y": 9840,
+      "text": "Results, money and reputation",
+      "kind": "title1",
+      "maxW": 7520
+    },
+    "row4": {
+      "x": 0,
+      "y": 12640,
+      "text": "Phone",
+      "kind": "title1",
+      "maxW": 860
+    }
+  },
+  "designSystems": []
+}

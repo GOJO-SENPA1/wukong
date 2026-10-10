@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Set up your Wukong account</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Instrument+Sans:wght@400;500;600;700&amp;family=Instrument+Serif:ital@0;1&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F3F6FA}
+.wk{font-family:'Instrument Sans',"Helvetica Neue",Arial,sans-serif;color:#0E1018;-webkit-font-smoothing:antialiased}
+.disp{font-family:Anton,Impact,"Arial Narrow",sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.005em;line-height:.94;margin:0}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.18em;font-size:12px;font-weight:500}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border-radius:10px;font:600 16px/1 'Instrument Sans',sans-serif;text-decoration:none;border:0;cursor:pointer;box-sizing:border-box}
+.btn-red{background:#E4261C;color:#fff}.btn-red:hover{background:#C91F16;color:#fff}
+.btn-line{background:#fff;color:#0E1018;box-shadow:inset 0 0 0 1.5px #CBD5E3}.btn-line:hover{box-shadow:inset 0 0 0 1.5px #0E1018;color:#0E1018}
+.field{width:100%;box-sizing:border-box;min-height:52px;padding:0 16px;border-radius:10px;border:1.5px solid #CBD5E3;font:500 16px 'Instrument Sans',sans-serif;color:#0E1018;background:#fff}
+.field:focus{outline:none;border-color:#2B3CFF;box-shadow:0 0 0 3px rgba(43,60,255,.18)}
+.choice{display:flex;flex-direction:column;gap:12px;text-align:left;padding:24px;border-radius:14px;background:#fff;border:0;cursor:pointer;font:inherit;color:#0E1018}
+.chip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:0;cursor:pointer;font:600 15px 'Instrument Sans',sans-serif}
+a{color:#1D2BD6}a:hover{color:#121C9E}
+</style>
+</helmet>
+<div class="wk" style="min-height: 1120px; background: #F3F6FA; display: flex; flex-direction: column">
+
+  <header style="background: #fff; border-bottom: 1px solid #E1E7EF">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 16px clamp(16px, 4vw, 32px); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+      <span style="display: flex; align-items: center; gap: 10px"><span style="width: 12px; height: 12px; border-radius: 50%; background: #E4261C"></span><span class="disp" style="font-size: 24px; letter-spacing: .04em">Wukong</span></span>
+      <div style="display: flex; align-items: center; gap: 16px">
+        <span class="mono" style="font-size: 11px; color: #586378">Step {{ stepNo }} of 3</span>
+        <div aria-hidden="true" style="display: flex; gap: 6px">
+          <span style="width: 40px; height: 6px; border-radius: 3px; background: {{ bar1 }}"></span>
+          <span style="width: 40px; height: 6px; border-radius: 3px; background: {{ bar2 }}"></span>
+          <span style="width: 40px; height: 6px; border-radius: 3px; background: {{ bar3 }}"></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main style="flex: 1; width: 100%; max-width: 760px; margin: 0 auto; box-sizing: border-box; padding: 64px clamp(16px, 4vw, 32px) 80px; display: flex; flex-direction: column; gap: 36px">
+
+    <!-- Step 1: role -->
+    <sc-if value="{{ atRole }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 36px">
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <h1 class="disp" style="font-size: clamp(44px, 5vw, 64px)">What brings you to Wukong?</h1>
+          <p style="margin: 0; font-size: 17px; color: #586378">This sets up your home screen. You can always do both.</p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: 14px">
+          <sc-for list="{{ roles }}" as="r" hint-placeholder-count="3">
+            <button type="button" class="choice" onClick="{{ r.pick }}" aria-pressed="{{ r.pressed }}" style="box-shadow: {{ r.ring }}">
+              <span style="width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: {{ r.iconBg }}; color: #fff" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ r.icon }}"></path></svg>
+              </span>
+              <span style="font-size: 20px; font-weight: 700">{{ r.title }}</span>
+              <span style="font-size: 15px; line-height: 1.5; color: #586378">{{ r.body }}</span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display: flex; justify-content: flex-end">
+          <button type="button" class="btn btn-red" onClick="{{ toProfile }}">Continue</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- Step 2: profile -->
+    <sc-if value="{{ atProfile }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 32px">
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <h1 class="disp" style="font-size: clamp(44px, 5vw, 64px)">Your public profile</h1>
+          <p style="margin: 0; font-size: 17px; color: #586378">Companies see this next to your entries. Your reputation builds here.</p>
+        </div>
+        <div style="background: #fff; border-radius: 16px; padding: clamp(20px, 3vw, 32px); display: flex; flex-direction: column; gap: 22px; box-shadow: 0 1px 0 #E1E7EF">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 18px">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="name" style="font-size: 14px; font-weight: 600">Display name</label>
+              <input class="field" id="name" autocomplete="name" value="Sanjay Karki">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="handle" style="font-size: 14px; font-weight: 600">Username</label>
+              <div style="display: flex; align-items: center; border: 1.5px solid #CBD5E3; border-radius: 10px; background: #fff; overflow: hidden">
+                <span style="padding: 0 0 0 16px; color: #586378; font-size: 16px; white-space: nowrap">wukonghq.xyz/@</span>
+                <input id="handle" value="sanjay" style="flex: 1; min-width: 0; min-height: 49px; border: 0; padding: 0 16px 0 2px; font: 500 16px 'Instrument Sans', sans-serif; background: transparent">
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="city" style="font-size: 14px; font-weight: 600">Based in</label>
+              <input class="field" id="city" autocomplete="address-level2" value="Kathmandu, Nepal">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="langs" style="font-size: 14px; font-weight: 600">Languages</label>
+              <input class="field" id="langs" value="Nepali, English, Hindi">
+            </div>
+          </div>
+          <sc-if value="{{ showsSkills }}" hint-placeholder-val="{{ true }}">
+            <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px">
+              <legend style="font-size: 14px; font-weight: 600; padding: 0; margin-bottom: 12px">What do you want to work on?</legend>
+              <div style="display: flex; flex-wrap: wrap; gap: 10px">
+                <sc-for list="{{ skills }}" as="s" hint-placeholder-count="5">
+                  <button type="button" class="chip" onClick="{{ s.toggle }}" aria-pressed="{{ s.pressed }}" style="background: {{ s.bg }}; color: {{ s.fg }}; box-shadow: {{ s.ring }}">{{ s.label }}</button>
+                </sc-for>
+              </div>
+            </fieldset>
+          </sc-if>
+          <sc-if value="{{ showsCompany }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="company" style="font-size: 14px; font-weight: 600">Company or team <span style="font-weight: 400; color: #586378">(optional)</span></label>
+              <input class="field" id="company" autocomplete="organization" placeholder="Shown on the tasks you post">
+            </div>
+          </sc-if>
+        </div>
+        <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+          <button type="button" class="btn btn-line" onClick="{{ toRole }}">Back</button>
+          <button type="button" class="btn btn-red" onClick="{{ toWallet }}">Save and continue</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- Step 3: wallet -->
+    <sc-if value="{{ atWallet }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 32px">
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <h1 class="disp" style="font-size: clamp(44px, 5vw, 64px)">Your wallet is ready</h1>
+          <p style="margin: 0; font-size: 17px; line-height: 1.55; color: #586378">We created a Solana wallet for you, secured by your sign-in. It's yours: payouts land here and only you can move funds.</p>
+        </div>
+        <div style="background: #0C1424; color: #fff; border-radius: 18px; padding: clamp(22px, 3vw, 32px); display: flex; flex-direction: column; gap: 24px">
+          <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: flex-start">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <span class="mono" style="font-size: 11px; color: #8E9CB8">Balance</span>
+              <span style="display: flex; align-items: baseline; gap: 10px"><span class="disp" style="font-size: 56px">0.00</span><span style="font-size: 16px; color: #C9D3E6">USDC</span></span>
+            </div>
+            <span class="mono" style="font-size: 11px; padding: 8px 12px; border-radius: 999px; background: rgba(43,60,255,.25); color: #C9CFFF">Self-custodial</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 12px; background: rgba(255,255,255,.06); flex-wrap: wrap">
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; color: #DCE3F0; overflow-wrap: anywhere">9xQe 4Tk2 … pL7v T4kP</span>
+            <button type="button" aria-label="Copy wallet address" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 8px; border: 0; background: rgba(255,255,255,.1); color: #fff; font: 600 14px 'Instrument Sans', sans-serif; cursor: pointer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>Copy
+            </button>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 14px">
+          <div style="background: #fff; border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 0 #E1E7EF">
+            <span style="font-size: 17px; font-weight: 700">Hiring?</span>
+            <span style="font-size: 15px; line-height: 1.5; color: #586378">Add USDC to fund your first task's escrow. By transfer, or by card through [CARD ON-RAMP PARTNER].</span>
+            <a href="Wallet.dc.html" style="font-weight: 600; font-size: 15px; margin-top: 4px">Add funds</a>
+          </div>
+          <div style="background: #fff; border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 0 #E1E7EF">
+            <span style="font-size: 17px; font-weight: 700">Working?</span>
+            <span style="font-size: 15px; line-height: 1.5; color: #586378">You don't need funds to start. Most tasks have no entry stake, and network fees on your first entries are covered.</span>
+            <a href="Explore.dc.html" style="font-weight: 600; font-size: 15px; margin-top: 4px">Find a task</a>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+          <button type="button" class="btn btn-line" onClick="{{ toProfile }}">Back</button>
+          <a class="btn btn-red" href="Explore.dc.html">Go to Wukong</a>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startStep":{"editor":"enum","options":["role","profile","wallet"],"default":"role"},"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: null, role: 'work', skills: { copy: true, translation: true } };
+  }
+  renderVals() {
+    const step = this.state.step || this.props.startStep || 'role';
+    const n = step === 'role' ? 1 : step === 'profile' ? 2 : 3;
+    const role = this.state.role;
+    const roles = [
+      { id: 'hire', title: 'I want to hire', body: 'Post tasks, lock a reward and get many finished takes to choose from.', icon: 'M4 7h16v12H4z M9 7V5h6v2', iconBg: '#0C1424' },
+      { id: 'work', title: 'I want to work', body: 'Compete on tasks in your skills and get paid in USDC when you win.', icon: 'M12 3l2.6 5.6 6.1.6-4.6 4.1 1.3 6L12 16.3 6.6 19.3l1.3-6L3.3 9.2l6.1-.6z', iconBg: '#2B3CFF' },
+      { id: 'both', title: 'Both', body: 'Hire for some things, compete on others. One account, one wallet.', icon: 'M7 7h10v10H7z M3 3h4 M17 21h4', iconBg: '#E4261C' },
+    ].map((r) => ({
+      ...r,
+      pressed: role === r.id ? 'true' : 'false',
+      ring: role === r.id ? 'inset 0 0 0 2.5px #2B3CFF, 0 10px 30px -12px rgba(43,60,255,.45)' : 'inset 0 0 0 1.5px #D5DDE8',
+      pick: () => this.setState({ role: r.id }),
+    }));
+    const skillList = [
+      ['copy', 'Copy & Content'], ['translation', 'Translation'], ['code', 'Code'], ['labeling', 'Data labeling'], ['research', 'Research'],
+    ].map(([id, label]) => {
+      const on = !!this.state.skills[id];
+      return {
+        label,
+        pressed: on ? 'true' : 'false',
+        bg: on ? '#0C1424' : '#fff',
+        fg: on ? '#fff' : '#0E1018',
+        ring: on ? 'none' : 'inset 0 0 0 1.5px #CBD5E3',
+        toggle: () => this.setState({ skills: { ...this.state.skills, [id]: !on } }),
+      };
+    });
+    const go = (s) => () => this.setState({ step: s });
+    return {
+      stepNo: n,
+      bar1: '#E4261C',
+      bar2: n >= 2 ? '#E4261C' : '#D5DDE8',
+      bar3: n >= 3 ? '#E4261C' : '#D5DDE8',
+      atRole: step === 'role',
+      atProfile: step === 'profile',
+      atWallet: step === 'wallet',
+      roles,
+      skills: skillList,
+      showsSkills: role !== 'hire',
+      showsCompany: role !== 'work',
+      toRole: go('role'),
+      toProfile: go('profile'),
+      toWallet: go('wallet'),
+    };
+  }
+}
+</script>
+</body>
+</html>

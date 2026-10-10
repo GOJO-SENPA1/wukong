@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My work · Wukong</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Instrument+Sans:wght@400;500;600;700&amp;family=Instrument+Serif:ital@0;1&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F3F6FA}
+.wk{font-family:'Instrument Sans',"Helvetica Neue",Arial,sans-serif;color:#0E1018;-webkit-font-smoothing:antialiased}
+.disp{font-family:Anton,Impact,"Arial Narrow",sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.005em;line-height:.94;margin:0}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.16em;font-size:11px;font-weight:500}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:0 18px;border-radius:10px;font:600 15px/1 'Instrument Sans',sans-serif;text-decoration:none;border:0;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.btn-red{background:#E4261C;color:#fff}.btn-red:hover{background:#C91F16;color:#fff}
+.btn-white{background:#fff;color:#0C1424}.btn-white:hover{background:#E9EEF6;color:#0C1424}
+.nav{color:#3A4458;text-decoration:none;font-size:15px;font-weight:600;padding:10px 4px;border-bottom:2px solid transparent}.nav:hover{color:#0E1018}
+.card{background:#fff;border-radius:16px;box-shadow:0 1px 0 #E1E7EF}
+.tab{min-height:44px;padding:0 18px;border-radius:10px;border:0;cursor:pointer;font:600 15px 'Instrument Sans',sans-serif}
+.trow{display:grid;grid-template-columns:minmax(0,2.4fr) minmax(0,1.4fr) 110px 120px;gap:16px;padding:16px 4px;align-items:center;border-bottom:1px solid #E1E7EF;text-decoration:none;color:#0E1018}
+.trow:hover{background:#F7F9FC;color:#0E1018}
+a{color:#1D2BD6}a:hover{color:#121C9E}
+</style>
+</helmet>
+<div class="wk" style="min-height: 1460px; background: #F3F6FA">
+
+  <header style="background: #fff; border-bottom: 1px solid #E1E7EF">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 10px clamp(16px, 3vw, 32px); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px">
+      <a href="Main.dc.html" aria-label="Wukong home" style="display: flex; align-items: center; gap: 9px; text-decoration: none; color: #0E1018"><span style="width: 12px; height: 12px; border-radius: 50%; background: #E4261C"></span><span class="disp" style="font-size: 24px; letter-spacing: .04em">Wukong</span></a>
+      <nav aria-label="App" style="display: flex; gap: 22px; flex-wrap: wrap">
+        <a class="nav" href="Explore.dc.html">Explore</a>
+        <a class="nav" href="Dashboard.dc.html" aria-current="page" style="color: #0E1018; border-bottom-color: #E4261C">My work</a>
+        <a class="nav" href="Results.dc.html">Hiring</a>
+        <a class="nav" href="Leaderboard.dc.html">Leaderboard</a>
+      </nav>
+      <div style="display: flex; align-items: center; gap: 10px; margin-left: auto">
+        <a class="btn btn-red" href="PostTask.dc.html">Post a task</a>
+        <a href="Wallet.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 10px; background: #F3F6FA; text-decoration: none; color: #0E1018; font-weight: 600; font-size: 15px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2B3CFF"></span>124.50 <span style="color: #586378; font-weight: 500">USDC</span></a>
+        <a href="Profile.dc.html" aria-label="Your profile" style="width: 44px; height: 44px; border-radius: 50%; background: #0C1424; color: #fff; display: grid; place-items: center; text-decoration: none; font: 400 17px Anton, Impact, sans-serif">SK</a>
+      </div>
+    </div>
+  </header>
+
+  <div style="max-width: 1360px; margin: 0 auto; padding: 40px clamp(16px, 3vw, 32px) 96px; display: flex; flex-direction: column; gap: 28px">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <h1 class="disp" style="font-size: clamp(40px, 4.4vw, 60px)">Namaste, Sanjay</h1>
+        <p style="margin: 0; font-size: 16px; color: #586378">Everything you're working on and hiring for.</p>
+      </div>
+      <div role="tablist" aria-label="View" style="display: flex; gap: 6px; padding: 6px; border-radius: 14px; background: #fff; box-shadow: 0 1px 0 #E1E7EF">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2">
+          <button type="button" role="tab" class="tab" onClick="{{ t.pick }}" aria-selected="{{ t.selected }}" style="background: {{ t.bg }}; color: {{ t.fg }}">{{ t.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Working -->
+    <sc-if value="{{ working }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 24px">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px">
+          <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">Rating</span><span class="disp" style="font-size: 44px">127</span><span style="font-size: 13px; color: #586378">+12 this month</span></div>
+          <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">Wins</span><span class="disp" style="font-size: 44px">3</span><span style="font-size: 13px; color: #586378">from 7 entries</span></div>
+          <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">Earned</span><span class="disp" style="font-size: 44px">58.40</span><span style="font-size: 13px; color: #586378">USDC, all time</span></div>
+          <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">Average score</span><span class="disp" style="font-size: 44px">78</span><span style="font-size: 13px; color: #586378">out of 100</span></div>
+        </div>
+        <section class="card" aria-labelledby="ent-h" style="padding: clamp(18px, 2.5vw, 26px); display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; padding-bottom: 8px">
+            <h2 id="ent-h" style="margin: 0; font-size: 20px; font-weight: 700">Your entries</h2>
+            <a href="Explore.dc.html" style="font-weight: 600; font-size: 15px">Find another task</a>
+          </div>
+          <div style="overflow-x: auto"><div style="min-width: 620px">
+            <div class="trow mono" style="color: #586378; padding: 8px 4px"><span>Task</span><span>Status</span><span>Score</span><span>Result</span></div>
+            <a class="trow" href="Task.dc.html"><span style="font-weight: 600">Launch tagline: Himalayan cold brew</span><span class="mono" style="color: #3A4458">Sealed · closes in 2h 14m</span><span style="color: #586378">—</span><span style="color: #586378">Pending</span></a>
+            <a class="trow" href="Task.dc.html"><span style="font-weight: 600">TypeScript slugify() with Unicode support</span><span class="mono" style="color: #1D2BD6">Judging · 6 of 9 scored</span><span style="font: 400 22px Anton, Impact, sans-serif">81</span><span style="color: #586378">3rd so far</span></a>
+            <a class="trow" href="Results.dc.html"><span style="font-weight: 600">Tagline for a Boudha bookshop café</span><span class="mono" style="color: #586378">Settled · Oct 8</span><span style="font: 400 22px Anton, Impact, sans-serif">92</span><span style="font-weight: 700; color: #0B7A55">Won · +22.50</span></a>
+            <a class="trow" href="Results.dc.html"><span style="font-weight: 600">Translate a menu into Nepali</span><span class="mono" style="color: #586378">Settled · Oct 5</span><span style="font: 400 22px Anton, Impact, sans-serif">87</span><span style="font-weight: 700; color: #0B7A55">Won · +27.00</span></a>
+            <a class="trow" href="Results.dc.html" style="border-bottom: 0"><span style="font-weight: 600">Label 20 product photos by category</span><span class="mono" style="color: #586378">Settled · Sep 30</span><span style="font: 400 22px Anton, Impact, sans-serif">64</span><span style="color: #586378">4th · not paid</span></a>
+          </div></div>
+        </section>
+      </div>
+    </sc-if>
+
+    <!-- Hiring -->
+    <sc-if value="{{ hiring }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 24px">
+        <div style="background: #0C1424; color: #fff; border-radius: 16px; padding: clamp(20px, 3vw, 28px); display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap">
+          <div style="display: flex; gap: 16px; align-items: center">
+            <span style="width: 48px; height: 48px; border-radius: 12px; background: #E4261C; display: grid; place-items: center; flex: none" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <span style="font-size: 18px; font-weight: 700">Your shortlist is ready: Explain x402 payments to a Nepali small-business owner</span>
+              <span style="font-size: 15px; color: #A9B6CF">Pick a winner within 31 hours, or the AI's top entry is paid automatically.</span>
+            </div>
+          </div>
+          <a class="btn btn-white" href="Results.dc.html">Review the shortlist</a>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px">
+          <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">Open tasks</span><span class="disp" style="font-size: 44px">2</span><span style="font-size: 13px; color: #586378">23 entries so far</span></div>
+          <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">In escrow</span><span class="disp" style="font-size: 44px">170.00</span><span style="font-size: 13px; color: #586378">USDC</span></div>
+          <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">Paid out</span><span class="disp" style="font-size: 44px">45.00</span><span style="font-size: 13px; color: #586378">USDC to 3 workers</span></div>
+          <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">Refunded</span><span class="disp" style="font-size: 44px">0.00</span><span style="font-size: 13px; color: #586378">nothing missed the bar</span></div>
+        </div>
+        <section class="card" aria-labelledby="hire-h" style="padding: clamp(18px, 2.5vw, 26px); display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; padding-bottom: 8px">
+            <h2 id="hire-h" style="margin: 0; font-size: 20px; font-weight: 700">Your tasks</h2>
+            <a href="PostTask.dc.html" style="font-weight: 600; font-size: 15px">Post a task</a>
+          </div>
+          <div style="overflow-x: auto"><div style="min-width: 620px">
+            <div class="trow mono" style="color: #586378; padding: 8px 4px"><span>Task</span><span>Status</span><span>Entries</span><span>Reward</span></div>
+            <a class="trow" href="Results.dc.html"><span style="font-weight: 600">Explain x402 payments to a Nepali small-business owner</span><span class="mono" style="color: #B81D14">Awaiting your pick</span><span>4</span><span style="font-weight: 700">120.00</span></a>
+            <a class="trow" href="Task.dc.html"><span style="font-weight: 600">Launch tagline: Himalayan cold brew</span><span class="mono" style="color: #3A4458">Open · 2h 14m left</span><span>14</span><span style="font-weight: 700">50.00</span></a>
+            <a class="trow" href="Task.dc.html"><span style="font-weight: 600">Product descriptions for 5 pashmina scarves</span><span class="mono" style="color: #3A4458">Open · 3d left</span><span>9</span><span style="font-weight: 700">60.00</span></a>
+            <a class="trow" href="Results.dc.html" style="border-bottom: 0"><span style="font-weight: 600">Tagline for a Boudha bookshop café</span><span class="mono" style="color: #1D2BD6">Settled · paid 45.00</span><span>11</span><span style="font-weight: 700">50.00</span></a>
+          </div></div>
+        </section>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startTab":{"editor":"enum","options":["working","hiring"],"default":"working"},"$preview":{"width":1440,"height":1460}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: null };
+  }
+  renderVals() {
+    const tab = this.state.tab || this.props.startTab || 'working';
+    const tabs = [['working', 'Working'], ['hiring', 'Hiring']].map(([id, label]) => ({
+      label,
+      selected: tab === id ? 'true' : 'false',
+      bg: tab === id ? '#0C1424' : 'transparent',
+      fg: tab === id ? '#fff' : '#3A4458',
+      pick: () => this.setState({ tab: id }),
+    }));
+    return { tabs, working: tab === 'working', hiring: tab === 'hiring' };
+  }
+}
+</script>
+</body>
+</html>

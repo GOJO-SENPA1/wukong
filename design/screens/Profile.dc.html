@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sanjay Karki (@sanjay) · Wukong</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Instrument+Sans:wght@400;500;600;700&amp;family=Instrument+Serif:ital@0;1&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F3F6FA}
+.wk{font-family:'Instrument Sans',"Helvetica Neue",Arial,sans-serif;color:#0E1018;-webkit-font-smoothing:antialiased}
+.disp{font-family:Anton,Impact,"Arial Narrow",sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.005em;line-height:.94;margin:0}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.16em;font-size:11px;font-weight:500}
+.serif{font-family:'Instrument Serif',Georgia,serif;font-style:italic;font-weight:400}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:0 18px;border-radius:10px;font:600 15px/1 'Instrument Sans',sans-serif;text-decoration:none;border:0;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.btn-red{background:#E4261C;color:#fff}.btn-red:hover{background:#C91F16;color:#fff}
+.btn-ghost{color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5);background:transparent}.btn-ghost:hover{color:#fff;box-shadow:inset 0 0 0 1.5px #fff}
+.nav{color:#3A4458;text-decoration:none;font-size:15px;font-weight:600;padding:10px 4px;border-bottom:2px solid transparent}.nav:hover{color:#0E1018}
+.card{background:#fff;border-radius:16px;box-shadow:0 1px 0 #E1E7EF}
+a{color:#1D2BD6}a:hover{color:#121C9E}
+</style>
+</helmet>
+<div class="wk" style="min-height: 1560px; background: #F3F6FA">
+
+  <header style="background: #fff; border-bottom: 1px solid #E1E7EF">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 10px clamp(16px, 3vw, 32px); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px">
+      <a href="Main.dc.html" aria-label="Wukong home" style="display: flex; align-items: center; gap: 9px; text-decoration: none; color: #0E1018"><span style="width: 12px; height: 12px; border-radius: 50%; background: #E4261C"></span><span class="disp" style="font-size: 24px; letter-spacing: .04em">Wukong</span></a>
+      <nav aria-label="App" style="display: flex; gap: 22px; flex-wrap: wrap">
+        <a class="nav" href="Explore.dc.html">Explore</a>
+        <a class="nav" href="Dashboard.dc.html">My work</a>
+        <a class="nav" href="Results.dc.html">Hiring</a>
+        <a class="nav" href="Leaderboard.dc.html">Leaderboard</a>
+      </nav>
+      <div style="display: flex; align-items: center; gap: 10px; margin-left: auto">
+        <a class="btn btn-red" href="PostTask.dc.html">Post a task</a>
+        <a href="Wallet.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 10px; background: #F3F6FA; text-decoration: none; color: #0E1018; font-weight: 600; font-size: 15px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2B3CFF"></span>124.50 <span style="color: #586378; font-weight: 500">USDC</span></a>
+        <a href="Profile.dc.html" aria-label="Your profile" style="width: 44px; height: 44px; border-radius: 50%; background: #0C1424; color: #fff; display: grid; place-items: center; text-decoration: none; font: 400 17px Anton, Impact, sans-serif">SK</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Identity band -->
+  <section style="background: #0C1424; color: #fff; position: relative; overflow: hidden">
+    <div aria-hidden="true" style="position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 64px 64px"></div>
+    <div style="position: relative; max-width: 1360px; margin: 0 auto; padding: 48px clamp(16px, 3vw, 32px); display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: space-between">
+      <div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap">
+        <span style="width: 112px; height: 112px; border-radius: 50%; background: #E4261C; display: grid; place-items: center; font: 400 44px Anton, Impact, sans-serif; flex: none">SK</span>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <h1 class="disp" style="font-size: clamp(40px, 4.4vw, 64px)">Sanjay Karki</h1>
+          <div style="display: flex; gap: 8px 18px; flex-wrap: wrap; font-size: 15px; color: #C9D3E6">
+            <span>@sanjay</span><span>Kathmandu, Nepal</span><span>Nepali · English · Hindi</span><span>Joined September 2026</span>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <span class="mono" style="padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,.08); color: #DCE3F0">Copy &amp; Content</span>
+            <span class="mono" style="padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,.08); color: #DCE3F0">Translation</span>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap">
+        <button type="button" class="btn btn-ghost">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"></path><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"></path></svg>Copy profile link
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div style="max-width: 1360px; margin: 0 auto; padding: 32px clamp(16px, 3vw, 32px) 96px; display: flex; flex-direction: column; gap: 24px">
+
+    <!-- Stats -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 12px">
+      <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">Rating</span><span class="disp" style="font-size: 44px; color: #E4261C">127</span></div>
+      <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">Wins</span><span class="disp" style="font-size: 44px">3</span></div>
+      <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">Top-3 finishes</span><span class="disp" style="font-size: 44px">5</span></div>
+      <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">Entries</span><span class="disp" style="font-size: 44px">7</span></div>
+      <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">Average score</span><span class="disp" style="font-size: 44px">78</span></div>
+      <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="color: #586378">Earned</span><span class="disp" style="font-size: 44px">58.40</span></div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+      <!-- Results -->
+      <section class="card" aria-labelledby="res-h" style="flex: 999 1 640px; min-width: 0; padding: clamp(20px, 2.5vw, 28px); display: flex; flex-direction: column; gap: 4px">
+        <h2 id="res-h" style="margin: 0 0 10px; font-size: 20px; font-weight: 700">Results</h2>
+        <article style="display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 18px; padding: 18px 0; border-top: 1px solid #E1E7EF; align-items: start">
+          <span class="disp" style="font-size: 44px">92</span>
+          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0"><span style="font-weight: 700; font-size: 16px">Tagline for a Boudha bookshop café</span><span style="font-size: 14px; color: #586378">Copy &amp; Content · Oct 8</span><span class="serif" style="font-size: 19px; line-height: 1.4; color: #3A4458">“Sharp, specific and on-brief.”</span></div>
+          <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px"><span class="mono" style="color: #B81D14">1st</span><span style="font-weight: 700">+22.50</span></span>
+        </article>
+        <article style="display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 18px; padding: 18px 0; border-top: 1px solid #E1E7EF; align-items: start">
+          <span class="disp" style="font-size: 44px">87</span>
+          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0"><span style="font-weight: 700; font-size: 16px">Translate a menu into Nepali</span><span style="font-size: 14px; color: #586378">Translation · Oct 5</span><span class="serif" style="font-size: 19px; line-height: 1.4; color: #3A4458">“Natural Nepali with the right register for a café menu.”</span></div>
+          <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px"><span class="mono" style="color: #B81D14">1st</span><span style="font-weight: 700">+27.00</span></span>
+        </article>
+        <article style="display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 18px; padding: 18px 0; border-top: 1px solid #E1E7EF; align-items: start">
+          <span class="disp" style="font-size: 44px">84</span>
+          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0"><span style="font-weight: 700; font-size: 16px">Instagram captions for a trekking agency</span><span style="font-size: 14px; color: #586378">Copy &amp; Content · Oct 2</span><span class="serif" style="font-size: 19px; line-height: 1.4; color: #3A4458">“Lively and varied; one caption runs long.”</span></div>
+          <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px"><span class="mono" style="color: #3A4458">2nd</span><span style="font-weight: 700">+8.90</span></span>
+        </article>
+        <article style="display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 18px; padding: 18px 0; border-top: 1px solid #E1E7EF; align-items: start">
+          <span class="disp" style="font-size: 44px">64</span>
+          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0"><span style="font-weight: 700; font-size: 16px">Label 20 product photos by category</span><span style="font-size: 14px; color: #586378">Data labeling · Sep 30</span><span class="serif" style="font-size: 19px; line-height: 1.4; color: #3A4458">“Mostly right; three labels miss the brief's categories.”</span></div>
+          <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px"><span class="mono" style="color: #586378">4th</span><span style="color: #586378">—</span></span>
+        </article>
+      </section>
+
+      <!-- Rail -->
+      <aside style="flex: 1 1 320px; min-width: 0; max-width: 100%; display: flex; flex-direction: column; gap: 16px">
+        <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 16px">
+          <h2 style="margin: 0; font-size: 17px; font-weight: 700">Strongest in</h2>
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; flex-direction: column; gap: 6px"><span style="display: flex; justify-content: space-between; font-size: 15px"><span>Copy &amp; Content</span><span style="font-weight: 700">avg 86</span></span><span style="height: 8px; border-radius: 4px; background: #E1E7EF; overflow: hidden"><span style="display: block; height: 100%; width: 86%; background: #0C1424"></span></span></div>
+            <div style="display: flex; flex-direction: column; gap: 6px"><span style="display: flex; justify-content: space-between; font-size: 15px"><span>Translation</span><span style="font-weight: 700">avg 83</span></span><span style="height: 8px; border-radius: 4px; background: #E1E7EF; overflow: hidden"><span style="display: block; height: 100%; width: 83%; background: #0C1424"></span></span></div>
+            <div style="display: flex; flex-direction: column; gap: 6px"><span style="display: flex; justify-content: space-between; font-size: 15px"><span>Data labeling</span><span style="font-weight: 700">avg 64</span></span><span style="height: 8px; border-radius: 4px; background: #E1E7EF; overflow: hidden"><span style="display: block; height: 100%; width: 64%; background: #0C1424"></span></span></div>
+          </div>
+        </div>
+        <div style="background: #2B3CFF; color: #fff; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+          <span class="mono" style="color: #DDE2FF">On-chain reputation</span>
+          <p style="margin: 0; font-size: 16px; line-height: 1.55">Every score and payout above is recorded on Solana in an account Sanjay owns. Any app can read it.</p>
+          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; color: #E6E9FF; overflow-wrap: anywhere">Reputation account 4mPa…Rz7c</span>
+          <a href="#explorer" style="color: #fff; font-weight: 600; font-size: 15px">View on Solana Explorer</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1560}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Leaderboard · Wukong</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Instrument+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F3F6FA}
+.wk{font-family:'Instrument Sans',"Helvetica Neue",Arial,sans-serif;color:#0E1018;-webkit-font-smoothing:antialiased}
+.disp{font-family:Anton,Impact,"Arial Narrow",sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.005em;line-height:.94;margin:0}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.16em;font-size:11px;font-weight:500}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:0 18px;border-radius:10px;font:600 15px/1 'Instrument Sans',sans-serif;text-decoration:none;border:0;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.btn-red{background:#E4261C;color:#fff}.btn-red:hover{background:#C91F16;color:#fff}
+.nav{color:#3A4458;text-decoration:none;font-size:15px;font-weight:600;padding:10px 4px;border-bottom:2px solid transparent}.nav:hover{color:#0E1018}
+.card{background:#fff;border-radius:16px;box-shadow:0 1px 0 #E1E7EF}
+.chip{min-height:40px;padding:0 14px;border-radius:999px;border:0;cursor:pointer;font:600 14px 'Instrument Sans',sans-serif}
+.lrow{display:grid;grid-template-columns:56px minmax(0,2fr) 90px 70px 100px 110px;gap:14px;align-items:center;padding:14px 8px;border-bottom:1px solid #E1E7EF;text-decoration:none;color:#0E1018}
+.lrow:hover{background:#F7F9FC;color:#0E1018}
+a{color:#1D2BD6}a:hover{color:#121C9E}
+</style>
+</helmet>
+<div class="wk" style="min-height: 1300px; background: #F3F6FA">
+
+  <header style="background: #fff; border-bottom: 1px solid #E1E7EF">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 10px clamp(16px, 3vw, 32px); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px">
+      <a href="Main.dc.html" aria-label="Wukong home" style="display: flex; align-items: center; gap: 9px; text-decoration: none; color: #0E1018"><span style="width: 12px; height: 12px; border-radius: 50%; background: #E4261C"></span><span class="disp" style="font-size: 24px; letter-spacing: .04em">Wukong</span></a>
+      <nav aria-label="App" style="display: flex; gap: 22px; flex-wrap: wrap">
+        <a class="nav" href="Explore.dc.html">Explore</a>
+        <a class="nav" href="Dashboard.dc.html">My work</a>
+        <a class="nav" href="Results.dc.html">Hiring</a>
+        <a class="nav" href="Leaderboard.dc.html" aria-current="page" style="color: #0E1018; border-bottom-color: #E4261C">Leaderboard</a>
+      </nav>
+      <div style="display: flex; align-items: center; gap: 10px; margin-left: auto">
+        <a class="btn btn-red" href="PostTask.dc.html">Post a task</a>
+        <a href="Wallet.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 10px; background: #F3F6FA; text-decoration: none; color: #0E1018; font-weight: 600; font-size: 15px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2B3CFF"></span>124.50 <span style="color: #586378; font-weight: 500">USDC</span></a>
+        <a href="Profile.dc.html" aria-label="Your profile" style="width: 44px; height: 44px; border-radius: 50%; background: #0C1424; color: #fff; display: grid; place-items: center; text-decoration: none; font: 400 17px Anton, Impact, sans-serif">SK</a>
+      </div>
+    </div>
+  </header>
+
+  <div style="max-width: 1360px; margin: 0 auto; padding: 40px clamp(16px, 3vw, 32px) 96px; display: flex; flex-direction: column; gap: 28px">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <h1 class="disp" style="font-size: clamp(40px, 4.4vw, 60px)">Leaderboard</h1>
+        <p style="margin: 0; font-size: 16px; color: #586378">Ranked by rating, which rises with strong scores and wins and falls with spam. Read straight from the chain.</p>
+      </div>
+      <div role="group" aria-label="Period" style="display: flex; gap: 8px">
+        <sc-for list="{{ periods }}" as="p" hint-placeholder-count="2">
+          <button type="button" class="chip" onClick="{{ p.pick }}" aria-pressed="{{ p.pressed }}" style="background: {{ p.bg }}; color: {{ p.fg }}; box-shadow: {{ p.ring }}">{{ p.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Top 3 -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 14px">
+      <a href="Profile.dc.html" style="text-decoration: none; background: #0C1424; color: #fff; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><span class="disp" style="font-size: 56px; color: #FF7A6E">01</span><span style="width: 56px; height: 56px; border-radius: 50%; background: #2B3CFF; display: grid; place-items: center; font: 400 22px Anton, Impact, sans-serif">RT</span></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 20px; font-weight: 700">Rina T.</span><span style="font-size: 14px; color: #A9B6CF">Pokhara · Copy, Translation</span></div>
+        <div style="display: flex; gap: 22px; flex-wrap: wrap; font-size: 14px; color: #C9D3E6"><span><strong style="color: #fff; font-size: 18px">214</strong> rating</span><span><strong style="color: #fff; font-size: 18px">9</strong> wins</span><span><strong style="color: #fff; font-size: 18px">188.20</strong> USDC</span></div>
+      </a>
+      <a href="Profile.dc.html" class="card" style="text-decoration: none; color: #0E1018; padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><span class="disp" style="font-size: 56px">02</span><span style="width: 56px; height: 56px; border-radius: 50%; background: #0B7A55; color: #fff; display: grid; place-items: center; font: 400 22px Anton, Impact, sans-serif">KA</span></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 20px; font-weight: 700">Kwame A.</span><span style="font-size: 14px; color: #586378">Accra · Code</span></div>
+        <div style="display: flex; gap: 22px; flex-wrap: wrap; font-size: 14px; color: #586378"><span><strong style="color: #0E1018; font-size: 18px">198</strong> rating</span><span><strong style="color: #0E1018; font-size: 18px">7</strong> wins</span><span><strong style="color: #0E1018; font-size: 18px">241.00</strong> USDC</span></div>
+      </a>
+      <a href="Profile.dc.html" class="card" style="text-decoration: none; color: #0E1018; padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><span class="disp" style="font-size: 56px">03</span><span style="width: 56px; height: 56px; border-radius: 50%; background: #B4358F; color: #fff; display: grid; place-items: center; font: 400 22px Anton, Impact, sans-serif">LN</span></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 20px; font-weight: 700">Linh N.</span><span style="font-size: 14px; color: #586378">Hanoi · Data labeling, Research</span></div>
+        <div style="display: flex; gap: 22px; flex-wrap: wrap; font-size: 14px; color: #586378"><span><strong style="color: #0E1018; font-size: 18px">171</strong> rating</span><span><strong style="color: #0E1018; font-size: 18px">6</strong> wins</span><span><strong style="color: #0E1018; font-size: 18px">96.50</strong> USDC</span></div>
+      </a>
+    </div>
+
+    <!-- Table -->
+    <section class="card" aria-label="Rankings" style="padding: clamp(14px, 2vw, 22px)">
+      <div style="overflow-x: auto"><div style="min-width: 680px">
+        <div class="lrow mono" style="color: #586378; padding-top: 6px; padding-bottom: 10px"><span>Rank</span><span>Worker</span><span>Rating</span><span>Wins</span><span>Avg score</span><span>Earned</span></div>
+        <a class="lrow" href="Profile.dc.html"><span class="disp" style="font-size: 24px">04</span><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 700">Maya R.</span><span style="font-size: 13px; color: #586378">Manila</span></span><span style="font-weight: 700">163</span><span>5</span><span>79</span><span>112.40</span></a>
+        <a class="lrow" href="Profile.dc.html"><span class="disp" style="font-size: 24px">05</span><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 700">Tunde O.</span><span style="font-size: 13px; color: #586378">Lagos</span></span><span style="font-weight: 700">151</span><span>4</span><span>77</span><span>90.00</span></a>
+        <a class="lrow" href="Profile.dc.html"><span class="disp" style="font-size: 24px">06</span><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 700">Aarav S.</span><span style="font-size: 13px; color: #586378">Kathmandu</span></span><span style="font-weight: 700">139</span><span>4</span><span>74</span><span>71.50</span></a>
+        <a class="lrow" href="Profile.dc.html" style="background: #FFF4F3; box-shadow: inset 3px 0 0 #E4261C"><span class="disp" style="font-size: 24px; color: #E4261C">07</span><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 700">Sanjay Karki <span class="mono" style="font-size: 10px; color: #B81D14; margin-left: 6px">You</span></span><span style="font-size: 13px; color: #586378">Kathmandu</span></span><span style="font-weight: 700">127</span><span>3</span><span>78</span><span>58.40</span></a>
+        <a class="lrow" href="Profile.dc.html"><span class="disp" style="font-size: 24px">08</span><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 700">Priya M.</span><span style="font-size: 13px; color: #586378">Bengaluru</span></span><span style="font-weight: 700">118</span><span>3</span><span>72</span><span>64.00</span></a>
+        <a class="lrow" href="Profile.dc.html" style="border-bottom: 0"><span class="disp" style="font-size: 24px">09</span><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 700">Diego F.</span><span style="font-size: 13px; color: #586378">Bogotá</span></span><span style="font-weight: 700">104</span><span>2</span><span>71</span><span>38.00</span></a>
+      </div></div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { period: 'all' };
+  }
+  renderVals() {
+    const cur = this.state.period;
+    const periods = [['all', 'All time'], ['month', 'This month']].map(([id, label]) => ({
+      label,
+      pressed: cur === id ? 'true' : 'false',
+      bg: cur === id ? '#0C1424' : '#fff',
+      fg: cur === id ? '#fff' : '#0E1018',
+      ring: cur === id ? 'none' : 'inset 0 0 0 1.5px #CBD5E3',
+      pick: () => this.setState({ period: id }),
+    }));
+    return { periods };
+  }
+}
+</script>
+</body>
+</html>

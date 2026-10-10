@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Post a task · Wukong</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Instrument+Sans:wght@400;500;600;700&amp;family=Instrument+Serif:ital@0;1&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F3F6FA}
+.wk{font-family:'Instrument Sans',"Helvetica Neue",Arial,sans-serif;color:#0E1018;-webkit-font-smoothing:antialiased}
+.disp{font-family:Anton,Impact,"Arial Narrow",sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.005em;line-height:.94;margin:0}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.16em;font-size:11px;font-weight:500}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 20px;border-radius:10px;font:600 15px/1 'Instrument Sans',sans-serif;text-decoration:none;border:0;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.btn-red{background:#E4261C;color:#fff}.btn-red:hover{background:#C91F16;color:#fff}
+.nav{color:#3A4458;text-decoration:none;font-size:15px;font-weight:600;padding:10px 4px;border-bottom:2px solid transparent}.nav:hover{color:#0E1018}
+.card{background:#fff;border-radius:16px;box-shadow:0 1px 0 #E1E7EF}
+.field{width:100%;box-sizing:border-box;min-height:52px;padding:0 16px;border-radius:10px;border:1.5px solid #CBD5E3;font:500 16px 'Instrument Sans',sans-serif;color:#0E1018;background:#fff}
+.field:focus{outline:none;border-color:#2B3CFF;box-shadow:0 0 0 3px rgba(43,60,255,.18)}
+.opt{display:flex;flex-direction:column;gap:6px;text-align:left;padding:16px 18px;border-radius:12px;border:0;cursor:pointer;font:inherit;color:#0E1018;background:#fff}
+.pill{min-height:44px;padding:0 16px;border-radius:999px;border:0;cursor:pointer;font:600 14px 'Instrument Sans',sans-serif}
+a{color:#1D2BD6}a:hover{color:#121C9E}
+</style>
+</helmet>
+<div class="wk" style="min-height: 2140px; background: #F3F6FA">
+
+  <!-- App bar -->
+  <header style="background: #fff; border-bottom: 1px solid #E1E7EF">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 10px clamp(16px, 3vw, 32px); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px">
+      <a href="Main.dc.html" aria-label="Wukong home" style="display: flex; align-items: center; gap: 9px; text-decoration: none; color: #0E1018"><span style="width: 12px; height: 12px; border-radius: 50%; background: #E4261C"></span><span class="disp" style="font-size: 24px; letter-spacing: .04em">Wukong</span></a>
+      <nav aria-label="App" style="display: flex; gap: 22px; flex-wrap: wrap">
+        <a class="nav" href="Explore.dc.html">Explore</a>
+        <a class="nav" href="Dashboard.dc.html">My work</a>
+        <a class="nav" href="Results.dc.html" aria-current="page" style="color: #0E1018; border-bottom-color: #E4261C">Hiring</a>
+        <a class="nav" href="Leaderboard.dc.html">Leaderboard</a>
+      </nav>
+      <div style="display: flex; align-items: center; gap: 10px; margin-left: auto">
+        <a href="Wallet.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 10px; background: #F3F6FA; text-decoration: none; color: #0E1018; font-weight: 600; font-size: 15px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2B3CFF"></span>124.50 <span style="color: #586378; font-weight: 500">USDC</span></a>
+        <a href="Profile.dc.html" aria-label="Your profile" style="width: 44px; height: 44px; border-radius: 50%; background: #0C1424; color: #fff; display: grid; place-items: center; text-decoration: none; font: 400 17px Anton, Impact, sans-serif">SK</a>
+      </div>
+    </div>
+  </header>
+
+  <div style="max-width: 1360px; margin: 0 auto; padding: 40px clamp(16px, 3vw, 32px) 96px; display: flex; flex-direction: column; gap: 28px">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <h1 class="disp" style="font-size: clamp(40px, 4.4vw, 60px)">Post a task</h1>
+      <p style="margin: 0; font-size: 16px; color: #586378">Describe the work, lock the reward, and the crowd gets to it.</p>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+      <form style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+        <!-- 1 Category -->
+        <fieldset class="card" style="border: 0; margin: 0; padding: clamp(22px, 3vw, 30px); display: flex; flex-direction: column; gap: 16px">
+          <legend style="float: left; width: 100%; padding: 0; display: flex; gap: 12px; align-items: baseline"><span class="mono" style="color: #E4261C">01</span><span style="font-size: 20px; font-weight: 700">What kind of work?</span></legend>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 10px">
+            <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
+              <button type="button" class="opt" onClick="{{ c.pick }}" aria-pressed="{{ c.pressed }}" style="box-shadow: {{ c.ring }}">
+                <span style="font-size: 16px; font-weight: 700">{{ c.label }}</span>
+                <span style="font-size: 14px; color: #586378; line-height: 1.45">{{ c.blurb }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </fieldset>
+
+        <!-- 2 Brief -->
+        <fieldset class="card" style="border: 0; margin: 0; padding: clamp(22px, 3vw, 30px); display: flex; flex-direction: column; gap: 16px">
+          <legend style="float: left; width: 100%; padding: 0; display: flex; gap: 12px; align-items: baseline"><span class="mono" style="color: #E4261C">02</span><span style="font-size: 20px; font-weight: 700">The brief</span></legend>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="title" style="font-size: 14px; font-weight: 600">Title</label>
+            <input class="field" id="title" maxlength="64" value="Launch tagline: Himalayan cold brew">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="brief" style="font-size: 14px; font-weight: 600">Brief</label>
+            <textarea id="brief" rows="7" style="width: 100%; box-sizing: border-box; padding: 14px 16px; border-radius: 10px; border: 1.5px solid #CBD5E3; font: 500 16px/1.6 'Instrument Sans', sans-serif; color: #0E1018; resize: vertical" value="We're launching a cold brew made from Himalayan arabica grown in Nuwakot. Write a launch tagline (8 words max) and a one-line description (20 words max). Audience: Kathmandu professionals, 22 to 35. Tone: confident and a little playful. Avoid mountain clichés like “peak” and “summit”."></textarea>
+            <span style="font-size: 14px; color: #586378; line-height: 1.5">Spell out the audience, tone, length and must-haves: the judge scores against exactly this. Once published, the brief is fingerprinted on-chain and can't be edited.</span>
+          </div>
+        </fieldset>
+
+        <!-- 3 Reward -->
+        <fieldset class="card" style="border: 0; margin: 0; padding: clamp(22px, 3vw, 30px); display: flex; flex-direction: column; gap: 18px">
+          <legend style="float: left; width: 100%; padding: 0; display: flex; gap: 12px; align-items: baseline"><span class="mono" style="color: #E4261C">03</span><span style="font-size: 20px; font-weight: 700">Reward and payout</span></legend>
+          <div style="display: flex; flex-direction: column; gap: 8px; max-width: 320px">
+            <label for="reward" style="font-size: 14px; font-weight: 600">Reward</label>
+            <div style="display: flex; align-items: center; border: 1.5px solid #CBD5E3; border-radius: 10px; background: #fff; overflow: hidden">
+              <input id="reward" inputmode="decimal" value="{{ rewardText }}" onChange="{{ setReward }}" style="flex: 1; min-width: 0; min-height: 52px; border: 0; padding: 0 16px; font: 700 22px 'Instrument Sans', sans-serif; background: transparent; color: #0E1018">
+              <span class="mono" style="padding: 0 16px; color: #586378">USDC</span>
+            </div>
+          </div>
+          <div role="radiogroup" aria-label="Payout" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 10px">
+            <sc-for list="{{ modes }}" as="m" hint-placeholder-count="2">
+              <button type="button" role="radio" class="opt" onClick="{{ m.pick }}" aria-checked="{{ m.pressed }}" style="box-shadow: {{ m.ring }}">
+                <span style="font-size: 16px; font-weight: 700">{{ m.label }}</span>
+                <span style="font-size: 14px; color: #586378; line-height: 1.45">{{ m.blurb }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </fieldset>
+
+        <!-- 4 Judging -->
+        <fieldset class="card" style="border: 0; margin: 0; padding: clamp(22px, 3vw, 30px); display: flex; flex-direction: column; gap: 18px">
+          <legend style="float: left; width: 100%; padding: 0; display: flex; gap: 12px; align-items: baseline"><span class="mono" style="color: #E4261C">04</span><span style="font-size: 20px; font-weight: 700">Who picks the winners?</span></legend>
+          <div role="radiogroup" aria-label="Judging" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 10px">
+            <sc-for list="{{ judges }}" as="j" hint-placeholder-count="2">
+              <button type="button" role="radio" class="opt" onClick="{{ j.pick }}" aria-checked="{{ j.pressed }}" style="box-shadow: {{ j.ring }}">
+                <span style="font-size: 16px; font-weight: 700">{{ j.label }}</span>
+                <span style="font-size: 14px; color: #586378; line-height: 1.45">{{ j.blurb }}</span>
+              </button>
+            </sc-for>
+          </div>
+          <sc-if value="{{ picking }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 8px; max-width: 320px">
+              <label for="grace" style="font-size: 14px; font-weight: 600">Time you have to pick</label>
+              <select id="grace" class="field"><option>24 hours</option><option selected="">48 hours</option><option>72 hours</option></select>
+              <span style="font-size: 14px; color: #586378; line-height: 1.5">If you don't pick in time, the AI's top entry is paid automatically.</span>
+            </div>
+          </sc-if>
+        </fieldset>
+
+        <!-- 5 Deadline + entry -->
+        <fieldset class="card" style="border: 0; margin: 0; padding: clamp(22px, 3vw, 30px); display: flex; flex-direction: column; gap: 20px">
+          <legend style="float: left; width: 100%; padding: 0; display: flex; gap: 12px; align-items: baseline"><span class="mono" style="color: #E4261C">05</span><span style="font-size: 20px; font-weight: 700">Deadline and who can enter</span></legend>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <span id="dl" style="font-size: 14px; font-weight: 600">Open for</span>
+            <div role="radiogroup" aria-labelledby="dl" style="display: flex; gap: 8px; flex-wrap: wrap">
+              <sc-for list="{{ durations }}" as="d" hint-placeholder-count="5">
+                <button type="button" role="radio" class="pill" onClick="{{ d.pick }}" aria-checked="{{ d.pressed }}" style="background: {{ d.bg }}; color: {{ d.fg }}; box-shadow: {{ d.ring }}">{{ d.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 16px">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="rating" style="font-size: 14px; font-weight: 600">Minimum rating</label>
+              <select id="rating" class="field"><option>Anyone</option><option>25+</option><option>50+</option><option>100+</option></select>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="max" style="font-size: 14px; font-weight: 600">Maximum entries</label>
+              <input id="max" class="field" inputmode="numeric" value="32">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="stake" style="font-size: 14px; font-weight: 600">Entry stake</label>
+              <select id="stake" class="field"><option>None</option><option selected="">1 USDC</option><option>2 USDC</option><option>5 USDC</option></select>
+            </div>
+          </div>
+          <span style="font-size: 14px; color: #586378; line-height: 1.5">A small refundable stake filters out spam. Honest entrants get it back; entries scoring under 20 lose it.</span>
+        </fieldset>
+      </form>
+
+      <!-- Summary -->
+      <aside style="flex: 1 1 340px; min-width: 0; max-width: 100%; display: flex; flex-direction: column; gap: 16px">
+        <div style="background: #0C1424; color: #fff; border-radius: 16px; padding: 26px; display: flex; flex-direction: column; gap: 22px">
+          <span class="mono" style="color: #8E9CB8">Summary</span>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <span style="font-size: 14px; color: #A9B6CF">Locked in escrow when you publish</span>
+            <span style="display: flex; align-items: baseline; gap: 10px"><span class="disp" style="font-size: 64px">{{ reward }}</span><span style="color: #C9D3E6">USDC</span></span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <span style="font-size: 14px; color: #A9B6CF">{{ splitLabel }}</span>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <sc-for list="{{ split }}" as="s" hint-placeholder-count="3">
+                <span style="flex: 1 1 80px; padding: 12px; border-radius: 10px; background: rgba(255,255,255,.07); display: flex; flex-direction: column; gap: 4px"><span class="mono" style="color: #FF8F84">{{ s.place }}</span><span style="font-weight: 700; font-size: 18px">{{ s.amount }}</span></span>
+              </sc-for>
+            </div>
+          </div>
+          <dl style="margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 12px 16px; font-size: 15px">
+            <dt style="color: #A9B6CF">Platform fee</dt><dd style="margin: 0; text-align: right">{{ fee }} USDC, from payouts</dd>
+            <dt style="color: #A9B6CF">Judging</dt><dd style="margin: 0; text-align: right">{{ judgeLabel }}</dd>
+            <dt style="color: #A9B6CF">Open for</dt><dd style="margin: 0; text-align: right">{{ durationLabel }}</dd>
+            <dt style="color: #A9B6CF">Wallet after</dt><dd style="margin: 0; text-align: right">{{ after }} USDC</dd>
+          </dl>
+          <button type="button" class="btn btn-red" style="width: 100%">Lock {{ reward }} USDC and publish</button>
+          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #A9B6CF">Refunded in full if no entry scores 25 or more. You can cancel and get it back until the first entry arrives.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2140}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { cat: 'copy', reward: '50', mode: 'top3', judge: 'ai', dur: '6h' };
+  }
+  renderVals() {
+    const s = this.state;
+    const ring = (on) => (on ? 'inset 0 0 0 2.5px #2B3CFF' : 'inset 0 0 0 1.5px #D5DDE8');
+    const r = Math.max(0, parseFloat(s.reward) || 0);
+    const pool = r * 0.9;
+    const fmt = (n) => n.toFixed(2);
+    const cats = [
+      ['copy', 'Copy & Content', 'Taglines, product copy, posts, scripts'],
+      ['translation', 'Translation', 'Localization with cultural nuance'],
+      ['code', 'Code', 'Functions, scripts, reviews, fixes'],
+      ['labeling', 'Data labeling', 'Classify, tag and annotate'],
+      ['research', 'Research', 'Find, compare and summarize'],
+    ].map(([id, label, blurb]) => ({ label, blurb, pressed: s.cat === id ? 'true' : 'false', ring: ring(s.cat === id), pick: () => this.setState({ cat: id }) }));
+    const modes = [
+      ['top3', 'Top 3 paid', 'Split 50 / 30 / 20 between the three best entries.'],
+      ['winner', 'Winner takes all', 'The single best entry gets the whole pool.'],
+    ].map(([id, label, blurb]) => ({ label, blurb, pressed: s.mode === id ? 'true' : 'false', ring: ring(s.mode === id), pick: () => this.setState({ mode: id }) }));
+    const judges = [
+      ['ai', 'The AI decides', 'Scores are final and winners are paid the moment judging ends.'],
+      ['pick', 'AI shortlists, I pick', 'You choose from the top three. Payment waits for your pick.'],
+    ].map(([id, label, blurb]) => ({ label, blurb, pressed: s.judge === id ? 'true' : 'false', ring: ring(s.judge === id), pick: () => this.setState({ judge: id }) }));
+    const durs = [['1h', '1 hour'], ['6h', '6 hours'], ['24h', '24 hours'], ['3d', '3 days'], ['7d', '7 days']];
+    const durations = durs.map(([id, label]) => ({
+      label, pressed: s.dur === id ? 'true' : 'false',
+      bg: s.dur === id ? '#0C1424' : '#fff', fg: s.dur === id ? '#fff' : '#0E1018',
+      ring: s.dur === id ? 'none' : 'inset 0 0 0 1.5px #CBD5E3',
+      pick: () => this.setState({ dur: id }),
+    }));
+    const split = s.mode === 'top3'
+      ? [{ place: '1st', amount: fmt(pool * 0.5) }, { place: '2nd', amount: fmt(pool * 0.3) }, { place: '3rd', amount: fmt(pool * 0.2) }]
+      : [{ place: 'Winner', amount: fmt(pool) }];
+    return {
+      cats, modes, judges, durations, split,
+      rewardText: s.reward,
+      setReward: (e) => this.setState({ reward: e.target.value.replace(/[^0-9.]/g, '') }),
+      reward: fmt(r),
+      fee: fmt(r * 0.1),
+      after: fmt(124.5 - r),
+      splitLabel: s.mode === 'top3' ? 'Top 3 paid, after the fee' : 'Winner takes all, after the fee',
+      judgeLabel: s.judge === 'ai' ? 'AI, final' : 'AI shortlist, you pick',
+      picking: s.judge === 'pick',
+      durationLabel: (durs.find((d) => d[0] === s.dur) || durs[1])[1],
+    };
+  }
+}
+</script>
+</body>
+</html>

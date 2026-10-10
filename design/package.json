@@ -1,0 +1,12 @@
+{
+  "name": "wukong-design",
+  "private": true,
+  "description": "Wukong production redesign: screen sources (.dc.html) and a preview renderer",
+  "type": "module",
+  "scripts": {
+    "previews": "node render-previews.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "1.56.1"
+  }
+}
