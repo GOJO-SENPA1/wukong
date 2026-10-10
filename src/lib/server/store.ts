@@ -1,10 +1,9 @@
-import fs from "node:fs";
-import path from "node:path";
-import { DATA_DIR } from "./env";
+import { kv } from "./kv";
 import type { JudgeReport } from "./judge/types";
 
 // Off-chain content store. The chain holds sha256 commitments; this holds the
 // bytes. Anyone can re-hash what we serve and compare it to the chain.
+// Backed by Redis on serverless hosts, a JSON file otherwise (see kv.ts).
 
 export interface BriefRecord {
   hash: string;
@@ -49,91 +48,35 @@ export interface TxRecord {
   at: number;
 }
 
-interface StoreShape {
-  briefs: Record<string, BriefRecord>;
-  submissions: Record<string, SubmissionRecord>;
-  reports: Record<string, ReportRecord>;
-  taskTxs: Record<string, TxRecord[]>;
-  taskMeta: Record<string, TaskMeta>;
-  names: Record<string, string>;
-}
-
-const FILE = path.join(DATA_DIR, "store.json");
-const empty = (): StoreShape => ({ briefs: {}, submissions: {}, reports: {}, taskTxs: {}, taskMeta: {}, names: {} });
-
-let cache: StoreShape | null = null;
-let cacheMtime = 0;
-
-function load(): StoreShape {
-  try {
-    const stat = fs.statSync(FILE);
-    if (cache && stat.mtimeMs === cacheMtime) return cache;
-    cache = { ...empty(), ...JSON.parse(fs.readFileSync(FILE, "utf8")) } as StoreShape;
-    cacheMtime = stat.mtimeMs;
-    return cache;
-  } catch {
-    cache = cache ?? empty();
-    return cache;
-  }
-}
-
-function save(s: StoreShape) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  const tmp = `${FILE}.${process.pid}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify(s, null, 1));
-  fs.renameSync(tmp, FILE);
-  cache = s;
-  cacheMtime = fs.statSync(FILE).mtimeMs;
-}
-
-function mutate(fn: (s: StoreShape) => void) {
-  const s = load();
-  fn(s);
-  save(s);
-}
-
 export const store = {
-  brief: (hash: string): BriefRecord | undefined => load().briefs[hash],
-  putBrief(rec: BriefRecord) {
-    mutate((s) => {
-      s.briefs[rec.hash] = { ...s.briefs[rec.hash], ...rec };
-    });
+  brief: (hash: string) => kv().get<BriefRecord>("briefs", hash),
+  briefs: (hashes: string[]) => kv().many<BriefRecord>("briefs", hashes),
+  async putBrief(rec: BriefRecord) {
+    const prev = await kv().get<BriefRecord>("briefs", rec.hash);
+    await kv().set("briefs", rec.hash, { ...prev, ...rec });
   },
 
-  taskMeta: (task: string): TaskMeta | undefined => load().taskMeta[task],
-  setTaskMeta(task: string, meta: TaskMeta) {
-    mutate((s) => {
-      s.taskMeta[task] = meta;
-    });
+  taskMeta: (task: string) => kv().get<TaskMeta>("taskMeta", task),
+  taskMetas: (tasks: string[]) => kv().many<TaskMeta>("taskMeta", tasks),
+  setTaskMeta: (task: string, meta: TaskMeta) => kv().set("taskMeta", task, meta),
+
+  submission: (hash: string) => kv().get<SubmissionRecord>("submissions", hash),
+  submissions: (hashes: string[]) => kv().many<SubmissionRecord>("submissions", hashes),
+  putSubmission: (rec: SubmissionRecord) => kv().set("submissions", rec.hash, rec),
+
+  report: (submission: string) => kv().get<ReportRecord>("reports", submission),
+  reports: (submissions: string[]) => kv().many<ReportRecord>("reports", submissions),
+  putReport: (rec: ReportRecord) => kv().set("reports", rec.submission, rec),
+
+  async txs(task: string): Promise<TxRecord[]> {
+    const seen = new Set<string>();
+    return (await kv().list<TxRecord>("taskTxs", task)).filter((t) => !seen.has(t.sig) && !!seen.add(t.sig));
+  },
+  async addTx(task: string, tx: TxRecord) {
+    if ((await kv().list<TxRecord>("taskTxs", task)).some((t) => t.sig === tx.sig)) return;
+    await kv().push("taskTxs", task, tx);
   },
 
-  submission: (hash: string): SubmissionRecord | undefined => load().submissions[hash],
-  putSubmission(rec: SubmissionRecord) {
-    mutate((s) => {
-      s.submissions[rec.hash] = rec;
-    });
-  },
-
-  report: (submission: string): ReportRecord | undefined => load().reports[submission],
-  putReport(rec: ReportRecord) {
-    mutate((s) => {
-      s.reports[rec.submission] = rec;
-    });
-  },
-
-  txs: (task: string): TxRecord[] => load().taskTxs[task] ?? [],
-  addTx(task: string, tx: TxRecord) {
-    mutate((s) => {
-      const list = s.taskTxs[task] ?? [];
-      if (!list.some((t) => t.sig === tx.sig)) list.push(tx);
-      s.taskTxs[task] = list;
-    });
-  },
-
-  names: (): Record<string, string> => load().names,
-  setName(pubkey: string, name: string) {
-    mutate((s) => {
-      s.names[pubkey] = name.slice(0, 40);
-    });
-  },
+  names: () => kv().all<string>("names"),
+  setName: (pubkey: string, name: string) => kv().set("names", pubkey, name.slice(0, 40)),
 };

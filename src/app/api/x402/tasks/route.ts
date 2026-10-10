@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     // Payment settled to the gateway; now lock it in task escrow on-chain.
     const gateway = loadKey("gateway");
     const briefHash = sha256Hex(body.brief);
-    if (!store.brief(briefHash)) store.putBrief({
+    if (!(await store.brief(briefHash))) await store.putBrief({
       hash: briefHash,
       title: body.title,
       category: body.category,
@@ -70,14 +70,14 @@ export async function POST(req: Request) {
     });
     const sig = await sendIxs(connection(), keypairSigner(gateway), ixs);
     const taskKey = task.toBase58();
-    store.setTaskMeta(taskKey, {
+    await store.setTaskMeta(taskKey, {
       origin: "x402",
       creatorName: body.agentName,
       agent: { name: body.agentName, payer: paid.payer, paymentTx: paid.sig },
       template: body.template,
     });
-    store.addTx(taskKey, { sig: paid.sig, kind: "x402", label: `x402 payment from ${body.agentName}`, at: Date.now() });
-    store.addTx(taskKey, { sig, kind: "create", label: `Escrow locked: ${body.rewardUsdc} USDC`, at: Date.now() });
+    await store.addTx(taskKey, { sig: paid.sig, kind: "x402", label: `x402 payment from ${body.agentName}`, at: Date.now() });
+    await store.addTx(taskKey, { sig, kind: "create", label: `Escrow locked: ${body.rewardUsdc} USDC`, at: Date.now() });
     const origin = new URL(req.url).origin;
     return Response.json(
       {

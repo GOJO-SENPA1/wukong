@@ -7,7 +7,7 @@ import { templateById, type CrowdEntry } from "../demo";
 import { sha256Hex } from "../hash";
 import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { buildSubmitForTask, explainError, fetchTask, keypairSigner, pda, sendIxs } from "../wukong";
-import { connection, loadOrCreateKey, program } from "./env";
+import { connection, loadOrDeriveKey, program } from "./env";
 import { ensureGas, fund } from "./faucet";
 import { store } from "./store";
 
@@ -29,7 +29,7 @@ export async function* summonCrowd(taskKey: string, pace = 700): AsyncGenerator<
     const task = await fetchTask(prog, taskPk);
     if (!task) throw new Error("Task not found");
     if (task.status !== "open") throw new Error("Task is not open for submissions");
-    const brief = store.brief(task.briefHash);
+    const brief = await store.brief(task.briefHash);
     const template = templateById(brief?.template) ?? templateByTitle(task.title);
     const crowd: CrowdEntry[] = template?.crowd ?? [];
     if (!crowd.length) {
@@ -39,7 +39,7 @@ export async function* summonCrowd(taskKey: string, pace = 700): AsyncGenerator<
 
     let submitted = 0;
     for (const entry of crowd) {
-      const kp = loadOrCreateKey(`bots/${slug(entry.name)}`);
+      const kp = loadOrDeriveKey(`bots/${slug(entry.name)}`);
       const existing = await conn.getAccountInfo(pda.submission(taskPk, kp.publicKey));
       if (existing) {
         yield { type: "skipped", name: entry.name, reason: "already submitted" };
@@ -54,7 +54,7 @@ export async function* summonCrowd(taskKey: string, pace = 700): AsyncGenerator<
           if (have < task.entryStake) await fund(kp.publicKey.toBase58(), { usdc: task.entryStake / 1e6 });
         }
         const hash = sha256Hex(entry.content);
-        store.putSubmission({
+        await store.putSubmission({
           hash,
           content: entry.content,
           worker: kp.publicKey.toBase58(),
@@ -62,10 +62,10 @@ export async function* summonCrowd(taskKey: string, pace = 700): AsyncGenerator<
           task: taskKey,
           createdAt: Date.now(),
         });
-        store.setName(kp.publicKey.toBase58(), `${entry.name} · ${entry.city}`);
+        await store.setName(kp.publicKey.toBase58(), `${entry.name} · ${entry.city}`);
         const ix = await buildSubmitForTask(prog, kp.publicKey, task, hash);
         const sig = await sendIxs(conn, keypairSigner(kp), [ix]);
-        store.addTx(taskKey, { sig, kind: "submit", label: `${entry.name} submitted`, at: Date.now() });
+        await store.addTx(taskKey, { sig, kind: "submit", label: `${entry.name} submitted`, at: Date.now() });
         submitted++;
         yield {
           type: "submitted",

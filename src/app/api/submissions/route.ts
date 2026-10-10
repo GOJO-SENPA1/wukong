@@ -15,8 +15,8 @@ export async function POST(req: Request) {
   try {
     const body = Body.parse(await req.json());
     const hash = sha256Hex(body.content);
-    store.putSubmission({ hash, ...body, createdAt: Date.now() });
-    if (body.workerName) store.setName(body.worker, body.workerName);
+    await store.putSubmission({ hash, ...body, createdAt: Date.now() });
+    if (body.workerName) await store.setName(body.worker, body.workerName);
     return ok({ hash });
   } catch (err) {
     return fail(err);

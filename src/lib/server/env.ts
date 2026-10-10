@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
@@ -86,14 +87,19 @@ export function loadKey(role: string): Keypair {
   return kp;
 }
 
-/** Load or lazily create a named key (used for simulated crowd workers). */
-export function loadOrCreateKey(role: string): Keypair {
-  const file = path.join(KEYS_DIR, `${role}.json`);
-  if (!fs.existsSync(file)) {
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(Array.from(Keypair.generate().secretKey)));
-  }
-  return loadKey(role);
+/**
+ * A named demo key (simulated crowd workers, seeded creators). A key file in
+ * .data/keys wins; otherwise the key is derived from WUKONG_SIM_SEED (or the
+ * judge key), so every server instance agrees on it without writing to disk.
+ */
+export function loadOrDeriveKey(role: string): Keypair {
+  const cached = keyCache.get(role);
+  if (cached) return cached;
+  if (fs.existsSync(path.join(KEYS_DIR, `${role}.json`))) return loadKey(role);
+  const seed = process.env.WUKONG_SIM_SEED ?? Buffer.from(loadKey("judge").secretKey).toString("hex");
+  const kp = Keypair.fromSeed(createHash("sha256").update(`wukong/sim-key/v1/${role}/${seed}`).digest());
+  keyCache.set(role, kp);
+  return kp;
 }
 
 let connCache: Connection | null = null;
