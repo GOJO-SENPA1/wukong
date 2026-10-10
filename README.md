@@ -1,5 +1,7 @@
 # 🐒 Wukong
 
+[![CI](https://github.com/GOJO-SENPA1/wukong/actions/workflows/ci.yml/badge.svg)](https://github.com/GOJO-SENPA1/wukong/actions/workflows/ci.yml)
+
 **Post a task. Summon the crowd. Pay the best.**
 
 Wukong is a competitive work marketplace on Solana. A company posts a task and the USDC reward locks in an on-chain escrow before anyone starts. Many workers submit. An AI judge scores every entry against a public rubric and publishes each score on-chain. The program ranks the scores itself and releases escrow to the podium in one transaction. Every score, win and payout builds the worker's on-chain reputation, which any app can read.
@@ -23,7 +25,9 @@ Wukong is a competitive work marketplace on Solana. A company posts a task and t
 1. **Trustless escrow.** `create_task` moves the full reward into a vault PDA owned by the task. It can only leave to the podium, or back to the buyer if no entry clears the quality bar (score ≥ 25).
 2. **Transparent, binding scores.** The judge can only publish a score per submission (with the sha256 of its full written report). The program maintains the top-3 podium itself as scores land, and `settle` is **permissionless**: the winner is a pure function of published scores, not anyone's say-so.
 3. **Portable reputation.** A `Reputation` PDA per worker tracks submissions, scores, wins, podiums, earnings and a rating. Tasks can gate entry on it (`min_rating`). It outlives any front-end.
-4. **Permissionless, global payouts.** Connect a wallet, compete, get USDC. No bank account, no withdrawal window.
+4. **Skin in the game.** Tasks can require a refundable entry stake. Honest work gets it back; entries scoring under 20 (spam, copies, prompt injection) are slashed to the treasury by a permissionless crank.
+5. **No ghosting, either side.** Workers see the money locked before they start; in *AI shortlists, I pick* mode, a buyer who never picks loses the choice: after the grace period anyone can settle on the AI's top entry.
+6. **Permissionless, global payouts.** Connect a wallet, compete, get USDC. No bank account, no withdrawal window.
 
 ## Demo in one command (local)
 
@@ -50,6 +54,8 @@ Then in the app:
 4. Switch back to Himalayan Java → **Close & judge**. Watch the judge verify hashes, flag the cheaters, score every entry, publish each score on-chain, and release escrow to the podium.
 5. Open the winner's profile: on-chain reputation updated, USDC in their wallet.
 6. In a terminal: `npm run agent -- --auto` — an AI agent hits the API, gets **402 Payment Required**, pays in USDC with x402, and its task appears in the arena with escrow locked.
+
+The hero task carries a 1 USDC entry stake: watch the copycat, the prompt-injection attempt and the spam bot lose theirs on-chain while everyone else gets theirs back.
 
 Full click-by-click script and pitch: [docs/DEMO.md](docs/DEMO.md). Team plan and checklists: [docs/PLAN.md](docs/PLAN.md).
 
@@ -95,14 +101,15 @@ flowchart LR
 |---|---|---|
 | `initialize_config` / `update_config` | admin | Judge oracle key, treasury, fee (≤ 20%), settlement mint (USDC) |
 | `create_task` | creator | Locks the reward in a vault PDA. Title, category, brief hash, deadline, payout mode, judge mode, min rating, max entries |
-| `submit_work` | worker | Commits a content hash. One entry per worker per task. Creator can't enter. Checks rating gate |
-| `close_submissions` | creator/judge anytime, anyone after deadline | Open → Judging |
+| `submit_work` | worker | Commits a content hash and locks the entry stake, if any. One entry per worker per task. Creator can't enter. Checks rating gate |
+| `close_submissions` | creator/judge anytime, anyone after deadline | Open → Judging, records `closed_at` |
 | `score_submission` | judge only | Publishes a final score (0–10000) + report hash. Updates the on-chain podium and the worker's reputation. Scores can't be changed |
-| `settle` | **anyone** | Once every entry is scored: pays the podium (winner-takes-all or 50/30/20), fee to treasury, vault closed. Refunds the buyer if nothing scored ≥ 25 |
+| `settle` | **anyone** | Once every entry is scored: pays the podium (winner-takes-all or 50/30/20) from the reward, fee to treasury. Refunds the buyer if nothing scored ≥ 25. In creator-picks mode, only after `pick_grace_secs` has passed since closing, paying the AI's top entry |
 | `settle_pick` | creator | *AI shortlists, creator picks*: creator chooses the winner from the on-chain top 3 |
+| `claim_stake` | **anyone** | After settlement: refunds an entry's stake (score ≥ 20) or slashes it to the treasury. The last claim closes the vault |
 | `cancel_task` | creator | Full refund while there are zero entries |
 
-Accounts: `Config` · `Task` (with the live `podium[3]`) · `Submission` · `Reputation` · vault token account per task. Rating: `+ (score − 50)` for entries above 50, `−10` for spam (< 20), `+100/+50/+25` for podium places.
+Accounts: `Config` · `Task` (with the live `podium[3]`, entry stake, pick grace) · `Submission` (with its stake) · `Reputation` · vault token account per task. Rating: `+ (score − 50)` for entries above 50, `−10` for spam (< 20), `+100/+50/+25` for podium places.
 
 ### AI judge (`src/lib/server/judge`)
 
@@ -120,6 +127,14 @@ Rubrics live in [`src/lib/categories.ts`](src/lib/categories.ts): Copy & Content
 
 `POST /api/x402/tasks` with a brief and budget returns **402 Payment Required** with x402 `exact`-scheme requirements (asset USDC, payTo + feePayer = gateway). The agent signs a single USDC `TransferChecked` and retries with `X-PAYMENT`. The gateway verifies the transaction (one transfer, right mint, right amount, right destination, facilitator key appears in no instruction, capped priority fee), co-signs as fee payer, settles, and escrows the task on-chain. `GET /api/x402/tasks/:task` returns the winning work and judge summary once settled. See [`scripts/agent-buyer.ts`](scripts/agent-buyer.ts).
 
+### Blinks (Solana Actions)
+
+Every open task is a Blink. `/actions.json` maps `/tasks/<id>` to `/api/actions/tasks/<id>`: the GET returns a live card (reward in escrow, entries, deadline, stake, brief, and a rendered 1200×1200 image); the POST takes the worker's entry and wallet and returns the submit transaction, stake included, then chains to a completed card. Post a task's URL anywhere Blinks unfurl and workers can enter without opening the app. The arena page has a *Share as a Blink* card.
+
+### Production mode and the keeper
+
+`WUKONG_DEMO_MODE` defaults to on (faucet, simulated crowd, anyone may ask the judge to close a task early). Set `WUKONG_DEMO_MODE=0` for a real deployment: the demo endpoints refuse, and only the creator (on-chain) or the deadline closes submissions. Run `npm run keeper` alongside the app: it closes and judges tasks whose deadline passed, resumes interrupted judging, settles, pays the AI's pick when a creator's pick window lapses, and settles stakes. Nobody has to click anything.
+
 ## Scripts
 
 | Command | What |
@@ -132,6 +147,8 @@ Rubrics live in [`src/lib/categories.ts`](src/lib/categories.ts): Copy & Content
 | `npm test` | On-chain integration tests (needs `npm run validator`) |
 | `npm run demo:e2e` | HTTP end-to-end: post → submit → crowd → judge → payout, with assertions |
 | `npm run agent [-- --auto]` | x402 agent buyer |
+| `npm run keeper [-- --once]` | Liveness loop: deadline judging, settlement, pick timeouts, stakes |
+| `npm run ci:chain` | Everything CI runs on-chain: tests, fresh chain, production build, e2e, x402 |
 | `npm run judge:dryrun` | Score all demo crowds offline |
 | `npm run program:build` | `anchor build` + sync IDL/binary into the app |
 
@@ -165,8 +182,8 @@ docs/                   PLAN.md, DEMO.md, screenshots
 Built for the Colosseum hackathon; not audited. Known limits, in roadmap order:
 
 - **Judge trust.** Scores are binding and public, but the judge key is a single oracle. Next: multi-model / multi-oracle consensus, staked judges, and a dispute window before settlement.
-- **Liveness.** If the judge never scores, funds stay in escrow. Next: after deadline + grace, a permissionless split among entrants.
+- **Liveness.** The keeper drives judging and settlement off-chain, but if the judge key itself goes dark, funds wait in escrow. Next: after deadline + grace, a permissionless on-chain split among entrants.
 - **Content storage.** Server-side JSON store; move to Arweave/IPFS so content survives the operator.
-- **Spec work.** Losers work unpaid. Mitigations on the roadmap: small, well-scoped tasks; top-3 payouts by default; refinement rounds for the shortlist; staking against spam.
+- **Spec work.** Losers work unpaid. Today: small, well-scoped tasks, top-3 payouts by default, written coaching for every entry. Next: refinement rounds for the shortlist.
 
 MIT licensed.
