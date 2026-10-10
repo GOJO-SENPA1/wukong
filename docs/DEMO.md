@@ -1,5 +1,7 @@
 # Demo + pitch script
 
+Pitch deck (14 slides, speaker notes included): https://claude.ai/artifact/Xsj1VTJotu5sXG8qrGea82 (private until shared from its Share menu). Fill in `[Team names]` on the last slide.
+
 Everything here runs against a local validator with `npm run demo`, or devnet after `npm run setup:devnet`. Rehearse it end to end at least three times. The whole live flow takes about 60 seconds of clicking.
 
 ## Before you go on stage
