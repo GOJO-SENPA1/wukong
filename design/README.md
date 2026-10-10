@@ -17,6 +17,16 @@ The design for the public launch on **wukonghq.xyz**: a real sign-up flow (Googl
 
 The same language as the demo film in [`video/`](../video/).
 
+## Profile picture
+
+The Monkey King mark for X and other social accounts: golden circlet, fiery golden eyes, a smirk. Everything sits inside the circle X crops to, and it still reads at 32px.
+
+| Main (signal red) | Alternate (navy) |
+|---|---|
+| ![Profile picture, red](brand/wukong-pfp-400.png) | ![Profile picture, navy](brand/wukong-pfp-navy-400.png) |
+
+Upload [`brand/wukong-pfp.png`](brand/wukong-pfp.png) (1000×1000). The SVGs in [`brand/`](brand/) are the sources, and [`brand/x-preview.png`](brand/x-preview.png) shows both at X's display sizes in light and dark mode.
+
 ## Screens
 
 ### Landing page
