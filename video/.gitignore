@@ -3,3 +3,4 @@ stills/
 vo/
 out/
 *.mp4
+__pycache__/
