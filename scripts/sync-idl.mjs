@@ -5,4 +5,7 @@ import { copyFileSync, mkdirSync } from "node:fs";
 mkdirSync("src/lib/idl", { recursive: true });
 copyFileSync("target/idl/wukong.json", "src/lib/idl/wukong.json");
 copyFileSync("target/types/wukong.ts", "src/lib/idl/wukong.ts");
-console.log("IDL synced -> src/lib/idl/");
+// Prebuilt binary so the local demo runs without the Rust/Anchor toolchain.
+mkdirSync("artifacts", { recursive: true });
+copyFileSync("target/deploy/wukong.so", "artifacts/wukong.so");
+console.log("IDL synced -> src/lib/idl/, binary -> artifacts/wukong.so");

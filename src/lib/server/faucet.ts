@@ -62,10 +62,10 @@ export async function fund(
   return { sol: solSent, usdc: wantUsdc, sig };
 }
 
-export async function ensureGas(address: PublicKey, minSol = 0.05) {
+export async function ensureGas(address: PublicKey, minSol = 0.02) {
   const balance = await connection().getBalance(address);
   if (balance < minSol * LAMPORTS_PER_SOL) {
     recent.delete(address.toBase58());
-    await fund(address.toBase58(), { sol: deployment().cluster === "localnet" ? 2 : 0.1, minSol });
+    await fund(address.toBase58(), { sol: deployment().cluster === "localnet" ? 2 : 0.04, minSol });
   }
 }

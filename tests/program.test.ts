@@ -239,7 +239,8 @@ describe("wukong program", () => {
       await buildCloseSubmissions(program, judge.publicKey, task),
     ]);
     await scoreAll(task, [8800, 8000]);
-    await expectFail(settle(task, 1, workers[0]), "Pick is not on the AI shortlist");
+    await expectFail(settle(task, 1, workers[0]), "Only the task creator can pick");
+    await expectFail(settle(task, 2, creator), "Pick is not on the AI shortlist"); // only 2 entries
 
     const before = await balance(workers[1].publicKey);
     await settle(task, 1, creator); // creator picks the runner-up

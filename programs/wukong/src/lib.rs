@@ -316,7 +316,7 @@ pub mod wukong {
         require!(task.status == TaskStatus::Judging, WukongError::TaskNotJudging);
         require!(task.judge_mode == JudgeMode::CreatorPicks, WukongError::WrongJudgeMode);
         require!(task.scored_count == task.submission_count, WukongError::ScoringIncomplete);
-        require_keys_eq!(ctx.accounts.cranker.key(), task.creator, WukongError::InvalidPick);
+        require_keys_eq!(ctx.accounts.cranker.key(), task.creator, WukongError::NotCreator);
         let pick = pick as usize;
         require!(pick < 3 && task.podium[pick].filled, WukongError::InvalidPick);
         let winners = vec![task.podium[pick]];

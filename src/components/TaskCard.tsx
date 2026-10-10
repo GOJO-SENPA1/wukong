@@ -33,8 +33,13 @@ export function TaskCard({ task }: { task: TaskCardData }) {
       </div>
       <div className="mt-auto flex items-end justify-between gap-3">
         <div>
-          <div className="label">Reward in escrow</div>
-          <Usdc base={task.reward} className="font-display text-2xl font-bold text-gold" />
+          <div className="label">
+            {task.status === "settled" ? "Paid out" : task.status === "cancelled" ? "Refunded" : "Reward in escrow"}
+          </div>
+          <Usdc
+            base={task.status === "settled" ? task.paidOut : task.reward}
+            className={`font-display text-2xl font-bold ${task.status === "settled" ? "text-jade" : task.status === "cancelled" ? "text-muted" : "text-gold"}`}
+          />
         </div>
         <div className="flex flex-col items-end gap-1 text-xs text-muted">
           <span className="inline-flex items-center gap-1">

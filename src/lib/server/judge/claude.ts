@@ -76,16 +76,14 @@ export async function scoreWithClaude(input: ScoringInput): Promise<ScoringOutpu
     ? input.signals.map((s) => `- ${s}`).join("\n")
     : "- none";
 
-  const response = await anthropic().beta.messages.parse({
+  const params = {
     model: JUDGE_MODEL,
     max_tokens: 16000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
     output_config: { effort: JUDGE_EFFORT, format: betaZodOutputFormat(Verdict) },
-    system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
+    system: [{ type: "text" as const, text: SYSTEM, cache_control: { type: "ephemeral" as const } }],
     messages: [
       {
-        role: "user",
+        role: "user" as const,
         content: `<task title="${escapeAttr(input.title)}" category="${cat.label}">
 <brief>
 ${input.brief}
@@ -106,7 +104,21 @@ ${input.content}
 Score submission #${input.index + 1} against the brief and rubric.`,
       },
     ],
-  });
+  };
+
+  // Server-side refusal fallback keeps a classifier false-positive from
+  // stalling a payout. If an org can't use the beta, retry without it.
+  let response;
+  try {
+    response = await anthropic().beta.messages.parse({
+      ...params,
+      betas: ["server-side-fallback-2026-07-01"],
+      fallbacks: "default",
+    });
+  } catch (err) {
+    if (!(err instanceof Anthropic.BadRequestError) || !/fallback/i.test(err.message)) throw err;
+    response = await anthropic().beta.messages.parse(params);
+  }
 
   if (response.stop_reason === "refusal") {
     throw new Error(`Judge model declined to score (${response.stop_details?.category ?? "unknown"})`);

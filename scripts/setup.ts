@@ -106,6 +106,11 @@ async function main() {
     if (cluster === "localnet") {
       throw new Error("Program not loaded. Restart the validator with `npm run validator` (it preloads target/deploy/wukong.so).");
     }
+    if (!fs.existsSync("target/deploy/wukong-keypair.json")) {
+      throw new Error(
+        "No program keypair. Run `anchor keys sync && npm run program:build` to create your own program id, then rerun.",
+      );
+    }
     log("deploying program (this takes a minute)…");
     execFileSync(
       "solana",
