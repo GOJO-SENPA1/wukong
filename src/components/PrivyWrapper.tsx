@@ -16,8 +16,8 @@ export function PrivyWrapper({ children }: { children: ReactNode }) {
       appId={PRIVY_APP_ID}
       config={{
         appearance: {
-          theme: "dark",
-          accentColor: "#E6A817",
+          theme: "light",
+          accentColor: "#E4261C",
           logo: undefined,
         },
         loginMethods: ["email", "google", "wallet"],
