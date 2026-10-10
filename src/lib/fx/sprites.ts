@@ -345,3 +345,7 @@ export function spritePixels(name: SpriteName, darken = 0): Uint8ClampedArray {
     }
   return data;
 }
+
+/** The pixel icon for each work category id (see lib/categories). */
+export const CATEGORY_ICON: Record<number, SpriteName> = { 0: "scroll", 1: "cloud", 2: "bolt", 3: "gem", 4: "staff" };
+export const categoryIcon = (id: number): SpriteName => CATEGORY_ICON[id] ?? "scroll";

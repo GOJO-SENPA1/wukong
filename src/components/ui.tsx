@@ -28,8 +28,8 @@ const AVATAR_COLORS = ["#E4261C", "#2B3CFF", "#0C1424", "#0E9F5A", "#FF7A1A", "#
 
 export function Avatar({ id, name, size = 32, ring = false }: { id: string; name?: string; size?: number; ring?: boolean }) {
   const h = hashCode(id);
-  const words = (name ?? id).replace(/[^\p{L}\p{N} ]/gu, "").trim().split(/\s+/);
-  const letters = (words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? "?").slice(0, 2)).toUpperCase() || "?";
+  const words = (name ?? id).split(" · ")[0].replace(/[^\p{L}\p{N} ]/gu, "").trim().split(/\s+/).filter(Boolean);
+  const letters = (words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? "?").slice(0, 1)).toUpperCase() || "?";
   return (
     <div
       className={cx("flex shrink-0 items-center justify-center rounded-full font-display text-white", ring && "ring-2 ring-white")}
