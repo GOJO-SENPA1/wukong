@@ -122,7 +122,7 @@ export function Summon({ className }: { className?: string }) {
         g.save();
         g.globalAlpha = fadeAll * vaultK * (T < 6.4 ? 0.12 + 0.08 * pulse : 0.06);
         const grd = g.createRadialGradient(W / 2, 0, 0, W / 2, 0, H * 0.55);
-        grd.addColorStop(0, "#6B78FF");
+        grd.addColorStop(0, "#7383FF");
         grd.addColorStop(1, "transparent");
         g.fillStyle = grd;
         g.fillRect(0, 0, W, H);
@@ -157,7 +157,7 @@ export function Summon({ className }: { className?: string }) {
         if (scanK > 0) {
           g.save();
           g.globalAlpha = scanK * 0.9 * fadeAll;
-          g.fillStyle = "#6B78FF";
+          g.fillStyle = "#7383FF";
           g.beginPath();
           g.arc(m.x, m.y + dy, 18 * size * 0.62, 0, Math.PI * 2);
           g.fill();
@@ -167,7 +167,7 @@ export function Summon({ className }: { className?: string }) {
           g.save();
           g.globalAlpha = judged * fadeAll * (0.55 + 0.2 * Math.sin(now / 200));
           const grd = g.createRadialGradient(m.x, m.y + dy, 0, m.x, m.y + dy, 18 * px * 1.3);
-          grd.addColorStop(0, m.rank === 1 ? "#F5B83D" : "#FFFFFF");
+          grd.addColorStop(0, m.rank === 1 ? "#F0D9A6" : "#F1EDE4");
           grd.addColorStop(1, "transparent");
           g.fillStyle = grd;
           g.fillRect(m.x - 60 * px, m.y - 60 * px, 120 * px, 120 * px);
@@ -183,7 +183,7 @@ export function Summon({ className }: { className?: string }) {
           g.fillStyle = "rgba(255,255,255,0.15)";
           const bw = 18 * px * 0.8;
           g.fillRect(m.x - bw / 2, m.y + 18 * px * 0.62, bw, px);
-          g.fillStyle = m.rank ? "#F5B83D" : "#6B78FF";
+          g.fillStyle = m.rank ? "#D8B36C" : "#7383FF";
           g.fillRect(m.x - bw / 2, m.y + 18 * px * 0.62, bw * score * sk, px);
           g.restore();
         }
@@ -322,12 +322,12 @@ export function Summon({ className }: { className?: string }) {
         aria-label="Pixel-art loop: one monkey clones into a crowd, an AI judge scans every entry, three winners are paid in coins."
       />
       <div className="pointer-events-none absolute inset-x-4 top-4 flex items-start justify-between gap-3">
-        <div key={phase} className="flex animate-rise items-center gap-3 rounded-full bg-navy/80 py-1.5 pl-1.5 pr-4 backdrop-blur">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red font-mono text-[11px] font-semibold text-white">{p.n}</span>
-          <span className="text-[13px] font-medium text-white/90">{p.label}</span>
+        <div key={phase} className="flex animate-rise items-center gap-3 rounded-full bg-bg/70 py-1.5 pl-1.5 pr-4 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)] backdrop-blur-md">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-b from-gold-2 to-gold font-mono text-[10.5px] font-semibold text-bg">{p.n}</span>
+          <span className="text-[13px] font-medium text-fg/90">{p.label}</span>
         </div>
-        <span className="hidden shrink-0 whitespace-nowrap rounded-full bg-navy/80 px-3 py-1.5 font-mono text-[11px] tracking-[0.14em] text-white/70 backdrop-blur sm:inline">
-          ENTRIES <span className="tabular-nums text-white">{String(count).padStart(2, "0")}</span>
+        <span className="hidden shrink-0 whitespace-nowrap rounded-full bg-bg/70 px-3 py-1.5 font-mono text-[10.5px] tracking-[0.16em] text-muted shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)] backdrop-blur-md sm:inline">
+          ENTRIES <span className="tabular-nums text-fg">{String(count).padStart(2, "0")}</span>
         </span>
       </div>
     </div>

@@ -70,7 +70,7 @@ export function WorkerProfile({ worker }: { worker: string }) {
   if (!data) {
     return (
       <>
-        <div className="h-64 bg-navy" />
+        <div className="h-64 border-b border-line" />
         <Container className="flex flex-col gap-4">
           <Skeleton className="h-24" />
           <Skeleton className="h-96" />
@@ -106,7 +106,7 @@ const [pda] = PublicKey.findProgramAddressSync(
 const rep = await program.account.reputation.fetch(pda);`;
 
   const stats = [
-    { label: "Rating", value: rating, cls: "text-red" },
+    { label: "Rating", value: rating, cls: "text-gold-2" },
     { label: "Wins", value: rep?.wins ?? 0 },
     { label: "Top-3 finishes", value: rep?.podiums ?? 0 },
     { label: "Entries", value: rep?.submissions ?? 0 },
@@ -116,33 +116,36 @@ const rep = await program.account.reputation.fetch(pda);`;
 
   return (
     <>
-      <section className="relative overflow-hidden bg-navy text-white">
-        <div className="grid-lines absolute inset-0 [mask-image:radial-gradient(ellipse_at_20%_50%,black,transparent_75%)]" aria-hidden />
-        <Spotlight color="rgb(228 38 28 / 0.16)" />
-        <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-12 sm:px-6 md:flex-row md:items-center lg:px-8">
+      <section className="relative overflow-hidden border-b border-line">
+        <div className="aura left-[-8%] top-[-40%] h-[460px] w-[460px]" style={{ background: `${tier.color}33` }} aria-hidden />
+        <div className="grid-lines mask-fade absolute inset-0" aria-hidden />
+        <Spotlight />
+        <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-7 px-4 py-14 sm:px-6 md:flex-row md:items-center lg:px-8">
           <motion.div initial={{ scale: 0.6, rotate: -12, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 260, damping: 18 }} className="relative w-fit">
-            <Avatar id={data.worker} name={data.name} size={112} />
+            <div className="rounded-full p-[3px]" style={{ background: `linear-gradient(140deg, ${tier.color}, transparent 60%)` }}>
+              <Avatar id={data.worker} name={data.name} size={112} ring />
+            </div>
             <span className="absolute -bottom-2 -right-3">
               <PixelIcon name={rep?.wins ? "trophy" : "monkey"} px={2} motion="bob" />
             </span>
           </motion.div>
           <div className="min-w-0 flex-1">
             <Kinetic text={display} className="display text-[clamp(2.8rem,6vw,4.8rem)]" />
-            <Reveal delay={0.2} className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px] text-white/70">
-              {prof?.handle && <span className="font-semibold text-white">@{prof.handle}</span>}
+            <Reveal delay={0.2} className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px] text-muted">
+              {prof?.handle && <span className="font-semibold text-fg">@{prof.handle}</span>}
               {city && <span>{city}</span>}
-              <span className="font-mono text-[13px]">
+              <span className="font-mono text-[12.5px]">
                 <Scramble text={shortAddr(data.worker, 6)} trigger="mount" />
               </span>
               <TierBadge rating={rating} />
             </Reveal>
             {(prof?.bio || (prof?.skills.length ?? 0) > 0) && (
               <Reveal delay={0.25} className="mt-4 max-w-xl">
-                {prof?.bio && <p className="text-[15px] leading-relaxed text-white/70">{prof.bio}</p>}
+                {prof?.bio && <p className="text-[15px] leading-relaxed text-fg/75">{prof.bio}</p>}
                 {prof && prof.skills.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {prof.skills.map((s) => (
-                      <span key={s} className="mono-label rounded-md bg-white/10 px-2 py-1 !text-[10px] text-white/80">
+                      <span key={s} className="mono-label rounded-full bg-fg/[0.05] px-2.5 py-1 !text-[9.5px] text-fg/80 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.07)]">
                         {s}
                       </span>
                     ))}
@@ -152,13 +155,13 @@ const rep = await program.account.reputation.fetch(pda);`;
             )}
             {next && (
               <Reveal delay={0.3} className="mt-4 max-w-md">
-                <div className="flex justify-between text-[12.5px] text-white/55">
+                <div className="flex justify-between text-[12.5px] text-muted">
                   <span>{tier.name}</span>
                   <span>
                     {next.min - rating} to {next.name}
                   </span>
                 </div>
-                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/15">
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-fg/[0.08]">
                   <motion.div
                     className="h-full rounded-full"
                     style={{ background: tier.color }}
@@ -171,7 +174,7 @@ const rep = await program.account.reputation.fetch(pda);`;
             )}
           </div>
           <Reveal delay={0.3} className="flex flex-col items-start gap-3 md:items-end">
-            <button className="btn btn-ghost-light h-11" onClick={() => copy("link", window.location.href)}>
+            <button className="btn btn-line h-11" onClick={() => copy("link", window.location.href)}>
               <AnimatePresence mode="wait">
                 <motion.span key={copied === "link" ? "ok" : "link"} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }}>
                   {copied === "link" ? <Check size={16} /> : <Link2 size={16} />}
@@ -179,8 +182,8 @@ const rep = await program.account.reputation.fetch(pda);`;
               </AnimatePresence>
               {copied === "link" ? "Copied" : "Copy profile link"}
             </button>
-            <span className="text-[13px] text-white/50">
-              Wallet balance <b className="font-mono text-white">{fmtUsdc(data.usdc, { decimals: 2 })} USDC</b>
+            <span className="text-[13px] text-muted">
+              Wallet balance <b className="font-mono text-fg">{fmtUsdc(data.usdc, { decimals: 2 })} USDC</b>
             </span>
           </Reveal>
         </div>
@@ -192,7 +195,7 @@ const rep = await program.account.reputation.fetch(pda);`;
             <Reveal key={s.label} delay={i * 0.06}>
               <div className="card lift p-5">
                 <div className="label">{s.label}</div>
-                <div className={cx("display mt-2 text-[44px] leading-none", s.cls)}>
+                <div className={cx("num mt-3 text-[2.6rem]", s.cls)}>
                   <Counter value={s.value} decimals={s.decimals ?? 0} />
                 </div>
               </div>
@@ -219,19 +222,19 @@ const rep = await program.account.reputation.fetch(pda);`;
                       viewport={{ once: true }}
                       transition={{ delay: Math.min(i, 8) * 0.05, duration: 0.6, ease: EASE }}
                     >
-                      <Link href={`/tasks/${h.task}`} className="group grid grid-cols-[72px_1fr_auto] gap-4 border-t border-line py-5 transition-colors hover:bg-paper/60 sm:px-2">
-                        <span className={cx("display text-[46px] leading-[0.9]", h.scored ? "text-navy" : "text-faint")}>{h.scored ? Math.round(h.score / 100) : "–"}</span>
+                      <Link href={`/tasks/${h.task}`} className="group grid grid-cols-[72px_1fr_auto] gap-4 border-t border-line py-5 transition-colors hover:bg-fg/[0.02] sm:px-2">
+                        <span className={cx("num text-[46px]", h.rank === 1 ? "text-gold-2" : h.scored ? "text-fg" : "text-faint")}>{h.scored ? Math.round(h.score / 100) : "–"}</span>
                         <div className="min-w-0">
-                          <div className="font-semibold leading-snug transition-colors group-hover:text-red">{h.taskTitle}</div>
+                          <div className="font-semibold leading-snug transition-colors group-hover:text-gold-2">{h.taskTitle}</div>
                           <div className="mt-0.5 text-[13px] text-muted">
                             {h.category}
                             {h.taskStatus === "open" ? " · sealed, awaiting close" : h.taskStatus === "judging" ? " · being judged" : ""}
                           </div>
-                          {h.summary && <p className="serif-quote mt-2 text-[17px] leading-snug text-navy/80">“{h.summary}”</p>}
+                          {h.summary && <p className="serif-quote mt-2 text-[17px] leading-snug text-fg/75">“{h.summary}”</p>}
                         </div>
                         <div className="text-right">
-                          {h.rank > 0 && <div className="mono-label !text-[10px] text-red">{PLACE[h.rank]}</div>}
-                          <div className="mt-0.5 font-semibold tabular-nums">{h.payout > 0 ? `+${fmtUsdc(h.payout, { decimals: 2 })}` : "—"}</div>
+                          {h.rank > 0 && <div className={cx("mono-label !text-[10px]", h.rank === 1 ? "text-gold-2" : "text-fg/70")}>{PLACE[h.rank]}</div>}
+                          <div className={cx("mt-0.5 font-semibold tabular-nums", h.payout > 0 ? "text-green" : "text-faint")}>{h.payout > 0 ? `+${fmtUsdc(h.payout, { decimals: 2 })}` : "—"}</div>
                         </div>
                       </Link>
                     </motion.div>
@@ -253,7 +256,7 @@ const rep = await program.account.reputation.fetch(pda);`;
                           <span>{c.cat}</span>
                           <span className="font-semibold">avg {Math.round(c.avg / 100)}</span>
                         </div>
-                        <ScoreBar score={c.avg} tone="navy" className="mt-2" delay={i * 0.1} />
+                        <ScoreBar score={c.avg} tone="fg" className="mt-2" delay={i * 0.1} />
                       </div>
                     ))}
                   </div>
@@ -261,20 +264,20 @@ const rep = await program.account.reputation.fetch(pda);`;
               </Reveal>
             )}
             <Reveal delay={0.2}>
-              <div className="relative overflow-hidden rounded-[18px] bg-blue p-6 text-white">
-                <Spotlight color="rgb(255 255 255 / 0.15)" size={300} />
-                <div className="mono-label relative text-white/70">On-chain reputation</div>
-                <p className="relative mt-3 text-[15px] leading-relaxed">
+              <div className="relative overflow-hidden rounded-[18px] border border-blue/30 bg-gradient-to-br from-blue/20 via-blue/[0.06] to-surface p-6">
+                <Spotlight color="rgb(115 131 255 / 0.12)" size={300} />
+                <div className="mono-label relative !text-[10px] text-blue-2">On-chain reputation</div>
+                <p className="relative mt-3 text-[14.5px] leading-relaxed text-fg/85">
                   Every score and payout above is recorded on Solana in an account {display} owns. If Wukong disappears tomorrow, it survives. Any app can read it.
                 </p>
-                <div className="relative mt-4 flex items-center justify-between gap-3 font-mono text-[12px] text-white/80">
+                <div className="relative mt-4 flex items-center justify-between gap-3 font-mono text-[12px] text-muted">
                   <span>Reputation account</span>
-                  <ExplorerLink kind="address" id={data.reputationAccount} className="!text-white" />
+                  <ExplorerLink kind="address" id={data.reputationAccount} className="!text-blue-2" />
                 </div>
                 <div className="relative mt-4">
-                  <pre className="overflow-x-auto rounded-xl bg-navy/60 p-3.5 font-mono text-[10.5px] leading-relaxed text-white/75">{snippet}</pre>
+                  <pre className="overflow-x-auto rounded-xl border border-line bg-[#05060a] p-3.5 font-mono text-[10.5px] leading-relaxed text-muted">{snippet}</pre>
                   <button
-                    className="absolute right-2 top-2 rounded-lg bg-white/10 p-1.5 text-white/80 transition-colors hover:bg-white/20"
+                    className="absolute right-2 top-2 rounded-lg bg-fg/[0.07] p-1.5 text-fg/80 transition-colors hover:bg-fg/[0.14]"
                     onClick={() => copy("code", snippet)}
                     aria-label="Copy snippet"
                   >
@@ -301,24 +304,25 @@ function OrgProfile({ profile, wallet, display }: { profile: PublicProfile; wall
   const stats = [
     { label: "Tasks posted", value: tasks.length },
     { label: "Live now", value: live.length },
-    { label: "USDC paid to workers", value: toUsdc(tasks.reduce((a, t) => a + t.paidOut, 0)), decimals: 2 },
+    { label: "USDC paid out", value: toUsdc(tasks.reduce((a, t) => a + t.paidOut, 0)), decimals: 2 },
     { label: "Entries received", value: tasks.reduce((a, t) => a + t.submissionCount, 0) },
   ];
   return (
     <>
-      <section className="relative overflow-hidden bg-navy text-white">
-        <div className="grid-lines absolute inset-0 [mask-image:radial-gradient(ellipse_at_20%_50%,black,transparent_75%)]" aria-hidden />
-        <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-12 sm:px-6 md:flex-row md:items-center lg:px-8">
+      <section className="relative overflow-hidden border-b border-line">
+        <div className="aura left-[-8%] top-[-40%] h-[460px] w-[460px] bg-red/20" aria-hidden />
+        <div className="grid-lines mask-fade absolute inset-0" aria-hidden />
+        <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-7 px-4 py-14 sm:px-6 md:flex-row md:items-center lg:px-8">
           <Avatar id={wallet} name={display} size={112} />
           <div className="min-w-0 flex-1">
-            <div className="mono-label text-white/55">Organisation</div>
-            <Kinetic text={display} className="display mt-2 text-[clamp(2.8rem,6vw,4.8rem)]" />
-            <Reveal delay={0.2} className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px] text-white/70">
-              {profile.handle && <span className="font-semibold text-white">@{profile.handle}</span>}
+            <div className="label">Organisation</div>
+            <Kinetic text={display} className="display mt-3 text-[clamp(2.8rem,6vw,4.8rem)]" />
+            <Reveal delay={0.2} className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px] text-muted">
+              {profile.handle && <span className="font-semibold text-fg">@{profile.handle}</span>}
               {profile.city && <span>{profile.city}</span>}
               <span>Joined {new Date(profile.joined).toLocaleDateString([], { month: "long", year: "numeric" })}</span>
             </Reveal>
-            {profile.bio && <Reveal delay={0.25} className="mt-4 max-w-xl text-[15px] leading-relaxed text-white/70">{profile.bio}</Reveal>}
+            {profile.bio && <Reveal delay={0.25} className="mt-4 max-w-xl text-[15px] leading-relaxed text-fg/75">{profile.bio}</Reveal>}
           </div>
         </div>
       </section>
@@ -328,7 +332,7 @@ function OrgProfile({ profile, wallet, display }: { profile: PublicProfile; wall
             <Reveal key={s.label} delay={i * 0.06}>
               <div className="card lift p-5">
                 <div className="label">{s.label}</div>
-                <div className="display mt-2 text-[44px] leading-none">
+                <div className="num mt-3 text-[2.6rem]">
                   <Counter value={s.value} decimals={s.decimals ?? 0} />
                 </div>
               </div>

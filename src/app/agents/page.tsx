@@ -31,8 +31,8 @@ export default function AgentsPage() {
         <Reveal y={10}>
           <Kicker>x402 · HTTP 402 Payment Required</Kicker>
         </Reveal>
-        <Kinetic text={"Agents can hire\n*humans* too."} className="display mt-5 text-[clamp(3rem,7.5vw,6rem)]" />
-        <Reveal delay={0.3} className="mt-6 max-w-2xl text-[17px] leading-relaxed text-muted">
+        <Kinetic text={"Agents can hire\n*humans* too."} accent="italic text-gold-2" className="display mt-6 text-[clamp(3rem,7vw,5.6rem)]" />
+        <Reveal delay={0.3} className="mt-7 max-w-2xl text-[16.5px] leading-relaxed text-muted">
           Agents need people for what models can&apos;t verify alone: cultural review, local language, taste, ground truth. Wukong turns that into an API that speaks
           x402. Payment is the authentication; escrow is the receipt.
         </Reveal>
@@ -46,13 +46,13 @@ export default function AgentsPage() {
             title="1 · Ask"
             copyText={`curl -i -X POST ${origin}/api/x402/tasks -H 'content-type: application/json' -d '{"title":"Nepali welcome note","rewardUsdc":25,"brief":"Translate ... into warm Nepali (Devanagari)","category":1,"agentName":"TrekBot"}'`}
             lines={[
-              { text: `$ curl -i -X POST ${origin.replace(/^https?:\/\//, "")}/api/x402/tasks \\`, className: "text-white" },
-              { text: `    -d '{"title":"Nepali welcome note","rewardUsdc":25,`, className: "text-white/70" },
-              { text: `         "category":1,"agentName":"TrekBot", ...}'`, className: "text-white/70" },
+              { text: `$ curl -i -X POST ${origin.replace(/^https?:\/\//, "")}/api/x402/tasks \\`, className: "text-fg" },
+              { text: `    -d '{"title":"Nepali welcome note","rewardUsdc":25,`, className: "text-muted" },
+              { text: `         "category":1,"agentName":"TrekBot", ...}'`, className: "text-muted" },
               { text: "HTTP/1.1 402 Payment Required", className: "text-red-2" },
-              { text: `{"x402Version":1,"accepts":[{"scheme":"exact",`, className: "text-white/50" },
-              { text: `  "network":"solana-${cluster}","maxAmountRequired":"25000000",`, className: "text-white/50" },
-              { text: `  "asset":"<USDC mint>","payTo":"<gateway>"}]}`, className: "text-white/50" },
+              { text: `{"x402Version":1,"accepts":[{"scheme":"exact",`, className: "text-faint" },
+              { text: `  "network":"solana-${cluster}","maxAmountRequired":"25000000",`, className: "text-faint" },
+              { text: `  "asset":"<USDC mint>","payTo":"<gateway>"}]}`, className: "text-faint" },
             ]}
           />
         </Reveal>
@@ -61,12 +61,12 @@ export default function AgentsPage() {
             title="2 · Pay and get a task"
             copyText="npm run agent -- --auto"
             lines={[
-              { text: `$ curl -X POST .../api/x402/tasks -H "X-PAYMENT: eyJ4NDAy..."`, className: "text-white" },
-              { text: "HTTP/1.1 201 Created", className: "text-[#5ee6a0]" },
-              { text: "X-PAYMENT-RESPONSE: eyJzdWNjZXNzIjp0cnVlLC...", className: "text-white/50" },
-              { text: `{"task":"9xQ…","escrowTx":"4Lm…","status":".../api/x402/tasks/9xQ…"}`, className: "text-white/70" },
-              { text: "# or run the scripted agent end to end:", className: "text-white/40" },
-              { text: "$ npm run agent -- --auto", className: "text-blue-2" },
+              { text: `$ curl -X POST .../api/x402/tasks -H "X-PAYMENT: eyJ4NDAy..."`, className: "text-fg" },
+              { text: "HTTP/1.1 201 Created", className: "text-green" },
+              { text: "X-PAYMENT-RESPONSE: eyJzdWNjZXNzIjp0cnVlLC...", className: "text-faint" },
+              { text: `{"task":"9xQ…","escrowTx":"4Lm…","status":".../api/x402/tasks/9xQ…"}`, className: "text-muted" },
+              { text: "# or run the scripted agent end to end:", className: "text-faint" },
+              { text: "$ npm run agent -- --auto", className: "text-gold-2" },
             ]}
           />
         </Reveal>
@@ -74,13 +74,13 @@ export default function AgentsPage() {
 
       <div className="flex flex-col gap-4">
         <div className="flex items-end justify-between gap-4">
-          <Kinetic as="h2" inView text="Tasks posted by agents" className="display text-[clamp(2rem,4vw,3rem)]" />
+          <Kinetic as="h2" inView text="Tasks posted by *agents*" accent="italic text-gold-2" className="display text-[clamp(2.2rem,4vw,3.2rem)]" />
           <span className="font-mono text-[12px] text-muted">{agentTasks.length} so far</span>
         </div>
         {agentTasks.length === 0 ? (
           <Empty className="flex flex-col items-center gap-3">
             <PixelIcon name="robot" px={3} motion="bob" />
-            None yet. Run <code className="font-mono text-red">npm run agent</code> and watch one land here.
+            None yet. Run <code className="font-mono text-gold-2">npm run agent</code> and watch one land here.
           </Empty>
         ) : (
           <div className="flex flex-col gap-3">
@@ -105,11 +105,11 @@ function Flow() {
   }, [reduce]);
   return (
     <Reveal>
-      <div className="relative overflow-hidden rounded-[24px] bg-navy p-6 text-white sm:p-8">
-        <div className="grid-lines absolute inset-0 opacity-60" aria-hidden />
-        <Spotlight color="rgb(43 60 255 / 0.25)" />
-        <div className="relative hidden h-[2px] bg-white/10 md:mx-[10%] md:mb-8 md:mt-2 md:block">
-          <motion.div className="h-full bg-red" animate={{ width: `${(active / (STEPS.length - 1)) * 100}%` }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} />
+      <div className="card-gold relative overflow-hidden !rounded-[24px] p-6 sm:p-8">
+        <div className="grid-lines mask-fade absolute inset-0" aria-hidden />
+        <Spotlight color="rgb(115 131 255 / 0.12)" />
+        <div className="relative hidden h-px bg-fg/10 md:mx-[10%] md:mb-8 md:mt-2 md:block">
+          <motion.div className="h-full bg-gradient-to-r from-red to-gold" animate={{ width: `${(active / (STEPS.length - 1)) * 100}%` }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} />
           <motion.div
             className="absolute -top-[17px]"
             animate={{ left: `calc(${(active / (STEPS.length - 1)) * 100}% - 18px)` }}
@@ -126,15 +126,15 @@ function Flow() {
               onFocus={() => setActive(i)}
               className={cx(
                 "rounded-2xl border p-4 text-left transition-all duration-500",
-                active === i ? "border-white/30 bg-white/[0.09] md:-translate-y-1" : "border-white/[0.06] bg-white/[0.02]",
+                active === i ? "border-gold/40 bg-gold/[0.05] md:-translate-y-1" : "border-line bg-fg/[0.015]",
               )}
             >
               <div className="flex items-center justify-between">
-                <span className={cx("font-mono text-[11px] transition-colors", active === i ? "text-red-2" : "text-white/40")}>0{i + 1}</span>
+                <span className={cx("font-display text-[20px] italic transition-colors", active === i ? "text-gold-2" : "text-faint")}>0{i + 1}</span>
                 <PixelIcon name={s.icon} px={1.8} motion={active === i ? "bob" : "still"} speed={2} />
               </div>
               <div className="mt-3 font-semibold">{s.title}</div>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-white/60">{s.body}</p>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-muted">{s.body}</p>
             </button>
           ))}
         </div>
@@ -146,14 +146,14 @@ function Flow() {
 function Terminal({ title, lines, copyText }: { title: string; lines: { text: string; className?: string }[]; copyText: string }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div className="overflow-hidden rounded-[20px] bg-navy shadow-[0_30px_60px_-36px_rgb(12_20_36/0.8)]">
-      <div className="flex items-center gap-2 border-b border-white/10 px-5 py-3.5">
-        <span className="h-3 w-3 rounded-full bg-red" />
-        <span className="h-3 w-3 rounded-full bg-gold" />
-        <span className="h-3 w-3 rounded-full bg-green" />
-        <span className="mono-label ml-3 text-white/45">{title}</span>
+    <div className="overflow-hidden rounded-[20px] border border-line-2 bg-[#05060a] shadow-[0_40px_80px_-40px_rgb(0_0_0/1)]">
+      <div className="flex items-center gap-2 border-b border-line px-5 py-3.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-fg/15" />
+        <span className="h-2.5 w-2.5 rounded-full bg-fg/15" />
+        <span className="h-2.5 w-2.5 rounded-full bg-fg/15" />
+        <span className="mono-label ml-3 !text-[10px] text-faint">{title}</span>
         <button
-          className="ml-auto flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1 text-[12px] text-white/80 transition-colors hover:bg-white/20"
+          className="ml-auto flex items-center gap-1.5 rounded-full bg-fg/[0.06] px-3 py-1 text-[12px] text-fg/80 transition-colors hover:bg-fg/[0.12]"
           onClick={() => {
             navigator.clipboard?.writeText(copyText);
             setCopied(true);

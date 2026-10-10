@@ -33,9 +33,9 @@ export function Reveal({
   children,
   className,
   delay = 0,
-  y = 28,
+  y = 18,
   x = 0,
-  blur = true,
+  blur = false,
   as = "div",
   once = true,
   style,
@@ -64,10 +64,10 @@ export function Reveal({
     <M
       className={className}
       style={style}
-      initial={{ opacity: 0, y, x, filter: blur ? "blur(8px)" : "blur(0px)" }}
-      whileInView={{ opacity: 1, y: 0, x: 0, filter: "blur(0px)" }}
-      viewport={{ once, margin: "0px 0px -12% 0px" }}
-      transition={{ duration: 0.9, ease: EASE, delay }}
+      initial={blur ? { opacity: 0, y, x, filter: "blur(6px)" } : { opacity: 0, y, x }}
+      whileInView={blur ? { opacity: 1, y: 0, x: 0, filter: "blur(0px)" } : { opacity: 1, y: 0, x: 0 }}
+      viewport={{ once, margin: "0px 0px -8% 0px" }}
+      transition={{ duration: 0.85, ease: EASE, delay }}
     >
       {children}
     </M>
@@ -78,9 +78,9 @@ export function Reveal({
 export function Stagger({
   children,
   className,
-  gap = 0.08,
+  gap = 0.07,
   delay = 0,
-  y = 24,
+  y = 16,
 }: {
   children: ReactNode;
   className?: string;
@@ -108,7 +108,7 @@ export function Kinetic({
   text,
   className,
   lineClassName,
-  accent = "text-red",
+  accent = "italic text-gold-2",
   delay = 0,
   stagger = 0.06,
   as = "h1",
@@ -138,12 +138,12 @@ export function Kinetic({
             const clean = word.replace(/\*/g, "");
             const i = k++;
             return (
-              <span key={wi} className="inline-block overflow-hidden pb-[0.08em] align-bottom">
+              <span key={wi} className="inline-block overflow-hidden pb-[0.1em] pr-[0.04em] align-bottom">
                 <motion.span
                   className={cx("inline-block", hot && accent)}
-                  initial={reduce ? false : { y: "110%", rotate: 6 }}
-                  animate={go ? { y: "0%", rotate: 0 } : undefined}
-                  transition={{ duration: 0.9, ease: EASE, delay: delay + i * stagger }}
+                  initial={reduce ? false : { y: "105%" }}
+                  animate={go ? { y: "0%" } : undefined}
+                  transition={{ duration: 1, ease: EASE, delay: delay + i * stagger }}
                 >
                   {clean}
                 </motion.span>
@@ -198,9 +198,16 @@ export function Counter({
     return () => controls.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seen, value, reduce]);
+  // The final value sits invisibly in the same grid cell, so the width never changes while it rolls
+  // (a grid, not absolute positioning, so gradient text clipping still covers the digits).
   return (
-    <span ref={ref} className={cx("tabular-nums", className)}>
-      {fmt(reduce ? value : 0)}
+    <span className={cx("inline-grid tabular-nums", className)}>
+      <span className="invisible [grid-area:1/1]" aria-hidden>
+        {fmt(value)}
+      </span>
+      <span ref={ref} className="[grid-area:1/1]">
+        {fmt(reduce ? value : 0)}
+      </span>
     </span>
   );
 }
@@ -254,7 +261,7 @@ export function Tilt({
   const ry = useSpring(useTransform(px, [0, 1], [-max, max]), { stiffness: 180, damping: 18 });
   const gx = useTransform(px, (v) => `${v * 100}%`);
   const gy = useTransform(py, (v) => `${v * 100}%`);
-  const glareBg = useTransform([gx, gy] as MotionValue[], ([a, b]) => `radial-gradient(420px circle at ${a} ${b}, rgb(255 255 255 / 0.22), transparent 45%)`);
+  const glareBg = useTransform([gx, gy] as MotionValue[], ([a, b]) => `radial-gradient(420px circle at ${a} ${b}, rgb(255 255 255 / 0.07), transparent 45%)`);
   const [hover, setHover] = useState(false);
   return (
     <motion.div
@@ -429,11 +436,17 @@ export function TypeLines({
   );
 }
 
-/** A thin red bar along the top of the window that fills as the page scrolls. */
+/** A hairline along the top of the window that fills as the page scrolls. */
 export function ScrollProgress() {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30 });
-  return <motion.div aria-hidden className="fixed inset-x-0 top-0 z-[70] h-[3px] origin-left bg-red" style={{ scaleX }} />;
+  return (
+    <motion.div
+      aria-hidden
+      className="fixed inset-x-0 top-0 z-[70] h-[2px] origin-left bg-gradient-to-r from-red via-red to-gold-2"
+      style={{ scaleX }}
+    />
+  );
 }
 
 /** Moves its child vertically at a different speed from the scroll. */
@@ -450,7 +463,7 @@ export function Parallax({ children, speed = 0.15, className }: { children: Reac
 }
 
 /** A radial glow that follows the pointer inside its parent (put it in a relative, overflow-hidden box). */
-export function Spotlight({ color = "rgb(43 60 255 / 0.22)", size = 520 }: { color?: string; size?: number }) {
+export function Spotlight({ color = "rgb(216 179 108 / 0.07)", size = 520 }: { color?: string; size?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current?.parentElement;

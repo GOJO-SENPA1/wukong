@@ -42,6 +42,8 @@ interface Ctx {
   role: Role | null;
   /** Demo personas are on offer (demo mode, or accounts not configured) */
   personasOn: boolean;
+  /** Who's signed in is known (saved persona read, Privy settled): hide identity UI until then so it never flashes */
+  identityReady: boolean;
   personaName: string;
   personaKeys: Record<string, string>;
   funding: boolean;
@@ -114,12 +116,18 @@ function Inner({ children, state, refresh }: { children: ReactNode; state: AppSt
   const [keys, setKeys] = useState<Record<string, Keypair>>({});
   const [persona, setPersonaState] = useState<ActiveId>("company");
   const [funding, setFunding] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [graceOver, setGraceOver] = useState(false);
   const fundedFor = useRef<string | null>(null);
 
   useEffect(() => {
     setKeys(loadPersonaKeys());
     const saved = safeGet(ACTIVE_KEY) as ActiveId | null;
     if (saved) setPersonaState(saved);
+    setHydrated(true);
+    // Never hold the identity UI back for long, even if Privy or the API is slow.
+    const t = setTimeout(() => setGraceOver(true), 3500);
+    return () => clearTimeout(t);
   }, []);
 
   const setPersona = useCallback((p: ActiveId) => {
@@ -139,10 +147,11 @@ function Inner({ children, state, refresh }: { children: ReactNode; state: AppSt
     return () => setAuthHeaderSource(null);
   }, [persona, account.authenticated, account.tokens]);
 
-  // Fund personas (gas + demo USDC for the company) once per deployment.
+  // Fund personas (gas + demo USDC for the company) once per deployment, only where demo personas are on offer.
   const mint = state.deployment?.mint;
+  const fundPersonas = state.demoMode === true || (!account.enabled && state.demoMode !== false);
   useEffect(() => {
-    if (!mint || !Object.keys(keys).length || fundedFor.current === mint) return;
+    if (!fundPersonas || !mint || !Object.keys(keys).length || fundedFor.current === mint) return;
     fundedFor.current = mint;
     const already = safeGet(FUNDED_KEY) === mint;
     const names: Record<string, string> = {};
@@ -157,7 +166,7 @@ function Inner({ children, state, refresh }: { children: ReactNode; state: AppSt
       safeSet(FUNDED_KEY, mint);
       setFunding(false);
     })();
-  }, [mint, keys]);
+  }, [mint, keys, fundPersonas]);
 
   const signer: ClientSigner | null = useMemo(() => {
     if (persona === "account") return account.signer;
@@ -200,6 +209,13 @@ function Inner({ children, state, refresh }: { children: ReactNode; state: AppSt
     postJSON("/api/faucet", { address: accountWallet, role: account.role === "company" ? "company" : "worker" }).catch(() => {});
   }, [accountWallet, state.demoMode, mint, account.role]);
 
+  const identityReady =
+    hydrated &&
+    (graceOver ||
+      (account.ready &&
+        (persona !== "account" || !account.authenticated || account.me !== null) &&
+        (!account.enabled || state.demoMode !== undefined || state.error !== undefined)));
+
   const personaKeys = useMemo(
     () => Object.fromEntries(Object.entries(keys).map(([k, v]) => [k, v.publicKey.toBase58()])),
     [keys],
@@ -218,7 +234,7 @@ function Inner({ children, state, refresh }: { children: ReactNode; state: AppSt
 
   return (
     <AppCtx.Provider
-      value={{ state, refresh, persona, setPersona, signer, role, personasOn, personaName, personaKeys, funding, explorer }}
+      value={{ state, refresh, persona, setPersona, signer, role, personasOn, identityReady, personaName, personaKeys, funding, explorer }}
     >
       {children}
     </AppCtx.Provider>

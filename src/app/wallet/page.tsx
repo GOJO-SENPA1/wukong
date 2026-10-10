@@ -10,7 +10,7 @@ import { useAccount } from "@/components/auth/Account";
 import { Counter, Kinetic, Reveal } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
 import { burst } from "@/components/fx/Overlay";
-import { Container, ExplorerLink, Spinner, cx } from "@/components/ui";
+import { Container, ExplorerLink, Kicker, Skeleton, Spinner, cx } from "@/components/ui";
 import { getJSON, postJSON, runAction } from "@/lib/client/api";
 import { toUsdc } from "@/lib/format";
 
@@ -24,7 +24,7 @@ interface Balances {
 }
 
 export default function WalletPage() {
-  const { signer, role, persona, state } = useApp();
+  const { signer, role, persona, state, identityReady } = useApp();
   const account = useAccount();
   const address = signer?.publicKey.toBase58() ?? null;
   const [bal, setBal] = useState<Balances | null>(null);
@@ -42,17 +42,31 @@ export default function WalletPage() {
   }, [load]);
   useEffect(() => {
     if (!address) return setQr(null);
-    QRCode.toDataURL(address, { margin: 1, width: 360, color: { dark: "#0C1424", light: "#FFFFFF" } })
+    QRCode.toDataURL(address, { margin: 1, width: 360, color: { dark: "#07080C", light: "#F1EDE4" } })
       .then(setQr)
       .catch(() => setQr(null));
   }, [address]);
 
+  if (!identityReady) {
+    return (
+      <Container className="flex flex-col gap-8">
+        <Skeleton className="h-20 w-1/3" />
+        <div className="grid gap-4 md:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-40 !rounded-[18px]" />
+          ))}
+        </div>
+      </Container>
+    );
+  }
   if (!address) {
     return (
       <Container className="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center">
-        <PixelIcon name="coin" px={4} motion="spin" />
-        <h1 className="display text-5xl">Your wallet</h1>
-        <p className="max-w-md text-muted">{account.enabled ? "Sign in to see your balance, deposit and withdraw." : "Pick a demo account at the top right."}</p>
+        <PixelIcon name="coin" px={3.6} motion="spin" />
+        <h1 className="display text-[clamp(2.6rem,6vw,4.2rem)]">
+          Your <em className="text-gold-2">wallet</em>
+        </h1>
+        <p className="max-w-md leading-relaxed text-muted">{account.enabled ? "Sign in to see your balance, deposit and withdraw." : "Pick a demo account at the top right."}</p>
         {account.enabled && !account.authenticated && (
           <button className="btn btn-red h-12 px-6" onClick={account.login}>
             <LogIn size={17} /> Sign in
@@ -65,34 +79,37 @@ export default function WalletPage() {
   return (
     <Container className="flex flex-col gap-8">
       <div>
-        <Kinetic text="Wallet" className="display text-[clamp(3rem,7vw,5.5rem)]" />
-        <Reveal delay={0.2} className="mt-3 text-muted">
+        <Reveal y={8}>
+          <Kicker>{role === "company" ? "Organisation wallet" : "Your earnings"}</Kicker>
+        </Reveal>
+        <Kinetic text="Your *wallet*" accent="italic text-gold-2" className="display mt-5 text-[clamp(2.8rem,6vw,4.8rem)]" />
+        <Reveal delay={0.2} className="mt-4 text-[15px] text-muted">
           A Solana wallet {persona === "account" ? "that belongs to you" : "for this demo account"}. Rewards, refunds and stakes move through it.
         </Reveal>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Reveal>
-          <div className="card-navy relative overflow-hidden p-6">
-            <div className="grid-lines absolute inset-0 opacity-50" aria-hidden />
+          <div className="card-gold relative overflow-hidden p-6">
+            <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-gold/15 blur-3xl" aria-hidden />
             <div className="relative">
-              <div className="mono-label text-white/55">USDC balance</div>
-              <div className="display mt-2 text-[64px] leading-[0.85]">
+              <div className="label">USDC balance</div>
+              <div className="num text-foil mt-3 text-[64px]">
                 <Counter value={toUsdc(bal?.usdc ?? 0)} decimals={2} />
               </div>
-              <div className="mt-3 text-[13px] text-white/55">
+              <div className="mt-3 text-[13px] text-muted">
                 <Counter value={bal?.sol ?? 0} decimals={4} /> SOL for network fees
               </div>
             </div>
-            <div className="absolute -bottom-2 -right-2">
-              <PixelIcon name="coin" px={3.4} motion="spin" />
+            <div className="absolute bottom-4 right-4">
+              <PixelIcon name="coin" px={2.8} motion="spin" />
             </div>
           </div>
         </Reveal>
         <Reveal delay={0.08}>
           <div className="card h-full p-6">
             <div className="label">{role === "company" ? "Locked in your open tasks" : "Locked in escrow"}</div>
-            <div className="display mt-2 text-[52px] leading-none">
+            <div className="num mt-3 text-[52px]">
               <Counter value={toUsdc(bal?.escrowed ?? 0)} decimals={2} />
             </div>
             <div className="mt-3 text-[13px] text-muted">
@@ -103,7 +120,7 @@ export default function WalletPage() {
         <Reveal delay={0.16}>
           <div className="card h-full p-6">
             <div className="label">Network</div>
-            <div className="display mt-2 text-[44px] capitalize leading-none">{state.deployment?.cluster ?? "…"}</div>
+            <div className="num mt-3 text-[44px] capitalize">{state.deployment?.cluster ?? "…"}</div>
             <div className="mt-3 text-[13px] text-muted">
               <ExplorerLink kind="address" id={address}>
                 View on Solana Explorer
@@ -119,12 +136,16 @@ export default function WalletPage() {
             <h2 className="text-[19px] font-semibold tracking-tight">Deposit</h2>
             <p className="mt-1 text-[14px] text-muted">Send USDC (and a little SOL for fees) on Solana {state.deployment?.cluster} to this address.</p>
             <div className="mt-5 flex flex-col items-center gap-5 sm:flex-row sm:items-start">
-              <div className="shrink-0 rounded-2xl border border-line bg-white p-2">
-                {qr ? <img src={qr} alt="QR code of your wallet address" width={168} height={168} className="block" /> : <div className="h-[168px] w-[168px] animate-pulse rounded-xl bg-paper" />}
+              <div className="shrink-0 rounded-2xl bg-fg p-2.5 shadow-[0_20px_40px_-20px_rgb(0_0_0/0.9)]">
+                {qr ? (
+                  <img src={qr} alt="QR code of your wallet address" width={164} height={164} className="block rounded-lg" />
+                ) : (
+                  <div className="h-[164px] w-[164px] animate-pulse rounded-lg bg-bg/10" />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="label">Your address</div>
-                <div className="mt-2 break-all font-mono text-[13px] leading-relaxed">{address}</div>
+                <div className="mt-2 break-all font-mono text-[13px] leading-relaxed text-fg/90">{address}</div>
                 <button
                   className="btn btn-line mt-4 h-10"
                   onClick={() => {
@@ -135,7 +156,7 @@ export default function WalletPage() {
                 >
                   {copied ? <Check size={15} /> : <Copy size={15} />} {copied ? "Copied" : "Copy address"}
                 </button>
-                <p className="mt-4 rounded-xl bg-paper p-3 text-[12.5px] leading-relaxed text-muted">
+                <p className="well mt-4 p-3 text-[12.5px] leading-relaxed text-muted">
                   Card top-ups are coming. Until then, send USDC from an exchange or another Solana wallet.
                 </p>
               </div>
@@ -202,21 +223,21 @@ function Withdraw({ max, onDone }: { max: number; onDone: () => void }) {
         <p className="mt-1 text-[14px] text-muted">Send USDC to any Solana address. You sign it; network fees come from your SOL.</p>
         <label className="mt-5 flex flex-col gap-2">
           <span className="text-[14px] font-semibold">To address</span>
-          <input className={cx("input font-mono text-[13px]", to && !validTo && "!border-red")} value={to} onChange={(e) => setTo(e.target.value.trim())} placeholder="Solana address" spellCheck={false} />
+          <input className={cx("input font-mono text-[13px]", to && !validTo && "!border-red/60")} value={to} onChange={(e) => setTo(e.target.value.trim())} placeholder="Solana address" spellCheck={false} />
         </label>
         <label className="mt-4 flex flex-col gap-2">
           <span className="flex justify-between text-[14px] font-semibold">
             Amount
-            <button className="text-[12.5px] font-normal text-blue" onClick={() => setAmount(String(toUsdc(max)))} type="button">
+            <button className="text-[12.5px] font-normal text-gold-2 transition-colors hover:text-fg" onClick={() => setAmount(String(toUsdc(max)))} type="button">
               Max {toUsdc(max).toFixed(2)}
             </button>
           </span>
           <span className="relative">
-            <input className={cx("input !pr-16", amount && !validAmount && "!border-red")} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
+            <input className={cx("input num !pr-16 !text-[1.4rem]", amount && !validAmount && "!border-red/60")} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
             <span className="mono-label absolute right-4 top-1/2 -translate-y-1/2 text-faint">USDC</span>
           </span>
         </label>
-        <button ref={btn} className="btn btn-navy mt-5 h-12 w-full" disabled={!validTo || !validAmount || busy || !signer} onClick={send}>
+        <button ref={btn} className="btn btn-ivory mt-5 h-12 w-full" disabled={!validTo || !validAmount || busy || !signer} onClick={send}>
           {busy ? <Spinner /> : <Send size={16} />} Send USDC
         </button>
         <AnimatePresence>
@@ -225,7 +246,7 @@ function Withdraw({ max, onDone }: { max: number; onDone: () => void }) {
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className={cx("mt-4 rounded-xl p-3 text-[14px]", msg.ok ? "bg-green/10 text-green" : "bg-red/10 text-red")}
+              className={cx("mt-4 rounded-xl p-3 text-[14px]", msg.ok ? "bg-green/10 text-green" : "bg-red/10 text-red-2")}
             >
               {msg.text} {msg.sig && <ExplorerLink id={msg.sig}>tx</ExplorerLink>}
             </motion.p>
@@ -239,23 +260,27 @@ function Withdraw({ max, onDone }: { max: number; onDone: () => void }) {
 function Faucet({ address, company, onDone }: { address: string; company: boolean; onDone: () => void }) {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
   const btn = useRef<HTMLButtonElement>(null);
   return (
     <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
-      <p className="max-w-xs text-[13px] text-muted">Demo network: top up with test SOL{company ? " and test USDC" : " and a little test USDC"}.</p>
+      <p className="max-w-xs text-[13px] text-muted">
+        {err ?? `Demo network: top up with test SOL${company ? " and test USDC" : " and a little test USDC"}.`}
+      </p>
       <button
         ref={btn}
-        className="btn btn-blue h-10"
+        className="btn btn-line h-10"
         disabled={busy}
         onClick={async () => {
           setBusy(true);
+          setErr(null);
           try {
             await postJSON("/api/faucet", { address, role: company ? "company" : "worker" });
             setDone(true);
             burst(btn.current, { count: 12 });
             onDone();
-          } catch {
-            /* rate limited: try again shortly */
+          } catch (e) {
+            setErr((e as Error).message);
           } finally {
             setBusy(false);
           }

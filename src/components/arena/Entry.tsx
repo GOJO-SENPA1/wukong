@@ -25,12 +25,7 @@ const FLAG_LABEL: Record<JudgeFlag, string> = {
 };
 const SEVERE: JudgeFlag[] = ["prompt_injection", "duplicate", "plagiarism_suspected", "low_effort", "unsafe", "content_missing", "wrong_language"];
 
-const RANK_STYLE = [
-  "",
-  "bg-gold text-navy",
-  "bg-[#C9D1E0] text-navy",
-  "bg-[#E2A06E] text-navy",
-];
+const RANK_STYLE = ["", "bg-gradient-to-b from-gold-2 to-gold text-bg", "bg-gradient-to-b from-[#e9edf5] to-[#aab3c4] text-bg", "bg-gradient-to-b from-[#f0b98a] to-[#b9774a] text-bg"];
 const PLACE = ["", "1st", "2nd", "3rd"];
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -75,9 +70,9 @@ export function Entry({
       transition={{ layout: { type: "spring", stiffness: 260, damping: 30 }, duration: 0.5, ease: EASE }}
       className={cx(
         "card relative overflow-hidden transition-[border-color,box-shadow] duration-500",
-        rank === 1 && "!border-navy shadow-[0_0_0_3px_rgb(245_184_61/0.55),0_30px_60px_-30px_rgb(245_184_61/0.8)]",
-        severe && sub.scored && "!border-red/40",
-        scoring && "!border-blue",
+        rank === 1 && "!border-gold/50 shadow-[0_0_0_1px_rgb(216_179_108/0.25),0_30px_80px_-30px_rgb(216_179_108/0.45)]",
+        severe && sub.scored && "!border-red/30",
+        scoring && "!border-blue/60",
       )}
     >
       {/* the judge's scan beam, sweeping across while this entry is scored */}
@@ -112,7 +107,7 @@ export function Entry({
               initial={{ scale: 0, rotate: -40 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 500, damping: 16 }}
-              className={cx("display absolute -bottom-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full text-[12px] ring-2 ring-white", RANK_STYLE[rank])}
+              className={cx("absolute -bottom-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full font-mono text-[11px] font-bold ring-2 ring-surface", RANK_STYLE[rank])}
             >
               {rank}
             </motion.span>
@@ -121,19 +116,19 @@ export function Entry({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <span className="font-mono text-[11px] text-faint">#{sub.index + 1}</span>
-            <Link href={`/workers/${sub.worker}`} className="truncate font-semibold transition-colors hover:text-red">
+            <Link href={`/workers/${sub.worker}`} className="truncate font-semibold transition-colors hover:text-gold-2">
               {sub.workerName ?? shortAddr(sub.worker)}
             </Link>
-            {mine && <span className="mono-label rounded bg-red px-1.5 py-0.5 !text-[9.5px] text-white">You</span>}
-            {rank > 0 && <span className="mono-label !text-[10px] text-navy">{PLACE[rank]} place</span>}
+            {mine && <span className="mono-label rounded-full bg-red/15 px-2 py-0.5 !text-[9px] text-red-2">You</span>}
+            {rank > 0 && <span className={cx("mono-label !text-[10px]", rank === 1 ? "text-gold-2" : "text-fg/80")}>{PLACE[rank]} place</span>}
             <span className="text-xs text-faint">{timeAgo(sub.submittedAt)}</span>
           </div>
 
           {sealed && !mine ? (
-            <div className="mt-3 rounded-xl border border-dashed border-line-2 bg-paper/60 px-4 py-3">
+            <div className="well mt-3 px-4 py-3.5">
               <div className="flex flex-col gap-1.5" aria-hidden>
                 {[92, 78, 54].map((w, i) => (
-                  <span key={i} className="shimmer h-2.5 rounded-full bg-paper-2" style={{ width: `${w}%` }} />
+                  <span key={i} className="shimmer h-2 rounded-full bg-fg/[0.06]" style={{ width: `${w}%` }} />
                 ))}
               </div>
               <div className="mt-3 flex items-center gap-2 font-mono text-[11px] text-muted">
@@ -142,10 +137,10 @@ export function Entry({
             </div>
           ) : (
             <motion.pre
-              initial={sealed ? false : { opacity: 0, filter: "blur(6px)" }}
-              animate={{ opacity: 1, filter: "blur(0px)" }}
+              initial={sealed ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.6 }}
-              className={cx("mt-2 whitespace-pre-wrap break-words text-text", code ? "rounded-xl bg-paper p-4 font-mono text-[12.5px] leading-relaxed" : "font-sans text-[15px] leading-relaxed")}
+              className={cx("mt-2 whitespace-pre-wrap break-words text-fg/90", code ? "well p-4 font-mono text-[12.5px] leading-relaxed" : "font-sans text-[15px] leading-relaxed")}
             >
               {sub.content ?? "(content unavailable)"}
             </motion.pre>
@@ -159,7 +154,7 @@ export function Entry({
                   initial={{ scale: 0.6, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: i * 0.06, type: "spring", stiffness: 500, damping: 20 }}
-                  className={cx("mono-label inline-flex items-center gap-1 rounded-full px-2 py-1 !text-[9.5px]", SEVERE.includes(f) ? "bg-red/10 text-red" : "bg-ember/10 text-ember")}
+                  className={cx("mono-label inline-flex items-center gap-1 rounded-full px-2 py-1 !text-[9.5px]", SEVERE.includes(f) ? "bg-red/10 text-red-2" : "bg-ember/10 text-ember")}
                   title={live.signals.get(sub.pubkey)?.find((s) => s.flag === f)?.detail}
                 >
                   <ShieldAlert size={11} /> {FLAG_LABEL[f]}
@@ -171,7 +166,7 @@ export function Entry({
 
         <div className="flex w-24 shrink-0 flex-col items-end gap-2 sm:w-28">
           {scoring ? (
-            <span className="mono-label flex items-center gap-2 !text-[10px] text-blue">
+            <span className="mono-label flex items-center gap-2 !text-[10px] text-blue-2">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inset-0 animate-ping rounded-full bg-blue" />
                 <span className="relative h-2 w-2 rounded-full bg-blue" />
@@ -180,7 +175,7 @@ export function Entry({
             </span>
           ) : hasScore ? (
             <>
-              <div className={cx("display text-[44px] leading-none", severe ? "text-red" : rank === 1 ? "text-navy" : "text-navy")}>
+              <div className={cx("num text-[44px]", severe ? "text-red-2" : rank === 1 ? "text-gold-2" : "text-fg")}>
                 <Counter value={score! / 100} decimals={1} duration={1.2} />
               </div>
               <ScoreBar score={score!} tone={severe ? "red" : rank === 1 ? "gold" : "blue"} />
@@ -195,7 +190,7 @@ export function Entry({
                 initial={{ scale: 0, rotate: -12 }}
                 animate={{ scale: 1, rotate: -4 }}
                 transition={{ type: "spring", stiffness: 420, damping: 14 }}
-                className="rounded-lg border-2 border-green px-2 py-0.5 font-mono text-[12px] font-bold text-green"
+                className="rounded-md bg-green/10 px-2 py-0.5 font-mono text-[11.5px] font-semibold text-green shadow-[inset_0_0_0_1px_rgb(69_207_139/0.4)]"
               >
                 +{fmtUsdc(sub.payout, { decimals: 2 })} USDC
               </motion.span>
@@ -205,7 +200,7 @@ export function Entry({
             <span
               className={cx(
                 "mono-label rounded-full px-2 py-0.5 !text-[9px]",
-                !sub.stakeSettled ? "bg-blue/10 text-blue" : stakeRefunded(sub) ? "bg-paper-2 text-muted" : "bg-red/10 text-red",
+                !sub.stakeSettled ? "bg-blue/10 text-blue-2" : stakeRefunded(sub) ? "bg-fg/[0.06] text-muted" : "bg-red/10 text-red-2",
               )}
             >
               {!sub.stakeSettled ? `${fmtUsdc(sub.stake)} staked` : stakeRefunded(sub) ? "Stake refunded" : `−${fmtUsdc(sub.stake)} slashed`}
@@ -216,9 +211,9 @@ export function Entry({
 
       {report && (
         <div className="relative border-t border-line">
-          <button onClick={() => setOpen((o) => !o)} className="group flex w-full items-center gap-3 px-5 py-3 text-left text-[14px] text-muted transition-colors hover:bg-paper/60">
-            <span className="mono-label shrink-0 !text-[10px] text-blue">Judge</span>
-            <span className="serif-quote flex-1 truncate text-[16px] text-navy">“{report.summary}”</span>
+          <button onClick={() => setOpen((o) => !o)} className="group flex w-full items-center gap-3 px-5 py-3.5 text-left text-[14px] text-muted transition-colors hover:bg-fg/[0.025]" aria-expanded={open}>
+            <span className="mono-label shrink-0 !text-[10px] text-gold">Judge</span>
+            <span className="serif-quote flex-1 truncate text-[16.5px] text-fg/90">“{report.summary}”</span>
             <motion.span animate={{ rotate: open ? 180 : 0 }}>
               <ChevronDown size={16} />
             </motion.span>
@@ -242,7 +237,7 @@ export function Entry({
                           </span>
                           <span className="font-mono font-semibold tabular-nums">{c.score}</span>
                         </div>
-                        <ScoreBar score={c.score} max={100} tone="navy" className="mt-1.5" delay={i * 0.08} />
+                        <ScoreBar score={c.score} max={100} tone="fg" className="mt-1.5" delay={i * 0.08} />
                         <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{c.comment}</p>
                       </div>
                     ))}
@@ -270,7 +265,7 @@ export function Entry({
                     )}
                     {report.signals.length > 0 && (
                       <div>
-                        <div className="mono-label mb-1.5 !text-[10px] text-red">Integrity signals</div>
+                        <div className="mono-label mb-1.5 !text-[10px] text-red-2">Integrity signals</div>
                         <ul className="space-y-1 font-mono text-[12px] text-muted">
                           {report.signals.map((s, i) => (
                             <li key={i}>{s}</li>
@@ -278,7 +273,7 @@ export function Entry({
                         </ul>
                       </div>
                     )}
-                    <div className="rounded-xl bg-navy p-3.5 font-mono text-[11px] leading-relaxed text-white/60">
+                    <div className="well p-3.5 font-mono text-[11px] leading-relaxed text-muted">
                       <div>
                         weighted {report.rawScore.toFixed(2)} → final {report.finalScore.toFixed(2)} → on-chain {report.onchainScore}
                       </div>
@@ -287,7 +282,7 @@ export function Entry({
                       </div>
                       <div className="mt-2 flex flex-wrap items-center gap-3">
                         {verified ? (
-                          <span className="inline-flex items-center gap-1 text-[#5ee6a0]">
+                          <span className="inline-flex items-center gap-1 text-green">
                             <ShieldCheck size={12} /> Report sha256 matches the chain
                           </span>
                         ) : verified === false ? (

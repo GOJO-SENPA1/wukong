@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import { useApp } from "@/components/Providers";
 import { Counter, Kinetic, Reveal, Tilt } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
-import { Avatar, Empty, Skeleton, TierBadge, cx } from "@/components/ui";
+import { Avatar, Empty, Kicker, Skeleton, TierBadge, cx } from "@/components/ui";
 import { getJSON } from "@/lib/client/api";
 import { shortAddr, toUsdc } from "@/lib/format";
 import type { SpriteName } from "@/lib/fx/sprites";
@@ -21,8 +21,9 @@ const split = (name?: string) => {
 };
 
 export default function LeaderboardPage() {
-  const { persona, personaKeys, signer } = useApp();
-  const me = persona === "wallet" ? signer?.publicKey.toBase58() : personaKeys[persona];
+  const { persona, personaKeys, signer, role, identityReady } = useApp();
+  const me = persona === "wallet" || persona === "account" ? signer?.publicKey.toBase58() : personaKeys[persona];
+  const hiring = identityReady && role === "company";
   const [rows, setRows] = useState<Row[] | null>(null);
   useEffect(() => {
     const load = () =>
@@ -40,13 +41,20 @@ export default function LeaderboardPage() {
     <div className="flex flex-col gap-8">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <Kinetic text="Leaderboard" className="display text-[clamp(3rem,7vw,5.5rem)]" />
-          <Reveal delay={0.2} className="mt-3 max-w-2xl text-[16px] text-muted">
+          <Reveal y={8}>
+            <Kicker>{hiring ? "Talent" : "Leaderboard"}</Kicker>
+          </Reveal>
+          <Kinetic
+            text={hiring ? "Proven talent, *on-chain.*" : "The best, *ranked* *in* *public.*"}
+            accent="italic text-gold-2"
+            className="display mt-5 text-[clamp(2.8rem,6vw,4.8rem)]"
+          />
+          <Reveal delay={0.2} className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
             Ranked by rating, which rises with strong scores and wins and falls with spam. Read straight from the chain, no hidden algorithm.
           </Reveal>
         </div>
-        <Reveal delay={0.3} className="flex rounded-full border-[1.5px] border-line-2 bg-white p-1 text-[14px] font-medium">
-          <span className="rounded-full bg-navy px-4 py-1.5 text-white">All time</span>
+        <Reveal delay={0.3} className="flex rounded-full p-1 text-[13.5px] font-medium shadow-[inset_0_0_0_1px_rgb(255_255_255/0.13)]">
+          <span className="rounded-full bg-fg px-4 py-1.5 text-bg">All time</span>
           <span className="cursor-not-allowed px-4 py-1.5 text-faint" title="Coming soon">
             This month
           </span>
@@ -56,13 +64,13 @@ export default function LeaderboardPage() {
       {!rows ? (
         <div className="grid gap-4 md:grid-cols-3">
           {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="h-52" />
+            <Skeleton key={i} className="h-52 !rounded-[22px]" />
           ))}
         </div>
       ) : rows.length === 0 ? (
         <Empty className="flex flex-col items-center gap-3">
           <PixelIcon name="trophy" px={3} motion="bob" />
-          No ranked workers yet. Win a task to be the first.
+          No ranked freelancers yet. Win a task to be the first.
         </Empty>
       ) : (
         <>
@@ -74,10 +82,10 @@ export default function LeaderboardPage() {
           {rest.length > 0 && (
             <Reveal>
               <div className="card overflow-hidden px-2 sm:px-6">
-                <div className="mono-label grid grid-cols-[52px_1fr_70px_90px] gap-3 border-b border-line px-2 py-4 !text-[10px] text-muted sm:grid-cols-[64px_1fr_110px_80px_100px_120px]">
+                <div className="label grid grid-cols-[40px_1fr_76px] gap-3 border-b border-line px-2 py-4 !text-[10px] sm:grid-cols-[64px_1fr_110px_80px_100px_120px]">
                   <span>Rank</span>
-                  <span>Worker</span>
-                  <span>Rating</span>
+                  <span>Freelancer</span>
+                  <span className="hidden sm:block">Rating</span>
                   <span className="hidden sm:block">Wins</span>
                   <span className="hidden sm:block">Avg score</span>
                   <span className="text-right">Earned</span>
@@ -96,26 +104,29 @@ export default function LeaderboardPage() {
                       <Link
                         href={`/workers/${r.worker}`}
                         className={cx(
-                          "group relative grid grid-cols-[52px_1fr_70px_90px] items-center gap-3 border-b border-line px-2 py-4 transition-colors last:border-0 hover:bg-paper sm:grid-cols-[64px_1fr_110px_80px_100px_120px]",
-                          mine && "bg-red/5",
+                          "group relative grid grid-cols-[40px_1fr_76px] items-center gap-3 border-b border-line px-2 py-4 transition-colors last:border-0 hover:bg-fg/[0.025] sm:grid-cols-[64px_1fr_110px_80px_100px_120px]",
+                          mine && "bg-gold/[0.04]",
                         )}
                       >
-                        {mine && <span className="absolute inset-y-0 left-0 w-[3px] bg-red" />}
-                        <span className={cx("display text-[26px] transition-transform duration-300 group-hover:translate-x-1", mine && "text-red")}>{pad(i + 4)}</span>
+                        {mine && <span className="absolute inset-y-2 left-0 w-px bg-gold" />}
+                        <span className={cx("num text-[22px] italic text-muted transition-transform duration-300 group-hover:translate-x-1 sm:text-[26px]", mine && "text-gold-2")}>{pad(i + 4)}</span>
                         <span className="flex min-w-0 items-center gap-3">
                           <Avatar id={r.worker} name={r.name} size={34} />
                           <span className="min-w-0">
                             <span className="flex items-center gap-2 truncate font-semibold">
                               {who ?? shortAddr(r.worker, 5)}
-                              {mine && <span className="mono-label !text-[9.5px] text-red">You</span>}
+                              {mine && <span className="mono-label !text-[9px] text-gold-2">You</span>}
                             </span>
-                            <span className="block text-[12.5px] text-muted">{city ?? `${r.submissions} entries`}</span>
+                            <span className="block truncate text-[12.5px] text-muted">
+                              <span className="sm:hidden">{r.rating} rating · </span>
+                              {city ?? `${r.submissions} ${r.submissions === 1 ? "entry" : "entries"}`}
+                            </span>
                           </span>
                         </span>
-                        <span className="font-semibold tabular-nums">{r.rating}</span>
+                        <span className="hidden font-semibold tabular-nums sm:block">{r.rating}</span>
                         <span className="hidden tabular-nums sm:block">{r.wins}</span>
                         <span className="hidden tabular-nums sm:block">{r.scored ? Math.round(r.avgScore / 100) : "–"}</span>
-                        <span className="text-right tabular-nums">{toUsdc(r.totalEarned).toFixed(2)}</span>
+                        <span className="text-right tabular-nums text-fg/90">{toUsdc(r.totalEarned).toFixed(2)}</span>
                       </Link>
                     </motion.div>
                   );
@@ -144,11 +155,11 @@ function Podium({ row, place, me }: { row: Row; place: number; me: boolean }) {
       <Tilt max={7} className="h-full rounded-[22px]">
         <Link
           href={`/workers/${row.worker}`}
-          className={cx("relative flex h-full flex-col overflow-hidden rounded-[22px] p-6", first ? "bg-navy text-white" : "card")}
+          className={cx("lift relative flex h-full flex-col overflow-hidden !rounded-[22px] p-6", first ? "card-gold" : "card")}
         >
-          {first && <div className="grid-lines absolute inset-0 opacity-60" aria-hidden />}
+          {first && <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-gold/20 blur-3xl" aria-hidden />}
           <div className="relative flex items-start justify-between">
-            <span className={cx("display text-[72px] leading-[0.85]", first ? "text-red-2" : "text-navy")}>{pad(place + 1)}</span>
+            <span className={cx("num text-[76px] italic", first ? "text-foil" : "text-fg/80")}>{pad(place + 1)}</span>
             <div className="relative">
               <Avatar id={row.worker} name={row.name} size={56} />
               <span className="absolute -bottom-3 -left-4">
@@ -157,24 +168,24 @@ function Podium({ row, place, me }: { row: Row; place: number; me: boolean }) {
             </div>
           </div>
           <div className="relative mt-5 text-[19px] font-semibold">
-            {who ?? shortAddr(row.worker, 5)} {me && <span className="mono-label ml-1 !text-[10px] text-red">You</span>}
+            {who ?? shortAddr(row.worker, 5)} {me && <span className="mono-label ml-1 !text-[9.5px] text-gold-2">You</span>}
           </div>
-          <div className={cx("relative text-[13.5px]", first ? "text-white/60" : "text-muted")}>{city ?? `${row.submissions} entries`}</div>
+          <div className="relative text-[13.5px] text-muted">{city ?? `${row.submissions} ${row.submissions === 1 ? "entry" : "entries"}`}</div>
           <div className="relative mt-5 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-[13px]">
             <span>
               <b className="text-[19px] tabular-nums">
                 <Counter value={row.rating} />
               </b>{" "}
-              <span className={first ? "text-white/60" : "text-muted"}>rating</span>
+              <span className="text-muted">rating</span>
             </span>
             <span>
-              <b className="text-[19px] tabular-nums">{row.wins}</b> <span className={first ? "text-white/60" : "text-muted"}>wins</span>
+              <b className="text-[19px] tabular-nums">{row.wins}</b> <span className="text-muted">wins</span>
             </span>
             <span>
               <b className="text-[19px] tabular-nums">
                 <Counter value={toUsdc(row.totalEarned)} decimals={2} />
               </b>{" "}
-              <span className={first ? "text-white/60" : "text-muted"}>USDC</span>
+              <span className="text-muted">USDC</span>
             </span>
           </div>
           <div className="relative mt-4">

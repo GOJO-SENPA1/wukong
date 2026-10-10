@@ -1,8 +1,7 @@
 "use client";
 
 // Page-wide effects mounted once in the layout: a coin burst any component can
-// fire (after a payout, a posted task, a submitted entry) and a custom cursor
-// for mouse users that swells over anything clickable.
+// fire (after a payout, a posted task, a submitted entry), and an easter egg.
 
 import { useEffect, useRef } from "react";
 import { drawIcon, fitCanvas, prefersReducedMotion } from "@/lib/fx/draw";
@@ -85,83 +84,6 @@ export function BurstLayer() {
     };
   }, []);
   return <canvas ref={ref} aria-hidden className="pointer-events-none fixed inset-0 z-[80] h-screen w-screen" />;
-}
-
-/** A dot that tracks the mouse exactly and a ring that trails it, growing over links and buttons. */
-export function Cursor() {
-  const dot = useRef<HTMLDivElement>(null);
-  const ring = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!window.matchMedia("(pointer: fine)").matches || prefersReducedMotion()) return;
-    const d = dot.current!,
-      r = ring.current!;
-    d.style.display = r.style.display = "block";
-    d.style.opacity = r.style.opacity = "0";
-    let x = -100,
-      y = -100,
-      rx = -100,
-      ry = -100,
-      scale = 1,
-      target = 1,
-      raf = 0;
-    const move = (e: PointerEvent) => {
-      if (x < -99) {
-        rx = e.clientX;
-        ry = e.clientY;
-        d.style.opacity = r.style.opacity = "1";
-      }
-      x = e.clientX;
-      y = e.clientY;
-      const el = e.target as Element | null;
-      const hot = el?.closest?.("a, button, [role=button], input, textarea, select, label, summary, canvas.cursor-pointer");
-      target = hot ? (el?.closest("input, textarea") ? 0.6 : 1.9) : 1;
-      r.dataset.hot = hot ? "1" : "";
-      if (!raf) raf = requestAnimationFrame(loop);
-    };
-    const down = () => (target = 0.7);
-    const up = () => (target = 1);
-    const loop = () => {
-      rx += (x - rx) * 0.2;
-      ry += (y - ry) * 0.2;
-      scale += (target - scale) * 0.2;
-      d.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
-      r.style.transform = `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%) scale(${scale})`;
-      raf = Math.abs(x - rx) + Math.abs(y - ry) + Math.abs(target - scale) > 0.1 ? requestAnimationFrame(loop) : 0;
-    };
-    const hide = () => {
-      d.style.opacity = r.style.opacity = "0";
-    };
-    const show = () => {
-      d.style.opacity = r.style.opacity = "1";
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerdown", down);
-    window.addEventListener("pointerup", up);
-    document.addEventListener("pointerleave", hide);
-    document.addEventListener("pointerenter", show);
-    return () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerdown", down);
-      window.removeEventListener("pointerup", up);
-      document.removeEventListener("pointerleave", hide);
-      document.removeEventListener("pointerenter", show);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-  return (
-    <>
-      <div
-        ref={dot}
-        aria-hidden
-        className="pointer-events-none fixed left-0 top-0 z-[90] hidden h-1.5 w-1.5 rounded-full bg-red mix-blend-difference"
-      />
-      <div
-        ref={ring}
-        aria-hidden
-        className="pointer-events-none fixed left-0 top-0 z-[90] hidden h-8 w-8 rounded-full border-[1.5px] border-red/70 transition-[background-color,border-color] duration-200 data-[hot=1]:border-red data-[hot=1]:bg-red/10"
-      />
-    </>
-  );
 }
 
 /** Type "wukong" anywhere (outside a text field) and the crowd bursts out of the screen. */

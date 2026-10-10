@@ -9,7 +9,7 @@ import { TaskCard } from "@/components/TaskCard";
 import { SetupNotice } from "@/components/SetupNotice";
 import { Counter, Kinetic, Reveal } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
-import { Avatar, Empty, Skeleton, TierBadge, cx } from "@/components/ui";
+import { Avatar, Empty, Kicker, Skeleton, TierBadge, cx } from "@/components/ui";
 import { CATEGORIES } from "@/lib/categories";
 import { useWorker } from "@/lib/client/hooks";
 import { fmtScore, toUsdc } from "@/lib/format";
@@ -29,7 +29,7 @@ const SORTS = [
 ] as const;
 
 export default function TasksPage() {
-  const { state } = useApp();
+  const { state, role, identityReady } = useApp();
   const [status, setStatus] = useState<(typeof STATUS)[number]["id"]>("live");
   const [sort, setSort] = useState<(typeof SORTS)[number]["id"]>("ending");
   const [cat, setCat] = useState<number | null>(null);
@@ -61,14 +61,18 @@ export default function TasksPage() {
     <div className="flex flex-col gap-8">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <Kinetic text="Explore tasks" className="display text-[clamp(3rem,7vw,5.5rem)]" />
-          <Reveal delay={0.2} className="mt-3 text-[16px] text-muted">
-            <Counter value={openCount} className="font-semibold text-navy" /> open {openCount === 1 ? "task" : "tasks"} · every reward already locked in escrow
+          <Reveal y={8}>
+            <Kicker>{identityReady && role === "worker" ? "Find work" : "The marketplace"}</Kicker>
+          </Reveal>
+          <Kinetic text={"Open work, *escrowed.*"} accent="italic text-gold-2" className="display mt-5 text-[clamp(2.8rem,6vw,4.8rem)]" />
+          <Reveal delay={0.2} className="mt-4 text-[15px] text-muted">
+            <Counter value={openCount} className="font-semibold text-fg" /> open {openCount === 1 ? "task" : "tasks"} · every reward already locked in
+            escrow
           </Reveal>
         </div>
         <Reveal delay={0.25} className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
           <label className="relative flex-1 sm:w-72 sm:flex-none">
-            <Search size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-faint" />
+            <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-faint" />
             <input className="input !pl-10" placeholder="Search tasks, companies, skills" value={q} onChange={(e) => setQ(e.target.value)} />
             <AnimatePresence>
               {q && (
@@ -76,7 +80,7 @@ export default function TasksPage() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   exit={{ scale: 0 }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-paper-2 p-1 text-muted"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-fg/10 p-1 text-muted transition-colors hover:text-fg"
                   onClick={() => setQ("")}
                   aria-label="Clear search"
                 >
@@ -116,9 +120,11 @@ export default function TasksPage() {
                 {s.label}
               </Chip>
             ))}
-            <span className="mx-1 h-6 w-px shrink-0 bg-line-2" />
-            <label className="chip shrink-0 cursor-pointer !py-1.5 text-[13px]">
-              <input type="checkbox" className="accent-red" checked={noStake} onChange={(e) => setNoStake(e.target.checked)} />
+            <span className="mx-1 h-5 w-px shrink-0 bg-line-2" />
+            <label
+              className={cx("chip shrink-0 cursor-pointer !py-1.5 text-[13px]", noStake && "!text-fg !shadow-[inset_0_0_0_1px_rgb(216_179_108/0.5)]")}
+            >
+              <input type="checkbox" className="accent-gold" checked={noStake} onChange={(e) => setNoStake(e.target.checked)} />
               No entry stake
             </label>
           </div>
@@ -128,7 +134,7 @@ export default function TasksPage() {
       <div className="grid items-start gap-6 lg:grid-cols-[1fr_320px]">
         <div className="flex flex-col gap-3">
           {!state.ready && state.error && <SetupNotice />}
-          {!state.tasks && [0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-32" />)}
+          {!state.tasks && [0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-32 !rounded-[18px]" />)}
           {state.tasks && tasks.length === 0 && (
             <Empty className="flex flex-col items-center gap-3">
               <PixelIcon name="monkey" px={3} motion="bob" />
@@ -163,14 +169,14 @@ function Chip({
   return (
     <button
       onClick={onClick}
-      className={cx("chip relative shrink-0", small && "!py-1.5 text-[13px]", active ? "!border-navy text-white" : "text-navy")}
+      className={cx("chip relative shrink-0", small && "!py-1.5 text-[13px]", active && "!text-bg !shadow-none")}
       aria-pressed={active}
     >
       {active && (
         <motion.span
           layoutId={`chip-${group}`}
-          className="absolute inset-0 rounded-full bg-navy"
-          transition={{ type: "spring", stiffness: 500, damping: 36 }}
+          className="absolute inset-0 rounded-full bg-fg"
+          transition={{ type: "spring", stiffness: 480, damping: 38 }}
         />
       )}
       <span className="relative flex items-center gap-1.5">{children}</span>
@@ -189,15 +195,20 @@ function Sidebar() {
   if (role === "company") {
     return (
       <Reveal delay={0.35} className="flex flex-col gap-4 lg:sticky lg:top-24">
-        <div className="card-navy relative overflow-hidden p-6">
-          <div className="absolute -right-3 -top-3">
-            <PixelIcon name="cash" px={3.4} motion="bob" />
+        <div className="card-gold relative overflow-hidden p-6">
+          <div className="absolute right-4 top-4">
+            <PixelIcon name="cash" px={2.8} motion="bob" />
           </div>
-          <div className="mono-label text-white/55">Hiring as</div>
-          <div className="mt-1 text-lg font-semibold">{who}</div>
-          <p className="mt-3 text-[14px] leading-relaxed text-white/65">Post a brief, lock the reward and get many finished takes back, judged in public.</p>
-          <Link href="/tasks/new" className="btn btn-red mt-5 h-11 w-full">
+          <div className="label">Hiring as</div>
+          <div className="mt-1.5 text-lg font-semibold">{who}</div>
+          <p className="mt-3 text-[14px] leading-relaxed text-muted">
+            Post a brief, lock the reward and get many finished takes back, judged in public.
+          </p>
+          <Link href="/tasks/new" className="btn btn-red mt-6 h-11 w-full">
             Post a task <ArrowRight size={16} />
+          </Link>
+          <Link href="/dashboard" className="btn btn-line mt-2 h-11 w-full">
+            Track my tasks
           </Link>
         </div>
         <Tip />
@@ -207,26 +218,26 @@ function Sidebar() {
 
   return (
     <Reveal delay={0.35} className="flex flex-col gap-4 lg:sticky lg:top-24">
-      <div className="card-navy relative overflow-hidden p-6">
+      <div className="card-gold relative overflow-hidden p-6">
         <div className="flex items-center gap-3">
           {pk && <Avatar id={pk} name={who} size={44} />}
           <div className="min-w-0">
             <div className="truncate text-[17px] font-semibold">{role ? who : "Browsing as a guest"}</div>
-            <div className="text-[13px] text-white/55">{role ? `Freelancer${city ? ` · ${city}` : ""}` : "Sign in to enter tasks"}</div>
+            <div className="text-[13px] text-muted">{role ? `Freelancer${city ? ` · ${city}` : ""}` : "Sign in as a freelancer to enter"}</div>
           </div>
         </div>
-        <div className="mt-6 grid grid-cols-3 gap-3">
+        <div className="well mt-6 grid grid-cols-3 gap-3 p-3.5">
           <div>
-            <div className="display text-3xl">{rep ? <Counter value={rep.rating} /> : "0"}</div>
-            <div className="mt-1 text-[11.5px] text-white/50">rating</div>
+            <div className="num text-[1.9rem]">{rep ? <Counter value={rep.rating} /> : "0"}</div>
+            <div className="mt-1 text-[11px] text-muted">rating</div>
           </div>
           <div>
-            <div className="display text-3xl">{rep ? <Counter value={rep.wins} /> : "0"}</div>
-            <div className="mt-1 text-[11.5px] text-white/50">wins</div>
+            <div className="num text-[1.9rem]">{rep ? <Counter value={rep.wins} /> : "0"}</div>
+            <div className="mt-1 text-[11px] text-muted">wins</div>
           </div>
           <div>
-            <div className="display text-3xl">{rep ? <Counter value={toUsdc(rep.totalEarned)} decimals={2} /> : "0"}</div>
-            <div className="mt-1 text-[11.5px] text-white/50">USDC earned</div>
+            <div className="num text-[1.9rem] text-gold-2">{rep ? <Counter value={toUsdc(rep.totalEarned)} decimals={2} /> : "0"}</div>
+            <div className="mt-1 text-[11px] text-muted">USDC earned</div>
           </div>
         </div>
         {rep && (
@@ -234,29 +245,39 @@ function Sidebar() {
             <TierBadge rating={rep.rating} />
           </div>
         )}
-        {pk && (
-          <Link href={`/workers/${pk}`} className="link-underline mt-5 inline-block text-[14px] font-semibold text-white">
+        {pk && role ? (
+          <Link href={`/workers/${pk}`} className="btn btn-line mt-5 h-10 w-full">
             View public profile
+          </Link>
+        ) : (
+          <Link href="/signin" className="btn btn-ivory mt-5 h-10 w-full">
+            Sign in to enter tasks
           </Link>
         )}
       </div>
-      <div className="card p-5">
-        <div className="text-[15px] font-semibold">Your entries</div>
-        {active.length === 0 ? (
-          <p className="mt-2 text-[13.5px] leading-relaxed text-muted">No entries yet. Pick a task on the left and submit your best work.</p>
-        ) : (
-          <div className="mt-3 flex flex-col divide-y divide-line">
-            {active.map((h) => (
-              <Link key={h.pubkey} href={`/tasks/${h.task}`} className="group py-3 first:pt-0 last:pb-0">
-                <div className="text-[14px] font-semibold leading-snug transition-colors group-hover:text-red">{h.taskTitle}</div>
-                <div className={cx("mono-label mt-1 !text-[10px]", h.scored ? "text-blue" : "text-muted")}>
-                  {h.scored ? `Scored ${fmtScore(h.score)}${h.rank ? ` · #${h.rank}` : ""}` : h.taskStatus === "open" ? "Sealed · waiting for close" : "Judging"}
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
+      {role && (
+        <div className="card p-5">
+          <div className="text-[15px] font-semibold">Your entries</div>
+          {active.length === 0 ? (
+            <p className="mt-2 text-[13.5px] leading-relaxed text-muted">No entries yet. Pick a task on the left and submit your best work.</p>
+          ) : (
+            <div className="mt-3 flex flex-col divide-y divide-line">
+              {active.map((h) => (
+                <Link key={h.pubkey} href={`/tasks/${h.task}`} className="group py-3 first:pt-0 last:pb-0">
+                  <div className="text-[14px] font-medium leading-snug transition-colors group-hover:text-gold-2">{h.taskTitle}</div>
+                  <div className={cx("mono-label mt-1 !text-[10px]", h.scored ? "text-blue-2" : "text-muted")}>
+                    {h.scored
+                      ? `Scored ${fmtScore(h.score)}${h.rank ? ` · #${h.rank}` : ""}`
+                      : h.taskStatus === "open"
+                        ? "Sealed · waiting for close"
+                        : "Judging"}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       <Tip />
     </Reveal>
   );
@@ -264,9 +285,9 @@ function Sidebar() {
 
 function Tip() {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-dashed border-line-2 p-4 text-[13px] leading-relaxed text-muted">
+    <div className="flex items-start gap-3 rounded-2xl border border-line p-4 text-[13px] leading-relaxed text-muted">
       <PixelIcon name="lock" px={1.4} className="-ml-1 -mt-1 shrink-0" />
-      Entries stay sealed until the deadline. Nobody, not even the company, can read yours before then.
+      Entries stay sealed until the deadline. Nobody, not even the organisation, can read yours before then.
     </div>
   );
 }

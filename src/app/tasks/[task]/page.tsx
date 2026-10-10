@@ -202,17 +202,17 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
       {/* Header */}
       <div className="flex flex-col gap-5">
         <Reveal y={8} className="flex items-center gap-2 text-[14px]">
-          <Link href="/tasks" className="link-underline text-blue">
-            Explore
+          <Link href="/tasks" className="link-underline text-muted transition-colors hover:text-fg">
+            Marketplace
           </Link>
           <ChevronRight size={14} className="text-faint" />
-          <span className="text-muted">{task.categoryLabel}</span>
+          <span className="text-fg/80">{task.categoryLabel}</span>
         </Reveal>
         <Reveal y={8} delay={0.05} className="flex flex-wrap items-center gap-2">
           <span
             className={cx(
               "mono-label inline-flex items-center gap-2 rounded-full px-3 py-1.5 !text-[10.5px]",
-              task.status === "open" ? "bg-red/10 text-red" : task.status === "judging" ? "bg-blue/10 text-blue" : task.status === "settled" ? "bg-green/10 text-green" : "bg-paper-2 text-muted",
+              task.status === "open" ? "bg-red/10 text-red-2" : task.status === "judging" ? "bg-blue/10 text-blue-2" : task.status === "settled" ? "bg-green/10 text-green" : "bg-fg/[0.06] text-muted",
             )}
           >
             <span className="relative flex h-1.5 w-1.5">
@@ -232,12 +232,12 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
             )}
           </span>
           {sealed && (
-            <span className="mono-label inline-flex items-center gap-1.5 rounded-full border border-line-2 bg-white px-3 py-1.5 !text-[10.5px] text-navy">
+            <span className="mono-label inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 !text-[10.5px] text-fg/80 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.13)]">
               <Lock size={11} /> Entries sealed until close
             </span>
           )}
           {task.origin === "x402" && (
-            <span className="mono-label inline-flex items-center gap-1.5 rounded-full bg-blue/10 px-3 py-1.5 !text-[10.5px] text-blue">
+            <span className="mono-label inline-flex items-center gap-1.5 rounded-full bg-blue/10 px-3 py-1.5 !text-[10.5px] text-blue-2">
               <Bot size={12} /> Posted by an AI agent via x402
             </span>
           )}
@@ -247,7 +247,7 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
         </Reveal>
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
-            <Kinetic text={task.title} className="text-[clamp(2.1rem,4.6vw,3.6rem)] font-semibold leading-[1.04] tracking-[-0.025em]" stagger={0.04} />
+            <Kinetic text={task.title} className="display max-w-4xl text-[clamp(2.4rem,5vw,4.2rem)]" stagger={0.035} />
             <Reveal delay={0.2} className="mt-4 flex items-center gap-3">
               <Avatar id={task.creator} name={task.agent?.name ?? task.creatorName} size={40} />
               <div>
@@ -277,11 +277,11 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
             <div className="card p-6 sm:p-7">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-[19px] font-semibold tracking-tight">The brief</h2>
-                <span className="mono-label inline-flex items-center gap-1.5 !text-[10px] text-blue" title={`sha256 ${task.briefHash}`}>
+                <span className="mono-label inline-flex items-center gap-1.5 !text-[10px] text-blue-2" title={`sha256 ${task.briefHash}`}>
                   ✓ Matches on-chain hash <Scramble text={task.briefHash.slice(0, 8)} className="text-faint" />
                 </span>
               </div>
-              <pre className="mt-4 max-w-3xl whitespace-pre-wrap font-sans text-[15.5px] leading-[1.7] text-text/90">
+              <pre className="mt-5 max-w-3xl whitespace-pre-wrap font-sans text-[15.5px] leading-[1.75] text-fg/85">
                 {data.brief?.text ?? "Brief not available on this server (only its hash is on-chain)."}
               </pre>
             </div>
@@ -369,19 +369,23 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
                     </button>
                   )}
                   {role === "company" && !isCreator && (
-                    <p className="rounded-xl bg-white/[0.07] p-3 text-center text-[13px] text-white/65">You&apos;re viewing as an organisation. Freelancer accounts enter tasks.</p>
+                    <p className="well p-3 text-center text-[13px] leading-relaxed text-muted">You&apos;re viewing as an organisation. Only freelancer accounts can enter tasks.</p>
                   )}
                   {isCreator && task.judgeMode === "creatorPicks" && Date.now() / 1000 <= task.deadline && task.submissionCount < task.maxSubmissions ? (
-                    <p className="text-center text-[13px] text-white/55">Creator-picks tasks close at the deadline. Then you pick the winner from the AI shortlist.</p>
-                  ) : isCreator || (demoMode && task.demoCreator) ? (
-                    <button className={cx("btn h-12 w-full", isCreator ? "btn-red" : "btn-blue")} disabled={judging || task.submissionCount === 0} onClick={runJudge}>
-                      {judging ? <Spinner /> : <Gavel size={17} />} {isCreator ? "Close and judge" : "Close and judge (demo)"}
+                    <p className="text-center text-[13px] leading-relaxed text-muted">Creator-picks tasks close at the deadline. Then you pick the winner from the AI shortlist.</p>
+                  ) : isCreator ? (
+                    <button className="btn btn-red h-12 w-full" disabled={judging || task.submissionCount === 0} onClick={runJudge}>
+                      {judging ? <Spinner /> : <Gavel size={17} />} Close and judge
+                    </button>
+                  ) : demoMode && task.demoCreator ? (
+                    <button className="btn btn-line h-11 w-full" disabled={judging || task.submissionCount === 0} onClick={runJudge}>
+                      {judging ? <Spinner /> : <Gavel size={16} />} Demo: close and judge now
                     </button>
                   ) : (
-                    <p className="text-center text-[13px] text-white/55">Judging starts when the creator closes submissions or the deadline passes.</p>
+                    <p className="text-center text-[13px] leading-relaxed text-muted">Judging starts when the creator closes submissions or the deadline passes.</p>
                   )}
                   {demoMode && (
-                    <button className="btn btn-ghost-light h-11 w-full" disabled={summoning || judging} onClick={summon}>
+                    <button className="btn btn-line h-11 w-full" disabled={summoning || judging} onClick={summon}>
                       {summoning ? <Spinner /> : <Users size={16} />} Summon the crowd
                     </button>
                   )}
@@ -406,7 +410,7 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
                 />
               )}
               {task.status === "settled" && <SettledSummary data={data} nameOf={nameOf} />}
-              {task.status === "cancelled" && <p className="text-[14px] text-white/60">Cancelled before any entries. Escrow refunded.</p>}
+              {task.status === "cancelled" && <p className="text-[14px] text-muted">Cancelled before any entries. Escrow refunded.</p>}
             </EscrowCard>
           </Reveal>
 

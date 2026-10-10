@@ -7,6 +7,7 @@ import { Check, LogIn } from "lucide-react";
 import { useAccount } from "@/components/auth/Account";
 import { Kinetic, Magnetic, Reveal } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
+import { Kicker } from "@/components/ui";
 import { safeNext } from "@/lib/client/nav";
 
 export default function SignInPage() {
@@ -27,32 +28,38 @@ function SignIn() {
   }, [account.authenticated, account.me, next, router]);
 
   return (
-    <section className="relative overflow-hidden bg-navy text-white">
-      <div className="grid-lines absolute inset-0 [mask-image:radial-gradient(ellipse_at_30%_40%,black,transparent_75%)]" aria-hidden />
-      <div className="relative mx-auto grid min-h-[78vh] w-full max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:px-8">
+    <section className="relative -mt-16 overflow-hidden pt-16">
+      <div className="aura left-[-8%] top-[-10%] h-[560px] w-[560px] bg-red/20" aria-hidden />
+      <div className="aura right-[-6%] top-[20%] h-[460px] w-[460px] bg-gold/15 [animation-delay:-6s]" aria-hidden />
+      <div className="grid-lines mask-fade absolute inset-0" aria-hidden />
+      <div className="relative mx-auto grid min-h-[80vh] w-full max-w-7xl items-center gap-14 px-4 py-16 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:px-8">
         <div>
-          <Kinetic text={"Sign in.\n*Start* *earning.*"} className="display text-[clamp(3rem,8vw,6.5rem)]" />
-          <Reveal delay={0.3} className="mt-6 max-w-md text-[17px] leading-relaxed text-white/65">
-            One account for working and hiring on Wukong. No seed phrase, no extension: a Solana wallet is created for you the moment you sign in.
+          <Reveal y={8}>
+            <Kicker>One account · hire or get hired</Kicker>
           </Reveal>
-          <Reveal delay={0.45} className="mt-8 flex flex-col gap-3 text-[15px] text-white/75">
+          <Kinetic text={"Sign in.\n*Start* *earning.*"} accent="italic text-foil" className="display mt-6 text-[clamp(3rem,7.5vw,6.2rem)]" />
+          <Reveal delay={0.3} className="mt-7 max-w-md text-[16.5px] leading-relaxed text-muted">
+            No seed phrase, no extension: a Solana wallet is created for you the moment you sign in. You choose whether you&apos;re hiring or
+            working right after.
+          </Reveal>
+          <Reveal delay={0.45} className="mt-9 flex flex-col gap-3.5 text-[15px] text-fg/80">
             {["Email, Google, or a wallet you already have", "Your wallet is yours: export the key any time", "Rewards arrive as USDC, seconds after judging"].map((t) => (
               <span key={t} className="flex items-center gap-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
-                  <Check size={13} strokeWidth={3} />
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gold/15 text-gold-2">
+                  <Check size={12} strokeWidth={3} />
                 </span>
                 {t}
               </span>
             ))}
           </Reveal>
         </div>
-        <Reveal delay={0.2} y={40}>
-          <div className="relative rounded-[24px] bg-white p-8 text-navy shadow-[0_50px_100px_-40px_rgb(0_0_0/0.8)] sm:p-10">
-            <div className="absolute -right-4 -top-8">
-              <PixelIcon name="monkey" px={4} motion="bob" />
+        <Reveal delay={0.2} y={24}>
+          <div className="card-gold relative !rounded-[26px] p-8 sm:p-10">
+            <div className="absolute -right-3 -top-9">
+              <PixelIcon name="monkey" px={3.6} motion="bob" />
             </div>
-            <div className="mono-label text-muted">Welcome to Wukong</div>
-            <h2 className="mt-2 text-[26px] font-semibold tracking-tight">Continue to your account</h2>
+            <div className="label">Welcome to Wukong</div>
+            <h2 className="display mt-3 text-[2.4rem]">Continue to your account</h2>
             {account.enabled ? (
               <>
                 <Magnetic className="mt-8 block w-full" strength={0.12}>
@@ -63,13 +70,13 @@ function SignIn() {
                 <p className="mt-4 text-center text-[13px] text-muted">New here? The same button creates your account.</p>
               </>
             ) : (
-              <p className="mt-6 rounded-xl bg-paper p-4 text-[14px] leading-relaxed text-muted">
+              <p className="well mt-6 p-4 text-[14px] leading-relaxed text-muted">
                 Accounts aren&apos;t switched on for this deployment. Use the demo accounts in the menu at the top right to try everything.
               </p>
             )}
-            <p className="mt-8 border-t border-line pt-5 text-[12.5px] leading-relaxed text-muted">
+            <p className="mt-8 border-t border-line pt-5 text-[12.5px] leading-relaxed text-faint">
               By continuing you agree to Wukong&apos;s terms. Your email is never shown publicly; your profile shows only what you choose.{" "}
-              <Link href="/" className="link-underline text-blue">
+              <Link href="/" className="link-underline text-fg/80">
                 Back home
               </Link>
             </p>

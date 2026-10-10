@@ -11,8 +11,10 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
       <div className="animate-float">
         <PixelIcon name="fire" px={5} motion="bob" />
       </div>
-      <h1 className="display text-[clamp(2.6rem,6vw,4.5rem)]">Something broke.</h1>
-      <p className="max-w-md text-muted">
+      <h1 className="display text-[clamp(2.6rem,6vw,4.5rem)]">
+        Something <em className="text-gold-2">broke.</em>
+      </h1>
+      <p className="max-w-md leading-relaxed text-muted">
         {error.message || "An unexpected error stopped this page."} Your funds are safe: escrow lives on-chain, not in this page.
       </p>
       <div className="flex gap-3">

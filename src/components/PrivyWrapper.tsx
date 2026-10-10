@@ -16,9 +16,11 @@ export function PrivyWrapper({ children }: { children: ReactNode }) {
       appId={PRIVY_APP_ID}
       config={{
         appearance: {
-          theme: "light",
-          accentColor: "#E4261C",
-          logo: undefined,
+          theme: "#0c0e14",
+          accentColor: "#F0412F",
+          landingHeader: "Sign in to Wukong",
+          loginMessage: "Post tasks or win them. Your wallet is created for you.",
+          walletChainType: "solana-only",
         },
         loginMethods: ["email", "google", "wallet"],
         embeddedWallets: {

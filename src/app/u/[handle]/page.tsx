@@ -17,7 +17,7 @@ export default function HandlePage({ params }: { params: Promise<{ handle: strin
   if (wallet === undefined)
     return (
       <>
-        <div className="h-64 bg-navy" />
+        <div className="h-64 border-b border-line" />
         <Container>
           <Skeleton className="h-40" />
         </Container>

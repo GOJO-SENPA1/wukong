@@ -57,10 +57,10 @@ export function fromHex(hex: string): number[] {
 
 /** Reputation tiers, named after the Monkey King's rise. */
 export const TIERS = [
-  { min: 0, name: "Stone Monkey", color: "#a8a29e" },
-  { min: 50, name: "Monkey King", color: "#f59e0b" },
-  { min: 150, name: "Great Sage", color: "#ef4444" },
-  { min: 400, name: "Equal of Heaven", color: "#a855f7" },
+  { min: 0, name: "Stone Monkey", color: "#b9b4aa" },
+  { min: 50, name: "Monkey King", color: "#e2bb6c" },
+  { min: 150, name: "Great Sage", color: "#ff6b57" },
+  { min: 400, name: "Equal of Heaven", color: "#b99bff" },
 ];
 
 export function tierFor(rating: number) {

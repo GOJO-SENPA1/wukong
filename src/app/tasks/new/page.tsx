@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
@@ -9,7 +10,7 @@ import { useAccount } from "@/components/auth/Account";
 import { Counter, Kinetic, Magnetic, Reveal } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
 import { burst } from "@/components/fx/Overlay";
-import { Spinner, cx } from "@/components/ui";
+import { Kicker, Skeleton, Spinner, cx } from "@/components/ui";
 import { CATEGORIES, categoryById } from "@/lib/categories";
 import { TEMPLATES } from "@/lib/demo";
 import { postJSON, runAction } from "@/lib/client/api";
@@ -27,7 +28,7 @@ const HOURS = [
 
 export default function NewTaskPage() {
   const router = useRouter();
-  const { signer, persona, personaName, state, refresh, role, personasOn, setPersona } = useApp();
+  const { signer, persona, personaName, state, refresh, role, personasOn, setPersona, identityReady } = useApp();
   const account = useAccount();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState(0);
@@ -63,7 +64,7 @@ export default function NewTaskPage() {
   }
 
   async function submit() {
-    if (!signer) return setError("Pick an account or connect a wallet first.");
+    if (!signer) return setError("Your wallet is still loading. Try again in a moment.");
     setError(null);
     try {
       setStep("brief");
@@ -93,6 +94,17 @@ export default function NewTaskPage() {
     }
   }
 
+  if (!identityReady)
+    return (
+      <div className="flex flex-col gap-6">
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="h-20 w-2/3" />
+        <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+          <Skeleton className="h-96 !rounded-[18px]" />
+          <Skeleton className="h-96 !rounded-[20px]" />
+        </div>
+      </div>
+    );
   if (role !== "company") return <PostGate signedIn={role !== null} personasOn={personasOn} onDemo={() => setPersona("company")} onSignIn={account.enabled && !account.authenticated ? account.login : undefined} />;
 
   const busy = step !== "idle";
@@ -102,14 +114,17 @@ export default function NewTaskPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <Kinetic text="Post a task" className="display text-[clamp(3rem,7vw,5.5rem)]" />
-        <Reveal delay={0.2} className="mt-3 text-[16px] text-muted">
-          Describe the work, lock the reward, and the crowd gets to it.
+        <Reveal y={8}>
+          <Kicker>New task · {personaName.split(" · ")[0]}</Kicker>
+        </Reveal>
+        <Kinetic text={"Post a task. *Pay* *the* *best.*"} accent="italic text-gold-2" className="display mt-5 text-[clamp(2.8rem,6vw,4.8rem)]" />
+        <Reveal delay={0.2} className="mt-4 text-[15px] text-muted">
+          Describe the work, lock the reward, and the crowd gets to it. Five short steps.
         </Reveal>
       </div>
 
       <Reveal delay={0.25}>
-        <div className="mono-label mb-3 text-muted">Start from a template</div>
+        <div className="label mb-3">Start from a template</div>
         <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0 sm:[mask-image:linear-gradient(to_right,black_88%,transparent)]">
           {TEMPLATES.map((t, i) => (
             <motion.button
@@ -121,8 +136,8 @@ export default function NewTaskPage() {
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.97 }}
               className={cx(
-                "group flex w-60 shrink-0 items-start gap-3 rounded-2xl border-2 bg-white p-4 text-left transition-colors",
-                template === t.id ? "border-blue" : "border-transparent hover:border-line-2",
+                "group flex w-60 shrink-0 items-start gap-3 rounded-2xl border bg-surface p-4 text-left transition-colors",
+                template === t.id ? "border-gold/60 bg-gold/[0.04]" : "border-line hover:border-line-2",
               )}
             >
               <PixelIcon name={categoryIcon(t.category)} px={1.6} motion="hover" className="-ml-1 -mt-1 shrink-0" />
@@ -163,9 +178,9 @@ export default function NewTaskPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ delay: i * 0.04 }}
-                    className="rounded-full bg-paper px-3 py-1 font-mono text-[11px] text-muted"
+                    className="rounded-full bg-fg/[0.04] px-3 py-1 font-mono text-[11px] text-muted shadow-[inset_0_0_0_1px_rgb(255_255_255/0.06)]"
                   >
-                    {c.label} <span className="text-red">{Math.round(c.weight * 100)}%</span>
+                    {c.label} <span className="text-gold-2">{Math.round(c.weight * 100)}%</span>
                   </motion.span>
                 ))}
               </AnimatePresence>
@@ -175,7 +190,7 @@ export default function NewTaskPage() {
           <Section n="02" title="The brief">
             <label className="flex flex-col gap-2">
               <span className="flex justify-between text-[14px] font-semibold">
-                Title <span className={cx("font-mono text-[11px] font-normal", title.length > 56 ? "text-red" : "text-faint")}>{title.length}/64 · stored on-chain</span>
+                Title <span className={cx("font-mono text-[11px] font-normal", title.length > 56 ? "text-red-2" : "text-faint")}>{title.length}/64 · stored on-chain</span>
               </span>
               <input className="input" value={title} maxLength={64} onChange={(e) => setTitle(e.target.value)} placeholder="Launch tagline: Himalayan cold brew" />
             </label>
@@ -199,7 +214,7 @@ export default function NewTaskPage() {
               <span className="text-[14px] font-semibold">Reward</span>
               <span className="relative">
                 <input
-                  className="input !py-3 !pr-16 font-display !text-3xl"
+                  className="input num !py-3 !pr-16 !text-[2rem]"
                   type="number"
                   min={1}
                   value={Number.isFinite(reward) ? reward : ""}
@@ -251,14 +266,14 @@ export default function NewTaskPage() {
             <LayoutGroup id="hours">
               <div className="mt-2 flex flex-wrap gap-2">
                 {HOURS.map((o) => (
-                  <button key={o.h} onClick={() => setHours(o.h)} className={cx("chip relative", hours === o.h ? "!border-navy text-white" : "text-navy")}>
+                  <button key={o.h} onClick={() => setHours(o.h)} className={cx("chip relative", hours === o.h && "!text-bg !shadow-none")} aria-pressed={hours === o.h}>
                     {hours === o.h && (
-                      <motion.span layoutId="hours-pill" className="absolute inset-0 rounded-full bg-navy" transition={{ type: "spring", stiffness: 500, damping: 36 }} />
+                      <motion.span layoutId="hours-pill" className="absolute inset-0 rounded-full bg-fg" transition={{ type: "spring", stiffness: 480, damping: 38 }} />
                     )}
                     <span className="relative">{o.label}</span>
                   </button>
                 ))}
-                {!HOURS.some((o) => o.h === hours) && <span className="chip !border-navy bg-navy text-white">{hours} hours</span>}
+                {!HOURS.some((o) => o.h === hours) && <span className="chip chip-on">{hours} hours</span>}
               </div>
             </LayoutGroup>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -289,18 +304,18 @@ export default function NewTaskPage() {
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-24">
           <Reveal delay={0.3} x={20} y={0}>
-            <div className="card-navy relative overflow-hidden p-6">
-              <div className="grid-lines absolute inset-0 opacity-50" aria-hidden />
+            <div className="card-gold relative overflow-hidden p-6">
+              <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-gold/15 blur-3xl" aria-hidden />
               <div className="relative">
-                <div className="mono-label text-white/50">Summary</div>
-                <div className="mt-4 text-[13.5px] text-white/60">Locked in escrow when you publish</div>
-                <div className="mt-1 flex items-end gap-2">
-                  <span className="display text-[64px] leading-[0.85]">
+                <div className="label">Summary</div>
+                <div className="mt-4 text-[13.5px] text-muted">Locked in escrow when you publish</div>
+                <div className="mt-2 flex items-end gap-2">
+                  <span className="num text-foil text-[64px]">
                     <Counter value={safeReward} decimals={2} duration={0.6} />
                   </span>
-                  <span className="pb-1 text-sm text-white/60">USDC</span>
+                  <span className="pb-1.5 text-sm text-muted">USDC</span>
                 </div>
-                <div className="mt-3 text-[13.5px] text-white/60">{payoutMode === "topThree" ? "Top 3 paid" : "Winner takes all"}, after the fee</div>
+                <div className="mt-3 text-[13.5px] text-muted">{payoutMode === "topThree" ? "Top 3 paid" : "Winner takes all"}, after the fee</div>
                 <motion.div layout className={cx("mt-4 grid gap-2", splits.length === 3 ? "grid-cols-3" : "grid-cols-1")}>
                   <AnimatePresence mode="popLayout">
                     {splits.map((s, i) => (
@@ -311,9 +326,9 @@ export default function NewTaskPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
                         transition={{ delay: i * 0.05 }}
-                        className="rounded-xl bg-white/[0.07] px-3 py-2.5"
+                        className="well px-3 py-2.5"
                       >
-                        <div className={cx("mono-label !text-[9.5px]", i === 0 ? "text-red-2" : "text-white/50")}>{["1st", "2nd", "3rd"][i]}</div>
+                        <div className={cx("mono-label !text-[9.5px]", i === 0 ? "text-gold-2" : "text-muted")}>{["1st", "2nd", "3rd"][i]}</div>
                         <div className="mt-0.5 text-[17px] font-semibold tabular-nums">
                           <Counter value={pool * s} decimals={2} duration={0.5} />
                         </div>
@@ -321,7 +336,7 @@ export default function NewTaskPage() {
                     ))}
                   </AnimatePresence>
                 </motion.div>
-                <dl className="mt-5 flex flex-col gap-2.5 border-t border-white/10 pt-4 text-[13.5px]">
+                <dl className="mt-5 flex flex-col gap-2.5 border-t border-line pt-4 text-[13.5px]">
                   <Row k="Platform fee" v={`${(safeReward - pool).toFixed(2)} USDC, from payouts`} />
                   <Row k="Judging" v={judgeMode === "aiFinal" ? "AI, final" : "AI shortlist, you pick"} />
                   <Row k="Open for" v={HOURS.find((o) => o.h === hours)?.label ?? `${hours} hours`} />
@@ -333,12 +348,12 @@ export default function NewTaskPage() {
                     {step === "done" ? "Published" : `Lock ${safeReward.toFixed(2)} USDC and publish`}
                   </button>
                 </Magnetic>
-                <p className="mt-3 text-[12px] leading-relaxed text-white/45">
+                <p className="mt-3 text-[12px] leading-relaxed text-faint">
                   Refunded in full if no entry scores 25 or more. You can cancel and get it back until the first entry arrives. Signing as {personaName}.
                 </p>
                 <AnimatePresence>
                   {error && (
-                    <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-3 rounded-xl bg-red/20 p-3 text-[13px] text-white">
+                    <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-3 rounded-xl bg-red/10 p-3 text-[13px] text-red-2">
                       {error}
                     </motion.p>
                   )}
@@ -351,7 +366,7 @@ export default function NewTaskPage() {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="mt-4 flex flex-col gap-2.5 border-t border-white/10 pt-4 text-[13px]">
+                      <div className="mt-4 flex flex-col gap-2.5 border-t border-line pt-4 text-[13px]">
                         <Progress active={step === "brief"} done={step !== "brief"} label="Brief stored, sha256 computed" />
                         <Progress active={step === "sign"} done={step === "done"} label="Signed: USDC moves into the escrow vault" />
                         <Progress active={false} done={step === "done"} label="Task live in the arena" />
@@ -363,15 +378,15 @@ export default function NewTaskPage() {
             </div>
           </Reveal>
           <Reveal delay={0.4}>
-            <div className="mono-label mb-2 px-1 text-muted">How workers will see it</div>
+            <div className="label mb-2 px-1">How freelancers will see it</div>
             <div className="card p-5">
               <div className="flex items-center justify-between">
-                <span className="mono-label text-muted">{categoryById(category).label}</span>
-                <span className="mono-label text-red">{HOURS.find((o) => o.h === hours)?.label ?? `${hours}h`} left</span>
+                <span className="label">{categoryById(category).label}</span>
+                <span className="mono-label !text-[10px] text-red-2">{HOURS.find((o) => o.h === hours)?.label ?? `${hours}h`} left</span>
               </div>
-              <div className="mt-2 min-h-[1.5em] text-[17px] font-semibold leading-snug">{title || <span className="text-faint">Your title</span>}</div>
+              <div className="mt-2.5 min-h-[1.5em] text-[17px] font-semibold leading-snug">{title || <span className="text-faint">Your title</span>}</div>
               <div className="mt-4 flex items-baseline gap-1.5">
-                <span className="display text-4xl leading-none">
+                <span className="num text-[2.5rem]">
                   <Counter value={safeReward} duration={0.5} />
                 </span>
                 <span className="text-[12px] font-semibold text-muted">USDC · {payoutMode === "topThree" ? "top 3 paid" : "winner takes all"}</span>
@@ -392,7 +407,7 @@ function Section({ n, title, children }: { n: string; title: string; children: R
     <Reveal>
       <section className="card p-6 sm:p-7">
         <h2 className="mb-5 flex items-baseline gap-3 text-[19px] font-semibold tracking-tight">
-          <span className="font-mono text-[11px] text-red">{n}</span>
+          <span className="font-display text-[22px] italic text-gold">{n}</span>
           {title}
         </h2>
         {children}
@@ -408,13 +423,13 @@ function Option({ active, onClick, children, group, disabled }: { active: boolea
       whileHover={disabled ? undefined : { y: -2 }}
       whileTap={disabled ? undefined : { scale: 0.98 }}
       disabled={disabled}
-      className={cx("relative rounded-2xl border-[1.5px] border-line-2 bg-white p-4 text-left transition-colors", disabled ? "cursor-not-allowed opacity-50" : "hover:border-navy/50")}
+      className={cx("relative rounded-2xl border border-line-2 bg-fg/[0.02] p-4 text-left transition-colors", disabled ? "cursor-not-allowed opacity-40" : "hover:border-fg/25")}
       aria-pressed={active}
     >
       {active && (
         <motion.span
           layoutId={`opt-${group}`}
-          className="pointer-events-none absolute -inset-px rounded-2xl border-2 border-blue shadow-[0_0_0_4px_rgb(43_60_255/0.1)]"
+          className="pointer-events-none absolute -inset-px rounded-2xl border border-gold/70 bg-gold/[0.05] shadow-[0_0_0_4px_rgb(216_179_108/0.08)]"
           transition={{ type: "spring", stiffness: 500, damping: 38 }}
         />
       )}
@@ -426,8 +441,8 @@ function Option({ active, onClick, children, group, disabled }: { active: boolea
 function Row({ k, v }: { k: string; v: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <dt className="text-white/55">{k}</dt>
-      <dd className="text-right">{v}</dd>
+      <dt className="text-muted">{k}</dt>
+      <dd className="text-right text-fg/90">{v}</dd>
     </div>
   );
 }
@@ -437,16 +452,16 @@ function Progress({ active, done, label }: { active: boolean; done: boolean; lab
     <div className="flex items-center gap-2.5">
       <span className="flex h-5 w-5 items-center justify-center">
         {done ? (
-          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 15 }} className="flex h-5 w-5 items-center justify-center rounded-full bg-green">
+          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 15 }} className="flex h-5 w-5 items-center justify-center rounded-full bg-green text-bg">
             <Check size={12} strokeWidth={3} />
           </motion.span>
         ) : active ? (
-          <Spinner className="text-white" />
+          <Spinner className="text-fg" />
         ) : (
-          <span className="h-4 w-4 rounded-full border border-white/25" />
+          <span className="h-4 w-4 rounded-full border border-fg/25" />
         )}
       </span>
-      <span className={done ? "text-white" : "text-white/55"}>{label}</span>
+      <span className={done ? "text-fg" : "text-muted"}>{label}</span>
     </div>
   );
 }
@@ -454,10 +469,21 @@ function Progress({ active, done, label }: { active: boolean; done: boolean; lab
 /** Freelancer accounts can't post tasks; say so, and offer the way in. */
 function PostGate({ signedIn, personasOn, onDemo, onSignIn }: { signedIn: boolean; personasOn: boolean; onDemo: () => void; onSignIn?: () => void }) {
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 text-center">
-      <PixelIcon name="lock" px={4} motion="bob" />
-      <h1 className="display text-[clamp(2.6rem,6vw,4.5rem)]">{signedIn ? "Organisations post tasks" : "Sign in to post a task"}</h1>
-      <p className="max-w-md text-muted">
+    <div className="relative flex min-h-[60vh] flex-col items-center justify-center gap-5 text-center">
+      <div className="aura left-[calc(50%-9rem)] top-1/4 h-72 w-72 bg-gold/15" aria-hidden />
+      <PixelIcon name="lock" px={3.6} motion="bob" />
+      <h1 className="display text-[clamp(2.6rem,6vw,4.5rem)]">
+        {signedIn ? (
+          <>
+            Organisations <em className="text-gold-2">post tasks</em>
+          </>
+        ) : (
+          <>
+            Sign in to <em className="text-gold-2">post a task</em>
+          </>
+        )}
+      </h1>
+      <p className="max-w-md leading-relaxed text-muted">
         {signedIn
           ? "Your account is a freelancer account: you find tasks, enter them and get paid. Posting tasks is for organisation accounts."
           : "Posting a task needs an organisation account: you lock the reward, the crowd competes, the best work gets paid."}
@@ -474,9 +500,9 @@ function PostGate({ signedIn, personasOn, onDemo, onSignIn }: { signedIn: boolea
           </button>
         )}
         {signedIn && (
-          <a href="/tasks" className="btn btn-red h-12 px-6">
+          <Link href="/tasks" className="btn btn-red h-12 px-6">
             Find work instead
-          </a>
+          </Link>
         )}
       </div>
     </div>

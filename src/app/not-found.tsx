@@ -8,8 +8,10 @@ import { PixelIcon } from "@/components/fx/PixelIcon";
 
 export default function NotFound() {
   return (
-    <section className="relative flex min-h-[78vh] items-center overflow-hidden bg-navy text-white">
-      <div className="grid-lines absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" aria-hidden />
+    <section className="relative -mt-16 flex min-h-[86vh] items-center overflow-hidden pt-16">
+      <div className="aura left-[-6%] top-[0%] h-[520px] w-[520px] bg-red/20" aria-hidden />
+      <div className="aura right-[0%] top-[30%] h-[440px] w-[440px] bg-gold/15 [animation-delay:-6s]" aria-hidden />
+      <div className="grid-lines mask-fade absolute inset-0" aria-hidden />
       {/* clouds drifting past */}
       {[
         { top: "14%", dur: 38, delay: 0, px: 4 },
@@ -19,7 +21,7 @@ export default function NotFound() {
         <motion.div
           key={i}
           aria-hidden
-          className="pointer-events-none absolute opacity-40"
+          className="pointer-events-none absolute opacity-25"
           style={{ top: c.top }}
           initial={{ x: "-20vw" }}
           animate={{ x: "110vw" }}
@@ -30,9 +32,9 @@ export default function NotFound() {
       ))}
       <div className="relative mx-auto flex w-full max-w-7xl flex-col items-start gap-8 px-4 py-20 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
         <div>
-          <div className="mono-label text-red-2">Error 404</div>
-          <Kinetic text={"Lost in\nthe *clouds.*"} className="display mt-4 text-[clamp(3.4rem,10vw,8rem)]" accent="text-red" />
-          <Reveal delay={0.4} className="mt-6 max-w-md text-[16px] leading-relaxed text-white/65">
+          <div className="mono-label text-gold">Error 404</div>
+          <Kinetic text={"Lost in\nthe *clouds.*"} className="display mt-5 text-[clamp(3.4rem,9vw,7.4rem)]" accent="italic text-foil" />
+          <Reveal delay={0.4} className="mt-7 max-w-md text-[16px] leading-relaxed text-muted">
             Even the Monkey King somersaults past the edge of the world sometimes. This page doesn&apos;t exist, or the task was never posted.
           </Reveal>
           <Reveal delay={0.55} className="mt-8 flex flex-wrap gap-3">
@@ -42,8 +44,8 @@ export default function NotFound() {
               </Link>
             </Magnetic>
             <Magnetic>
-              <Link href="/tasks" className="btn btn-ghost-light h-12 px-6">
-                Explore tasks
+              <Link href="/tasks" className="btn btn-line h-12 px-6">
+                Browse the marketplace
               </Link>
             </Magnetic>
           </Reveal>

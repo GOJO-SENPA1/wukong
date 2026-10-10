@@ -24,7 +24,16 @@ export function Container({ children, className }: { children: ReactNode; classN
   return <div className={cx("mx-auto w-full max-w-7xl px-4 pb-28 pt-10 sm:px-6 lg:px-8", className)}>{children}</div>;
 }
 
-const AVATAR_COLORS = ["#E4261C", "#2B3CFF", "#DB2777", "#0E9F5A", "#FF7A1A", "#7C3AED", "#0891B2"];
+// Deep jewel tones with a light rim, so avatars read on the dark surfaces.
+const AVATAR_COLORS = [
+  ["#3a1512", "#ff8b78"],
+  ["#161c45", "#a7b0ff"],
+  ["#3a2a12", "#f0d9a6"],
+  ["#0f3324", "#7fe0ae"],
+  ["#3a1d0c", "#ffb27a"],
+  ["#2a1640", "#cfa8ff"],
+  ["#0d2f36", "#7fd8e6"],
+];
 
 export function Avatar({ id, name, size = 32, ring = false }: { id: string; name?: string; size?: number; ring?: boolean }) {
   const h = hashCode(id);
@@ -32,8 +41,16 @@ export function Avatar({ id, name, size = 32, ring = false }: { id: string; name
   const letters = (words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? "?").slice(0, 1)).toUpperCase() || "?";
   return (
     <div
-      className={cx("flex shrink-0 items-center justify-center rounded-full font-display text-white", ring && "ring-2 ring-white")}
-      style={{ width: size, height: size, fontSize: size * 0.4, background: AVATAR_COLORS[h % AVATAR_COLORS.length], letterSpacing: "0.02em" }}
+      className={cx("flex shrink-0 select-none items-center justify-center rounded-full font-sans font-semibold", ring && "ring-2 ring-bg")}
+      style={{
+        width: size,
+        height: size,
+        fontSize: size * 0.38,
+        background: AVATAR_COLORS[h % AVATAR_COLORS.length][0],
+        color: AVATAR_COLORS[h % AVATAR_COLORS.length][1],
+        boxShadow: `inset 0 0 0 1px ${AVATAR_COLORS[h % AVATAR_COLORS.length][1]}33`,
+        letterSpacing: "0.01em",
+      }}
       aria-hidden
     >
       {letters}
@@ -42,10 +59,10 @@ export function Avatar({ id, name, size = 32, ring = false }: { id: string; name
 }
 
 const STATUS: Record<TaskStatus, { label: string; cls: string; dot: string }> = {
-  open: { label: "Open", cls: "bg-red/10 text-red", dot: "bg-red" },
-  judging: { label: "Judging", cls: "bg-blue/10 text-blue", dot: "bg-blue" },
+  open: { label: "Open", cls: "bg-red/10 text-red-2", dot: "bg-red" },
+  judging: { label: "Judging", cls: "bg-blue/10 text-blue-2", dot: "bg-blue" },
   settled: { label: "Paid out", cls: "bg-green/10 text-green", dot: "bg-green" },
-  cancelled: { label: "Refunded", cls: "bg-paper-2 text-muted", dot: "bg-faint" },
+  cancelled: { label: "Refunded", cls: "bg-fg/[0.06] text-muted", dot: "bg-faint" },
 };
 
 export function StatusPill({ status, extra }: { status: TaskStatus; extra?: ReactNode }) {
@@ -94,7 +111,7 @@ export function ExplorerLink({
       href={explorer(kind, id)}
       target="_blank"
       rel="noreferrer"
-      className={cx("group/x inline-flex items-center gap-1 font-mono text-xs text-blue", className)}
+      className={cx("group/x inline-flex items-center gap-1 font-mono text-xs text-blue-2", className)}
       title={id}
     >
       <span className="link-underline">{children ?? shortAddr(id, 5)}</span>
@@ -133,9 +150,9 @@ export function Countdown({ deadline, compact = true, className }: { deadline: n
 
 export function Stat({ label, value, accent, dark }: { label: string; value: ReactNode; accent?: string; dark?: boolean }) {
   return (
-    <div className={cx("rounded-2xl px-5 py-4", dark ? "bg-white/[0.06]" : "card")}>
-      <div className={cx("label", dark && "!text-white/55")}>{label}</div>
-      <div className={cx("display mt-2 text-4xl tabular-nums", accent)}>{value}</div>
+    <div className={cx("rounded-2xl px-5 py-4", dark ? "well" : "card")}>
+      <div className="label">{label}</div>
+      <div className={cx("num mt-3 text-[2.6rem]", accent)}>{value}</div>
     </div>
   );
 }
@@ -144,13 +161,13 @@ export function Stat({ label, value, accent, dark }: { label: string; value: Rea
 export function ScoreBar({
   score,
   max = 10000,
-  tone = "navy",
+  tone = "fg",
   className,
   delay = 0,
 }: {
   score: number;
   max?: number;
-  tone?: "navy" | "red" | "blue" | "green" | "gold" | "violet" | "crimson" | "jade" | "white";
+  tone?: "fg" | "red" | "blue" | "green" | "gold";
   className?: string;
   delay?: number;
 }) {
@@ -159,18 +176,14 @@ export function ScoreBar({
   const reduce = useReducedMotion();
   const pct = Math.max(0, Math.min(100, (score / max) * 100));
   const color = {
-    navy: "bg-navy",
-    red: "bg-red",
-    crimson: "bg-red",
-    blue: "bg-blue",
-    violet: "bg-blue",
-    green: "bg-green",
-    jade: "bg-green",
-    gold: "bg-gold",
-    white: "bg-white",
+    fg: "bg-fg",
+    red: "bg-gradient-to-r from-red/70 to-red",
+    blue: "bg-gradient-to-r from-blue/70 to-blue",
+    green: "bg-gradient-to-r from-green/70 to-green",
+    gold: "bg-gradient-to-r from-gold/70 to-gold-2",
   }[tone];
   return (
-    <div ref={ref} className={cx("h-1.5 w-full overflow-hidden rounded-full", tone === "white" ? "bg-white/15" : "bg-paper-2", className)}>
+    <div ref={ref} className={cx("h-1 w-full overflow-hidden rounded-full bg-fg/[0.07]", className)}>
       <motion.div
         className={cx("h-full rounded-full", color)}
         initial={reduce ? false : { width: 0 }}
@@ -183,7 +196,7 @@ export function ScoreBar({
 }
 
 export function ScoreNumber({ score, className }: { score: number; className?: string }) {
-  return <span className={cx("display tabular-nums", className)}>{fmtScore(score)}</span>;
+  return <span className={cx("num", className)}>{fmtScore(score)}</span>;
 }
 
 export function TierBadge({ rating, compact }: { rating: number; compact?: boolean }) {
@@ -199,7 +212,7 @@ export function TierBadge({ rating, compact }: { rating: number; compact?: boole
   );
 }
 
-export function EngineBadge({ dark }: { dark?: boolean }) {
+export function EngineBadge() {
   const { state } = useApp();
   if (!state.judge) return null;
   const claude = state.judge.engine === "claude";
@@ -207,18 +220,18 @@ export function EngineBadge({ dark }: { dark?: boolean }) {
     <span
       className={cx(
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.12em]",
-        dark ? "bg-white/10 text-white/70" : claude ? "bg-blue/10 text-blue" : "bg-paper text-muted",
+        claude ? "bg-blue/10 text-blue-2" : "bg-fg/[0.05] text-muted",
       )}
       title={claude ? `AI judge: ${state.judge.model}` : "No ANTHROPIC_API_KEY: transparent offline heuristics"}
     >
-      <span className={cx("h-1.5 w-1.5 rounded-full", claude ? "bg-blue-2" : "bg-faint")} />
+      <span className={cx("h-1.5 w-1.5 rounded-full", claude ? "bg-blue" : "bg-faint")} />
       {claude ? state.judge.model : "Offline judge"}
     </span>
   );
 }
 
 export function Empty({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cx("card px-6 py-12 text-center text-sm text-muted", className)}>{children}</div>;
+  return <div className={cx("card px-6 py-14 text-center text-sm text-muted", className)}>{children}</div>;
 }
 
 export function Spinner({ className }: { className?: string }) {
@@ -239,17 +252,43 @@ export function SectionTitle({ children, right }: { children: ReactNode; right?:
   );
 }
 
-/** A small mono kicker with a red dot, above section headlines. */
-export function Kicker({ children, className, dark }: { children: ReactNode; className?: string; dark?: boolean }) {
+/** A small mono kicker with a gold tick, above section headlines. */
+export function Kicker({ children, className }: { children: ReactNode; className?: string; dark?: boolean }) {
   return (
-    <div className={cx("mono-label flex items-center gap-2", dark ? "text-white/60" : "text-muted", className)}>
-      <span className="h-1.5 w-1.5 rounded-full bg-red" />
+    <div className={cx("mono-label flex items-center gap-2.5 text-muted", className)}>
+      <span className="h-px w-6 bg-gradient-to-r from-gold to-gold/0" />
       {children}
     </div>
   );
 }
 
+/** A page's opening: kicker, serif headline, optional lede and actions on the right. */
+export function PageHead({
+  kicker,
+  title,
+  lede,
+  right,
+  className,
+}: {
+  kicker?: ReactNode;
+  title: ReactNode;
+  lede?: ReactNode;
+  right?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <header className={cx("flex flex-wrap items-end justify-between gap-6", className)}>
+      <div className="min-w-0 max-w-3xl">
+        {kicker && <Kicker>{kicker}</Kicker>}
+        <h1 className="display mt-4 text-[clamp(2.8rem,6vw,4.8rem)]">{title}</h1>
+        {lede && <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted">{lede}</p>}
+      </div>
+      {right && <div className="flex flex-wrap items-center gap-3">{right}</div>}
+    </header>
+  );
+}
+
 /** Skeleton block with a shimmer, for loading states. */
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cx("shimmer rounded-xl bg-paper-2", className)} />;
+  return <div className={cx("shimmer rounded-xl bg-fg/[0.04]", className)} />;
 }

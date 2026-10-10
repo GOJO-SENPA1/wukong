@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ArrowRight, Check, Copy, LogIn, X } from "lucide-react";
 import { useAccount, type Role } from "@/components/auth/Account";
 import { useApp } from "@/components/Providers";
-import { Kinetic, Reveal } from "@/components/fx/motion";
+import { Kinetic } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
 import { burst } from "@/components/fx/Overlay";
 import { Container, Spinner, cx } from "@/components/ui";
@@ -79,8 +79,10 @@ function Welcome() {
   if (!account.authenticated) {
     return (
       <Container className="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center">
-        <PixelIcon name="monkey" px={4} motion="bob" />
-        <h1 className="display text-5xl">Sign in to get started</h1>
+        <PixelIcon name="monkey" px={3.6} motion="bob" />
+        <h1 className="display text-[clamp(2.6rem,6vw,4.2rem)]">
+          Sign in to <em className="text-gold-2">get started</em>
+        </h1>
         <button className="btn btn-red h-12 px-6" onClick={account.login}>
           <LogIn size={17} /> Sign in
         </button>
@@ -134,10 +136,10 @@ function Welcome() {
       <div className="flex items-center gap-2" aria-label={`Step ${step + 1} of 3`}>
         {["Role", "Profile", "Wallet"].map((label, i) => (
           <div key={label} className="flex flex-1 flex-col gap-2">
-            <div className="h-1 overflow-hidden rounded-full bg-paper-2">
-              <motion.div className="h-full bg-red" animate={{ width: step >= i ? "100%" : "0%" }} transition={{ duration: 0.6, ease: EASE }} />
+            <div className="h-px overflow-hidden bg-fg/10">
+              <motion.div className="h-full bg-gradient-to-r from-red to-gold" animate={{ width: step >= i ? "100%" : "0%" }} transition={{ duration: 0.6, ease: EASE }} />
             </div>
-            <span className={cx("mono-label !text-[10px]", step >= i ? "text-navy" : "text-faint")}>
+            <span className={cx("mono-label !text-[10px] transition-colors duration-500", step >= i ? "text-fg" : "text-faint")}>
               0{i + 1} {label}
             </span>
           </div>
@@ -147,8 +149,8 @@ function Welcome() {
       <AnimatePresence mode="wait">
         {step === 0 && (
           <Step key="role">
-            <Kinetic text={"How will you use\n*Wukong?*"} className="display text-[clamp(2.6rem,6vw,4.5rem)]" />
-            <p className="mt-3 text-muted">This sets what your account can do. It can&apos;t be changed later, so pick the one that fits.</p>
+            <Kinetic text={"How will you use\n*Wukong?*"} accent="italic text-gold-2" className="display text-[clamp(2.6rem,6vw,4.5rem)]" />
+            <p className="mt-4 leading-relaxed text-muted">This sets what your account can do. It can&apos;t be changed later, so pick the one that fits.</p>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
               {(
                 [
@@ -161,14 +163,17 @@ function Welcome() {
                   whileHover={{ y: -4 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setRole(o.id)}
-                  className={cx("relative rounded-[22px] border-2 bg-white p-6 text-left transition-colors", role === o.id ? "border-blue shadow-[0_0_0_4px_rgb(43_60_255/0.1)]" : "border-line hover:border-line-2")}
+                  className={cx(
+                    "relative rounded-[22px] border bg-surface p-6 text-left transition-[border-color,background-color,box-shadow] duration-300",
+                    role === o.id ? "border-gold/60 bg-gold/[0.04] shadow-[0_0_0_4px_rgb(216_179_108/0.08)]" : "border-line hover:border-line-2",
+                  )}
                   aria-pressed={role === o.id}
                 >
                   <PixelIcon name={o.icon} px={2.6} motion={role === o.id ? "bob" : "hover"} className="-ml-2 -mt-2" />
                   <div className="mt-3 text-[20px] font-semibold">{o.title}</div>
                   <p className="mt-1.5 text-[14px] leading-relaxed text-muted">{o.body}</p>
                   {role === o.id && (
-                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute right-5 top-5 flex h-7 w-7 items-center justify-center rounded-full bg-blue text-white">
+                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute right-5 top-5 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-b from-gold-2 to-gold text-bg">
                       <Check size={15} strokeWidth={3} />
                     </motion.span>
                   )}
@@ -185,8 +190,8 @@ function Welcome() {
 
         {step === 1 && (
           <Step key="profile">
-            <Kinetic text={role === "company" ? "Your *organisation*" : "Your public *profile*"} className="display text-[clamp(2.6rem,6vw,4.5rem)]" />
-            <p className="mt-3 text-muted">Shown on your profile, the leaderboard and every task you {role === "company" ? "post" : "enter"}. Your email stays private.</p>
+            <Kinetic text={role === "company" ? "Your *organisation*" : "Your public *profile*"} accent="italic text-gold-2" className="display text-[clamp(2.6rem,6vw,4.5rem)]" />
+            <p className="mt-4 leading-relaxed text-muted">Shown on your profile, the leaderboard and every task you {role === "company" ? "post" : "enter"}. Your email stays private.</p>
             <div className="card mt-8 flex flex-col gap-5 p-6 sm:p-8">
               <label className="flex flex-col gap-2">
                 <span className="text-[14px] font-semibold">Handle</span>
@@ -204,13 +209,13 @@ function Welcome() {
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2">
                     {h && check?.handle === h ? (
-                      check.available ? <Check size={18} className="text-green" /> : <X size={18} className="text-red" />
+                      check.available ? <Check size={18} className="text-green" /> : <X size={18} className="text-red-2" />
                     ) : h ? (
                       <Spinner className="text-faint" />
                     ) : null}
                   </span>
                 </span>
-                <span className={cx("text-[12.5px]", check?.handle === h && !check.available ? "text-red" : "text-muted")}>
+                <span className={cx("text-[12.5px]", check?.handle === h && !check.available ? "text-red-2" : "text-muted")}>
                   {check?.handle === h && check.reason ? check.reason : `wukonghq.xyz/@${h || "your_handle"}`}
                 </span>
               </label>
@@ -256,7 +261,7 @@ function Welcome() {
                           initial={{ scale: 0.6, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           exit={{ scale: 0.6, opacity: 0 }}
-                          className="chip !border-navy bg-navy !py-1.5 text-[13px] text-white"
+                          className="chip chip-on !py-1.5 text-[13px]"
                           onClick={() => setSkills(skills.filter((x) => x !== s))}
                         >
                           {s} <X size={12} />
@@ -279,12 +284,12 @@ function Welcome() {
                 </div>
               )}
               <label className="flex cursor-pointer items-center gap-3 text-[14px]">
-                <input type="checkbox" className="h-4 w-4 accent-red" checked={emailOnWin} onChange={(e) => setEmailOnWin(e.target.checked)} />
+                <input type="checkbox" className="h-4 w-4 accent-gold" checked={emailOnWin} onChange={(e) => setEmailOnWin(e.target.checked)} />
                 Email me when {role === "company" ? "my tasks are judged and paid out" : "my entries are judged and paid"}
               </label>
               <AnimatePresence>
                 {error && (
-                  <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-xl bg-red/10 p-3 text-[14px] text-red">
+                  <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-xl bg-red/10 p-3 text-[14px] text-red-2">
                     {error}
                   </motion.p>
                 )}
@@ -303,17 +308,17 @@ function Welcome() {
 
         {step === 2 && (
           <Step key="wallet">
-            <Kinetic text={"You're *in.*"} className="display text-[clamp(3rem,7vw,5.5rem)]" />
-            <p className="mt-3 text-muted">Your Solana wallet is ready. Rewards and refunds land here.</p>
-            <div className="card-navy relative mt-8 overflow-hidden p-6 sm:p-8">
-              <div className="grid-lines absolute inset-0 opacity-50" aria-hidden />
+            <Kinetic text={"You're *in.*"} accent="italic text-foil" className="display text-[clamp(3rem,7vw,5.5rem)]" />
+            <p className="mt-4 text-muted">Your Solana wallet is ready. Rewards and refunds land here.</p>
+            <div className="card-gold relative mt-8 overflow-hidden p-6 sm:p-8">
+              <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-gold/15 blur-3xl" aria-hidden />
               <div className="relative flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <div className="mono-label text-white/55">Your wallet address</div>
-                  <div className="mt-2 break-all font-mono text-[14px]">{wallet ?? "Creating…"}</div>
+                  <div className="label">Your wallet address</div>
+                  <div className="mt-2.5 break-all font-mono text-[14px] text-fg/90">{wallet ?? "Creating…"}</div>
                   {wallet && (
                     <button
-                      className="mt-3 inline-flex items-center gap-1.5 text-[13px] text-white/70 hover:text-white"
+                      className="mt-3 inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-fg"
                       onClick={() => {
                         navigator.clipboard?.writeText(wallet);
                         setCopied(true);
@@ -327,7 +332,7 @@ function Welcome() {
                 <PixelIcon name="coin" px={3} motion="spin" />
               </div>
               {state.demoMode && (
-                <p className="relative mt-5 rounded-xl bg-white/[0.07] p-3 text-[13px] text-white/70">
+                <p className="well relative mt-5 p-3 text-[13px] leading-relaxed text-muted">
                   This is a demo deployment on {state.deployment?.cluster ?? "a test network"}: we&apos;ve sent your wallet test SOL for fees
                   {role === "company" ? " and test USDC for rewards" : " and a little test USDC for entry stakes"}.
                 </p>
@@ -352,12 +357,12 @@ function Step({ children }: { children: ReactNode }) {
   return (
     <motion.div
       className="mt-12"
-      initial={{ opacity: 0, x: 40 }}
+      initial={{ opacity: 0, x: 24 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -40 }}
-      transition={{ duration: 0.45, ease: EASE }}
+      exit={{ opacity: 0, x: -24 }}
+      transition={{ duration: 0.4, ease: EASE }}
     >
-      <Reveal y={0}>{children}</Reveal>
+      {children}
     </motion.div>
   );
 }

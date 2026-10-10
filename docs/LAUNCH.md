@@ -86,10 +86,11 @@ The target is [`design/`](../design/): previews in `design/previews/`, and sourc
 
 ### Look
 
-Move the tokens from [`design/README.md`](../design/README.md) into `globals.css` / Tailwind theme:
+The app now runs on a dark theme, which replaces the light navy-and-paper palette in [`design/README.md`](../design/README.md). The tokens live in `src/app/globals.css`:
 
-- **Colours:** navy `#0C1424`, paper `#F3F6FA`, red `#E4261C`, blue `#2B3CFF`, ink `#0E1018`, muted `#586378`, line `#E1E7EF`.
-- **Fonts:** Anton, Instrument Sans, Instrument Serif, JetBrains Mono, via `next/font/google`. The build now uses webpack (see `next.config.ts`), which avoids the Turbopack font bug.
+- **Colours:** background `#07080C`, surfaces `#0C0E14` / `#11141C` / `#181C26`, ivory text `#F1EDE4`, muted `#9B9DA6`, hairlines at 7.5% and 13% white. Vermilion `#F0412F` marks every action, champagne gold `#D8B36C` marks what's been won (rewards, first place, focus), and blue `#7383FF` marks anything verified on-chain.
+- **Fonts:** Instrument Serif for headlines and numbers (italic gold for the accent words), Instrument Sans for the interface, JetBrains Mono for labels and hashes, Anton for the wordmark only. All load via `next/font/google`.
+- **Surfaces:** `.card`, `.card-gold` (a gold-to-vermilion hairline for featured panels) and `.well`. Buttons are `.btn-red`, `.btn-ivory`, `.btn-line` and `.btn-dark`. `.num` is for figures and `.text-foil` for gold foil.
 - **Shared components:** app bar, buttons, cards, chips, stat tiles, task row, the payout split block and the judge report.
 
 ### Auth (Privy)
