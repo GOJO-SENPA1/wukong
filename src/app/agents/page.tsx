@@ -46,7 +46,7 @@ export default function AgentsPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="card p-5">
+        <div className="card min-w-0 p-5">
           <div className="label mb-2">1 · Ask</div>
           <pre className="overflow-x-auto rounded-xl bg-ink p-3 font-mono text-[11.5px] leading-relaxed text-muted">{`curl -i -X POST ${origin}/api/x402/tasks \\
   -H 'content-type: application/json' \\
@@ -60,7 +60,7 @@ HTTP/1.1 402 Payment Required
   "asset":"<USDC mint>","payTo":"<gateway>",
   "extra":{"feePayer":"<gateway>","decimals":6}}]}`}</pre>
         </div>
-        <div className="card p-5">
+        <div className="card min-w-0 p-5">
           <div className="label mb-2">2 · Pay and get a task</div>
           <pre className="overflow-x-auto rounded-xl bg-ink p-3 font-mono text-[11.5px] leading-relaxed text-muted">{`# X-PAYMENT = base64({x402Version:1, scheme:"exact",
 #   payload:{transaction:<USDC TransferChecked, signed by agent,

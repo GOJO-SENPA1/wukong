@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Bot, Coins, Gavel, Lock, Send, ShieldCheck, Sparkles, Trophy, Users, Wand2, XCircle } from "lucide-react";
+import { Bot, ChevronDown, Coins, Gavel, Lock, Send, ShieldCheck, Sparkles, Trophy, Users, Wand2, XCircle } from "lucide-react";
 import { useApp } from "@/components/Providers";
 import { Entry } from "@/components/arena/Entry";
 import type { CrowdEvent, JudgeEvent, LiveState, LogLine, TaskPayload } from "@/components/arena/types";
@@ -161,7 +161,29 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
     }
   }, [taskKey, push, load]);
 
-  if (error && !data) return <Empty>{error}</Empty>;
+  if (error && !data)
+    return (
+      <div className="flex flex-col items-center gap-5 py-16 text-center">
+        <div className="card w-full max-w-lg border-crimson/40 p-6">
+          <div className="flex items-start gap-3">
+            <XCircle className="mt-0.5 shrink-0 text-crimson" size={22} />
+            <div className="min-w-0 text-left">
+              <h1 className="font-display text-lg font-semibold">Could not load this task</h1>
+              <p className="mt-1 break-words text-sm text-muted">{error}</p>
+              <p className="mt-2 font-mono text-[11px] text-faint">task key {taskKey}</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link href="/tasks" className="btn btn-ghost">
+            Back to the arena
+          </Link>
+          <button className="btn btn-gold" onClick={load}>
+            Try again
+          </button>
+        </div>
+      </div>
+    );
   if (!data || !task) {
     return (
       <div className="flex justify-center py-24 text-muted">
@@ -240,8 +262,11 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
           <details className="card group p-5" open={task.status === "open"}>
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
               <span className="font-display font-semibold">The brief</span>
-              <span className="inline-flex items-center gap-1 text-xs text-jade">
-                <ShieldCheck size={13} /> sha256 {task.briefHash.slice(0, 10)}… on-chain
+              <span className="inline-flex shrink-0 items-center gap-2">
+                <span className="inline-flex items-center gap-1 text-xs text-jade">
+                  <ShieldCheck size={13} /> sha256 {task.briefHash.slice(0, 10)}… on-chain
+                </span>
+                <ChevronDown size={15} className="text-faint transition-transform duration-200 group-open:rotate-180" />
               </span>
             </summary>
             <pre className="mt-3 whitespace-pre-wrap font-sans text-[15px] leading-relaxed text-text/90">

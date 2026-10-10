@@ -66,11 +66,11 @@ export function CategoryBadge({ category }: { category: number }) {
   );
 }
 
-export function Usdc({ base, className, decimals }: { base: number; className?: string; decimals?: number }) {
+export function Usdc({ base, className, decimals, unit = true }: { base: number; className?: string; decimals?: number; unit?: boolean }) {
   return (
     <span className={cx("tabular-nums", className)}>
       {fmtUsdc(base, { decimals })}
-      <span className="ml-1 text-[0.7em] font-semibold tracking-wide text-muted">USDC</span>
+      {unit && <span className="ml-1 text-[0.7em] font-semibold tracking-wide text-muted">USDC</span>}
     </span>
   );
 }

@@ -30,9 +30,15 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-16">
       <section className="relative pt-10 sm:pt-16">
-        <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs font-semibold text-gold">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-gold" /> Live on Solana {state.deployment?.cluster ?? ""}
-        </div>
+        {state.deployment ? (
+          <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs font-semibold text-gold">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-gold" /> Live on Solana {state.deployment.cluster}
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-2 rounded-full border border-ember/30 bg-ember/10 px-3 py-1 text-xs font-semibold text-ember">
+            <span className="h-1.5 w-1.5 rounded-full bg-ember" /> Demo mode · chain not connected
+          </div>
+        )}
         <h1 className="mt-5 max-w-4xl font-display text-5xl font-bold leading-[1.02] tracking-tight sm:text-7xl">
           Post a task.
           <br />

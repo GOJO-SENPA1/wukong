@@ -77,6 +77,28 @@ body {
   background: rgb(245 184 61 / 0.35);
 }
 
+/* Keyboard focus. The UA default outline is nearly invisible on this palette,
+   and .input:focus was the only focus affordance in the app. :where() keeps
+   specificity at 0 so any component can still override it. */
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+/* Honour the OS "reduce motion" setting. Several animations here are infinite
+   (pulse, pulse-gold, the Spinner's spin) and the rise-on-mount fires on every
+   card. Dropping the animation leaves elements at their natural, fully-visible
+   state rather than stuck at a keyframe's from-value. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 .card {
   background: linear-gradient(180deg, var(--color-panel-2), var(--color-panel));
   border: 1px solid var(--color-line);

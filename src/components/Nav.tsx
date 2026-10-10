@@ -60,11 +60,22 @@ export function Nav() {
         </div>
       </div>
       <nav className="flex gap-1 overflow-x-auto border-t border-line/60 px-4 py-1.5 md:hidden">
-        {LINKS.map((l) => (
-          <Link key={l.href} href={l.href} className="shrink-0 rounded-lg px-3 py-1 text-sm text-muted">
-            {l.label}
-          </Link>
-        ))}
+        {LINKS.map((l) => {
+          const active = l.href === "/tasks" ? path === "/tasks" || /^\/tasks\/(?!new)/.test(path) : path.startsWith(l.href);
+          return (
+            <Link
+              key={l.href}
+              href={l.href}
+              aria-current={active ? "page" : undefined}
+              className={cx(
+                "shrink-0 rounded-lg px-3 py-1 text-sm",
+                active ? "bg-white/[0.06] text-text" : "text-muted",
+              )}
+            >
+              {l.label}
+            </Link>
+          );
+        })}
       </nav>
     </header>
   );
@@ -78,14 +89,26 @@ function PersonaSwitcher() {
     const close = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
     document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
   const activeKey = persona === "wallet" ? "wallet" : personaKeys[persona] ?? persona;
 
   return (
     <div className="relative" ref={ref}>
-      <button className="btn btn-ghost h-9 px-2.5" onClick={() => setOpen((o) => !o)}>
+      <button
+        className="btn btn-ghost h-9 px-2.5"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
         {funding ? <Spinner className="text-gold" /> : persona === "wallet" ? <Wallet size={16} /> : <Avatar id={activeKey} name={personaName} size={22} />}
         <span className="hidden max-w-36 truncate text-sm sm:inline">{personaName}</span>
         <ChevronDown size={14} className="text-muted" />
