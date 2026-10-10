@@ -119,6 +119,151 @@ export type Wukong = {
       "args": []
     },
     {
+      "name": "claimStake",
+      "docs": [
+        "Settle one entry's stake after the task settles: refunded if it scored",
+        "at or above the spam bar, slashed to the treasury otherwise.",
+        "Permissionless; the last one closes the vault."
+      ],
+      "discriminator": [
+        62,
+        145,
+        133,
+        242,
+        244,
+        59,
+        53,
+        139
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "task",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  97,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "task.creator",
+                "account": "task"
+              },
+              {
+                "kind": "account",
+                "path": "task.nonce",
+                "account": "task"
+              }
+            ]
+          },
+          "relations": [
+            "submission"
+          ]
+        },
+        {
+          "name": "submission",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  117,
+                  98,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "task"
+              },
+              {
+                "kind": "account",
+                "path": "submission.worker",
+                "account": "submission"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "task"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "workerToken",
+          "writable": true
+        },
+        {
+          "name": "treasuryToken",
+          "writable": true
+        },
+        {
+          "name": "creator",
+          "writable": true
+        },
+        {
+          "name": "tokenProgram"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "closeSubmissions",
       "docs": [
         "Stop accepting work and hand the task to the judge.",
@@ -851,6 +996,27 @@ export type Wukong = {
           }
         },
         {
+          "name": "mint",
+          "docs": [
+            "Stake accounts: required only when the task has an entry stake."
+          ],
+          "optional": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "workerToken",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "tokenProgram",
+          "optional": true
+        },
+        {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
@@ -984,6 +1150,19 @@ export type Wukong = {
     }
   ],
   "events": [
+    {
+      "name": "stakeSettled",
+      "discriminator": [
+        171,
+        53,
+        105,
+        171,
+        142,
+        65,
+        236,
+        232
+      ]
+    },
     {
       "name": "submissionScored",
       "discriminator": [
@@ -1181,6 +1360,41 @@ export type Wukong = {
     },
     {
       "code": 6023,
+      "name": "stakeTooHigh",
+      "msg": "Entry stake cannot exceed the reward"
+    },
+    {
+      "code": 6024,
+      "name": "pickGraceTooLong",
+      "msg": "Pick grace period is capped at 7 days"
+    },
+    {
+      "code": 6025,
+      "name": "missingStakeAccounts",
+      "msg": "This task requires a stake: pass the mint, vault, your token account and the token program"
+    },
+    {
+      "code": 6026,
+      "name": "stakeAccountMismatch",
+      "msg": "Stake account does not match the task"
+    },
+    {
+      "code": 6027,
+      "name": "nothingToClaim",
+      "msg": "This submission has no stake left to settle"
+    },
+    {
+      "code": 6028,
+      "name": "taskNotSettled",
+      "msg": "Task is not settled yet"
+    },
+    {
+      "code": 6029,
+      "name": "pickWindowOpen",
+      "msg": "The creator's pick window is still open"
+    },
+    {
+      "code": 6030,
       "name": "overflow",
       "msg": "Arithmetic overflow"
     }
@@ -1304,6 +1518,14 @@ export type Wukong = {
           {
             "name": "maxSubmissions",
             "type": "u16"
+          },
+          {
+            "name": "entryStake",
+            "type": "u64"
+          },
+          {
+            "name": "pickGraceSecs",
+            "type": "u32"
           }
         ]
       }
@@ -1429,6 +1651,34 @@ export type Wukong = {
       }
     },
     {
+      "name": "stakeSettled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "task",
+            "type": "pubkey"
+          },
+          {
+            "name": "submission",
+            "type": "pubkey"
+          },
+          {
+            "name": "worker",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "refunded",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
       "name": "submission",
       "type": {
         "kind": "struct",
@@ -1494,6 +1744,14 @@ export type Wukong = {
           {
             "name": "payout",
             "type": "u64"
+          },
+          {
+            "name": "stake",
+            "type": "u64"
+          },
+          {
+            "name": "stakeSettled",
+            "type": "bool"
           },
           {
             "name": "bump",
@@ -1645,6 +1903,33 @@ export type Wukong = {
           {
             "name": "maxSubmissions",
             "type": "u16"
+          },
+          {
+            "name": "entryStake",
+            "docs": [
+              "Refundable stake each entrant locks (0 = none). Slashed to the treasury",
+              "if the entry scores under the spam bar; refunded otherwise."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "stakesOutstanding",
+            "docs": [
+              "Staked entries whose stake has not been refunded or slashed yet."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "pickGraceSecs",
+            "docs": [
+              "Creator-picks mode: after this long past closing, anyone can settle on",
+              "the AI's top pick. Protects workers from a buyer who never decides."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "closedAt",
+            "type": "i64"
           },
           {
             "name": "submissionCount",

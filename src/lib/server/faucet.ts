@@ -15,8 +15,6 @@ import {
 import { keypairSigner, sendIxs } from "../wukong";
 import { connection, deployment, loadKey, mint } from "./env";
 
-const recent = new Map<string, number>();
-
 export async function fund(
   address: string,
   opts: { sol?: number; usdc?: number; minSol?: number } = {},
@@ -27,10 +25,6 @@ export async function fund(
   const admin = loadKey("admin");
   const wantSol = opts.sol ?? 0;
   const wantUsdc = opts.usdc ?? 0;
-
-  const last = recent.get(address) ?? 0;
-  if (Date.now() - last < 3_000) throw new Error("Slow down: faucet is rate limited");
-  recent.set(address, Date.now());
 
   const ixs: TransactionInstruction[] = [];
   let solSent = 0;
@@ -65,7 +59,6 @@ export async function fund(
 export async function ensureGas(address: PublicKey, minSol = 0.02) {
   const balance = await connection().getBalance(address);
   if (balance < minSol * LAMPORTS_PER_SOL) {
-    recent.delete(address.toBase58());
     await fund(address.toBase58(), { sol: deployment().cluster === "localnet" ? 2 : 0.04, minSol });
   }
 }

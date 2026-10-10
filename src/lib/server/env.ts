@@ -9,6 +9,14 @@ export const DATA_DIR =
   process.env.WUKONG_DATA_DIR ?? path.join(/* turbopackIgnore: true */ process.cwd(), ".data");
 export const KEYS_DIR = path.join(DATA_DIR, "keys");
 
+/**
+ * Demo mode (default on) enables the faucet, the simulated crowd, and lets
+ * anyone ask the judge to close an open task early. Set WUKONG_DEMO_MODE=0 for
+ * a real deployment: then only the creator (on-chain) or the deadline closes
+ * submissions, and the demo-only endpoints refuse.
+ */
+export const DEMO_MODE = (process.env.WUKONG_DEMO_MODE ?? "1") !== "0";
+
 export interface Deployment {
   cluster: "localnet" | "devnet" | "mainnet-beta";
   rpcUrl: string;

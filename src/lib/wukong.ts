@@ -111,6 +111,10 @@ export interface TaskView {
   judgeMode: JudgeMode;
   minRating: number;
   maxSubmissions: number;
+  entryStake: number;
+  stakesOutstanding: number;
+  pickGraceSecs: number;
+  closedAt: number;
   submissionCount: number;
   scoredCount: number;
   podium: PodiumView[];
@@ -131,6 +135,8 @@ export interface SubmissionView {
   reportHash: string;
   rank: number;
   payout: number;
+  stake: number;
+  stakeSettled: boolean;
 }
 
 export interface ReputationView {
@@ -185,6 +191,10 @@ export function toTaskView(pubkey: PublicKey, a: Raw): TaskView {
     judgeMode: enumKey<JudgeMode>(a.judgeMode),
     minRating: a.minRating,
     maxSubmissions: a.maxSubmissions,
+    entryStake: num(a.entryStake),
+    stakesOutstanding: a.stakesOutstanding,
+    pickGraceSecs: a.pickGraceSecs,
+    closedAt: num(a.closedAt),
     submissionCount: a.submissionCount,
     scoredCount: a.scoredCount,
     podium: (a.podium as Raw[])
@@ -214,6 +224,8 @@ export function toSubmissionView(pubkey: PublicKey, a: Raw): SubmissionView {
     reportHash: toHex(a.reportHash),
     rank: a.rank,
     payout: num(a.payout),
+    stake: num(a.stake),
+    stakeSettled: a.stakeSettled,
   };
 }
 
@@ -317,7 +329,13 @@ export interface CreateTaskInput {
   judgeMode: JudgeMode;
   minRating: number;
   maxSubmissions: number;
+  /** Refundable per-entry stake, base units (default 0). */
+  entryStake?: number;
+  /** Creator-picks mode: seconds after closing before the AI's pick wins (default 72h). */
+  pickGraceSecs?: number;
 }
+
+export const DEFAULT_PICK_GRACE_SECS = 72 * 3600;
 
 export function newNonce(): BN {
   // Millisecond timestamp + entropy: unique per creator without a global counter.
@@ -343,6 +361,8 @@ export async function buildCreateTask(
       judgeMode: { [input.judgeMode]: {} } as never,
       minRating: input.minRating,
       maxSubmissions: input.maxSubmissions,
+      entryStake: new BN(input.entryStake ?? 0),
+      pickGraceSecs: input.pickGraceSecs ?? DEFAULT_PICK_GRACE_SECS,
     })
     .accountsPartial({
       creator,
@@ -357,11 +377,13 @@ export async function buildCreateTask(
   return { ixs: [ix], task };
 }
 
+/** Pass `stake` (the task's mint) when the task has an entry stake. */
 export async function buildSubmitWork(
   program: WukongProgram,
   worker: PublicKey,
   task: PublicKey,
   contentHashHex: string,
+  stake?: { mint: PublicKey } | null,
 ): Promise<TransactionInstruction> {
   return program.methods
     .submitWork(fromHex(contentHashHex))
@@ -370,8 +392,28 @@ export async function buildSubmitWork(
       task,
       submission: pda.submission(task, worker),
       reputation: pda.reputation(worker),
+      mint: stake ? stake.mint : null,
+      vault: stake ? pda.vault(task) : null,
+      workerToken: stake ? getAssociatedTokenAddressSync(stake.mint, worker, true) : null,
+      tokenProgram: stake ? TOKEN_PROGRAM_ID : null,
     })
     .instruction();
+}
+
+/** Submit instruction for a task view, adding stake accounts when needed. */
+export function buildSubmitForTask(
+  program: WukongProgram,
+  worker: PublicKey,
+  task: TaskView,
+  contentHashHex: string,
+): Promise<TransactionInstruction> {
+  return buildSubmitWork(
+    program,
+    worker,
+    new PublicKey(task.pubkey),
+    contentHashHex,
+    task.entryStake > 0 ? { mint: new PublicKey(task.mint) } : null,
+  );
 }
 
 export async function buildCloseSubmissions(
@@ -409,7 +451,9 @@ export async function buildScore(
 /** Podium places that will be paid for this task, in order. */
 export function payablePodium(task: TaskView, pick?: number): PodiumView[] {
   if (task.judgeMode === "creatorPicks") {
-    return pick !== undefined && task.podium[pick] ? [task.podium[pick]] : [];
+    // No pick = the creator's window lapsed and the AI's top entry wins.
+    if (pick === undefined) return task.podium.slice(0, 1);
+    return task.podium[pick] ? [task.podium[pick]] : [];
   }
   return task.payoutMode === "winnerTakesAll" ? task.podium.slice(0, 1) : task.podium.slice(0, 3);
 }
@@ -457,12 +501,53 @@ export async function buildSettle(
     creator,
     tokenProgram: TOKEN_PROGRAM_ID,
   };
-  const builder =
-    task.judgeMode === "creatorPicks"
-      ? program.methods.settlePick(pick ?? 0)
-      : program.methods.settle();
+  const builder = pick !== undefined ? program.methods.settlePick(pick) : program.methods.settle();
   ixs.push(await builder.accountsPartial(accounts).remainingAccounts(remaining).instruction());
   return ixs;
+}
+
+/** claim_stake for every unsettled staked entry, grouped a few per transaction. */
+export async function buildClaimStakes(
+  program: WukongProgram,
+  cranker: PublicKey,
+  task: TaskView,
+  config: ConfigView,
+  subs: SubmissionView[],
+  perTx = 3,
+): Promise<TransactionInstruction[][]> {
+  const mint = new PublicKey(task.mint);
+  const taskKey = new PublicKey(task.pubkey);
+  const treasury = new PublicKey(config.treasury);
+  const treasuryToken = getAssociatedTokenAddressSync(mint, treasury, true);
+  const pending = subs.filter((s) => s.stake > 0 && !s.stakeSettled);
+  const groups: TransactionInstruction[][] = [];
+  for (let i = 0; i < pending.length; i += perTx) {
+    const ixs: TransactionInstruction[] = [
+      createAssociatedTokenAccountIdempotentInstruction(cranker, treasuryToken, treasury, mint),
+    ];
+    for (const s of pending.slice(i, i + perTx)) {
+      const worker = new PublicKey(s.worker);
+      ixs.push(
+        await program.methods
+          .claimStake()
+          .accountsPartial({
+            cranker,
+            config: pda.config(),
+            task: taskKey,
+            submission: new PublicKey(s.pubkey),
+            vault: pda.vault(taskKey),
+            mint,
+            workerToken: getAssociatedTokenAddressSync(mint, worker, true),
+            treasuryToken,
+            creator: new PublicKey(task.creator),
+            tokenProgram: TOKEN_PROGRAM_ID,
+          })
+          .instruction(),
+      );
+    }
+    groups.push(ixs);
+  }
+  return groups;
 }
 
 export async function buildCancel(

@@ -48,6 +48,20 @@ pub enum WukongError {
     PodiumAccountMismatch,
     #[msg("Only tasks with zero submissions can be cancelled")]
     CannotCancel,
+    #[msg("Entry stake cannot exceed the reward")]
+    StakeTooHigh,
+    #[msg("Pick grace period is capped at 7 days")]
+    PickGraceTooLong,
+    #[msg("This task requires a stake: pass the mint, vault, your token account and the token program")]
+    MissingStakeAccounts,
+    #[msg("Stake account does not match the task")]
+    StakeAccountMismatch,
+    #[msg("This submission has no stake left to settle")]
+    NothingToClaim,
+    #[msg("Task is not settled yet")]
+    TaskNotSettled,
+    #[msg("The creator's pick window is still open")]
+    PickWindowOpen,
     #[msg("Arithmetic overflow")]
     Overflow,
 }

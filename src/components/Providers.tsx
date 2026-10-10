@@ -23,6 +23,7 @@ export interface AppState {
   error?: string;
   deployment?: { cluster: string; rpcUrl: string; programId: string; mint: string; judge: string };
   judge?: { engine: "claude" | "heuristic"; model: string };
+  demoMode?: boolean;
   config?: ConfigView | null;
   tasks?: TaskCard[];
   stats?: { tasks: number; open: number; escrowed: number; paid: number; submissions: number };

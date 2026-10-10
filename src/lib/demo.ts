@@ -16,6 +16,8 @@ export interface TaskTemplate {
   payoutMode: "winnerTakesAll" | "topThree";
   judgeMode: "aiFinal" | "creatorPicks";
   minRating: number;
+  /** Refundable entry stake; slashed if an entry scores under 20. */
+  entryStakeUsdc: number;
   hours: number;
   creatorName: string;
   brief: string;
@@ -32,6 +34,7 @@ export const TEMPLATES: TaskTemplate[] = [
     payoutMode: "topThree",
     judgeMode: "aiFinal",
     minRating: 0,
+    entryStakeUsdc: 1,
     hours: 24,
     creatorName: "Himalayan Java",
     brief: `Himalayan Java is launching a bottled cold brew made from beans grown in Nuwakot, Nepal.
@@ -104,6 +107,7 @@ Every sip feels like reaching the top, which is how ambitious 20-somethings want
     payoutMode: "winnerTakesAll",
     judgeMode: "aiFinal",
     minRating: 0,
+    entryStakeUsdc: 0,
     hours: 48,
     creatorName: "Annapurna Homestay",
     brief: `Translate our guest welcome note into natural, warm Nepali (Devanagari script). Keep the friendly tone; this is printed on a card in every room.
@@ -141,6 +145,7 @@ Every sip feels like reaching the top, which is how ambitious 20-somethings want
     payoutMode: "topThree",
     judgeMode: "aiFinal",
     minRating: 0,
+    entryStakeUsdc: 0,
     hours: 24,
     creatorName: "Kathmandu Dev Collective",
     brief: `Write a TypeScript function slugify(title: string): string for blog URLs.
@@ -208,6 +213,7 @@ export function slugify(title: string): string {
     payoutMode: "winnerTakesAll",
     judgeMode: "aiFinal",
     minRating: 0,
+    entryStakeUsdc: 0,
     hours: 12,
     creatorName: "Thamel Outdoor Supply",
     brief: `Label each review POSITIVE, NEGATIVE or MIXED. Output exactly 8 lines: "<number>. <LABEL>".
@@ -268,6 +274,7 @@ export function slugify(title: string): string {
     payoutMode: "topThree",
     judgeMode: "creatorPicks",
     minRating: 100,
+    entryStakeUsdc: 0,
     hours: 72,
     creatorName: "Nepal Fintech Forum",
     brief: `Write a 150-word explainer of the x402 payment protocol for a small-business owner in Kathmandu who has never used crypto. Cover what it is, why it matters for selling digital services to AI agents, and one concrete example. Plain language, no hype. Reputation-gated: rating 100+ only.`,

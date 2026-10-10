@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Bot, Gavel, Lock, Send, ShieldCheck, Sparkles, Trophy, Users, Wand2, XCircle } from "lucide-react";
+import { Bot, Coins, Gavel, Lock, Send, ShieldCheck, Sparkles, Trophy, Users, Wand2, XCircle } from "lucide-react";
 import { useApp } from "@/components/Providers";
 import { Entry } from "@/components/arena/Entry";
 import type { CrowdEvent, JudgeEvent, LiveState, LogLine, TaskPayload } from "@/components/arena/types";
@@ -27,7 +27,8 @@ function loadMine(task: string): Record<string, string> {
 
 export default function ArenaPage({ params }: { params: Promise<{ task: string }> }) {
   const { task: taskKey } = use(params);
-  const { signer, personaName, refresh: refreshState } = useApp();
+  const { signer, personaName, refresh: refreshState, state: appState } = useApp();
+  const demoMode = appState.demoMode !== false;
   const [data, setData] = useState<TaskPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [live, setLive] = useState<LiveState>(emptyLive);
@@ -68,6 +69,12 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
     setJudging(true);
     setLive(emptyLive());
     try {
+      // The creator closes their own task with a signed transaction; the judge
+      // takes over from there. (In demo mode anyone can ask the judge to close.)
+      if (task?.status === "open" && isCreator && signer) {
+        const { sig } = await runAction(signer, { kind: "close", task: taskKey });
+        push("good", "Creator closed submissions on-chain", sig);
+      }
       await streamEvents<JudgeEvent>("/api/judge", { task: taskKey }, (e) => {
         switch (e.type) {
           case "start":
@@ -111,6 +118,12 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
             } else push("money", `Nothing cleared the quality bar: ${fmtUsdc(e.refunded)} USDC refunded to the buyer`);
             push("good", "Escrow released in one transaction", e.sig);
             break;
+          case "stake":
+            push(
+              e.refunded ? "info" : "bad",
+              `#${e.index + 1} stake ${e.refunded ? "refunded" : "slashed"}: ${fmtUsdc(e.amount, { decimals: 2 })} USDC ${e.refunded ? "back to" : "from"} ${nameOf(e.worker)}`,
+            );
+            break;
           case "awaiting_pick":
             push("ai", "AI shortlist is on-chain. Creator picks the winner.");
             break;
@@ -126,7 +139,7 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
       load();
       refreshState();
     }
-  }, [taskKey, push, load, refreshState]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [taskKey, push, load, refreshState, task?.status, isCreator, signer]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const summon = useCallback(async () => {
     setSummoning(true);
@@ -187,6 +200,11 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
                 <Lock size={11} /> Reputation {task.minRating}+ only
               </span>
             )}
+            {task.entryStake > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-violet/30 bg-violet/10 px-2 py-0.5 text-xs font-semibold text-violet">
+                <Coins size={11} /> {fmtUsdc(task.entryStake)} USDC entry stake · slashed for spam
+              </span>
+            )}
           </div>
           <h1 className="mt-3 font-display text-3xl font-bold leading-tight sm:text-4xl">{task.title}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
@@ -237,6 +255,7 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
               minRating={task.minRating}
               already={!!myEntry}
               committedHash={myEntry?.contentHash}
+              stake={task.entryStake}
               sample={template?.sample}
               personaName={personaName}
               onDone={(content) => {
@@ -293,12 +312,18 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
             <div className="flex flex-col gap-2">
               {task.status === "open" && (
                 <>
-                  <button className="btn btn-violet w-full py-3" disabled={judging || task.submissionCount === 0} onClick={runJudge}>
-                    {judging ? <Spinner /> : <Gavel size={17} />} {isCreator ? "Close & judge" : "Close & judge (demo)"}
-                  </button>
-                  <button className="btn btn-ghost w-full" disabled={summoning || judging} onClick={summon}>
-                    {summoning ? <Spinner /> : <Users size={16} />} Summon the crowd
-                  </button>
+                  {isCreator || demoMode ? (
+                    <button className="btn btn-violet w-full py-3" disabled={judging || task.submissionCount === 0} onClick={runJudge}>
+                      {judging ? <Spinner /> : <Gavel size={17} />} {isCreator ? "Close & judge" : "Close & judge (demo)"}
+                    </button>
+                  ) : (
+                    <p className="text-sm text-muted">Judging starts when the creator closes submissions or the deadline passes.</p>
+                  )}
+                  {demoMode && (
+                    <button className="btn btn-ghost w-full" disabled={summoning || judging} onClick={summon}>
+                      {summoning ? <Spinner /> : <Users size={16} />} Summon the crowd
+                    </button>
+                  )}
                 </>
               )}
               {task.status === "judging" && task.scoredCount < task.submissionCount && (
@@ -307,7 +332,16 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
                 </button>
               )}
               {task.status === "judging" && task.judgeMode === "creatorPicks" && task.scoredCount === task.submissionCount && (
-                <PickPanel data={data} isCreator={isCreator} onPicked={load} nameOf={nameOf} push={push} />
+                <PickPanel
+                  data={data}
+                  isCreator={isCreator}
+                  onPicked={() => {
+                    load();
+                    if (task.entryStake > 0) runJudge(); // refunds / slashes stakes
+                  }}
+                  nameOf={nameOf}
+                  push={push}
+                />
               )}
               {task.status === "open" && isCreator && task.submissionCount === 0 && (
                 <CancelButton taskKey={taskKey} onDone={load} push={push} />
@@ -376,11 +410,13 @@ function SubmitPanel({
   personaName,
   onDone,
   committedHash,
+  stake,
 }: {
   taskKey: string;
   minRating: number;
   already: boolean;
   committedHash?: string;
+  stake: number;
   sample?: string;
   personaName: string;
   onDone: (content: string) => void;
@@ -443,9 +479,14 @@ function SubmitPanel({
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <span className="font-mono text-[11px] text-faint">{hash ? `sha256 ${hash.slice(0, 24)}…` : minRating > 0 ? `requires rating ${minRating}+` : " "}</span>
         <button className="btn btn-gold" disabled={!content.trim() || busy} onClick={submit}>
-          {busy ? <Spinner /> : <Send size={15} />} Submit as {personaName.split(" · ")[0]}
+          {busy ? <Spinner /> : <Send size={15} />} {stake > 0 ? `Stake ${fmtUsdc(stake)} USDC & submit` : `Submit as ${personaName.split(" · ")[0]}`}
         </button>
       </div>
+      {stake > 0 && (
+        <p className="mt-2 text-xs text-muted">
+          The {fmtUsdc(stake)} USDC stake comes back after judging unless the entry scores under 20 (spam, copies, prompt injection).
+        </p>
+      )}
       {err && <p className="mt-3 rounded-lg bg-crimson/10 p-2 text-sm text-crimson">{err}</p>}
     </div>
   );
@@ -550,6 +591,21 @@ function SettledSummary({ data, nameOf }: { data: TaskPayload; nameOf: (k: strin
           Released in one transaction · <ExplorerLink id={settleTx.sig} />
         </div>
       )}
+      {data.task.entryStake > 0 && <StakeSummary data={data} />}
+    </div>
+  );
+}
+
+function StakeSummary({ data }: { data: TaskPayload }) {
+  const staked = data.submissions.filter((s) => s.stake > 0);
+  const settled = staked.filter((s) => s.stakeSettled);
+  const slashed = settled.filter((s) => !(s.scored && s.score >= 2000));
+  return (
+    <div className="mt-1 flex items-center gap-2 rounded-lg bg-violet/5 p-2 text-xs text-muted">
+      <Coins size={13} className="text-violet" />
+      {settled.length < staked.length
+        ? `${staked.length - settled.length} stakes waiting to settle`
+        : `Stakes: ${settled.length - slashed.length} refunded, ${slashed.length} slashed to the treasury`}
     </div>
   );
 }

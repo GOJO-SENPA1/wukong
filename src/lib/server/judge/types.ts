@@ -83,6 +83,15 @@ export type JudgeEvent =
       fee: number;
       refunded: number;
     }
+  | {
+      type: "stake";
+      submission: string;
+      index: number;
+      worker: string;
+      amount: number;
+      refunded: boolean;
+      sig: string;
+    }
   | { type: "awaiting_pick"; podium: { worker: string; submission: string; score: number; index: number }[] }
   | { type: "log"; message: string }
   | { type: "done" }

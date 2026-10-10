@@ -18,7 +18,8 @@
     "demo:e2e": "tsx scripts/e2e.ts",
     "agent": "tsx scripts/agent-buyer.ts",
     "test": "tsx --test tests/*.test.ts",
-    "judge:dryrun": "tsx scripts/judge-dryrun.ts"
+    "judge:dryrun": "tsx scripts/judge-dryrun.ts",
+    "keeper": "tsx scripts/keeper.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.133.0",

@@ -47,3 +47,12 @@ pub struct TaskCancelled {
     pub task: Pubkey,
     pub refunded: u64,
 }
+
+#[event]
+pub struct StakeSettled {
+    pub task: Pubkey,
+    pub submission: Pubkey,
+    pub worker: Pubkey,
+    pub amount: u64,
+    pub refunded: bool,
+}

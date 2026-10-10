@@ -17,3 +17,4 @@ test-ledger/
 # misc
 .DS_Store
 npm-debug.log*
+scripts/.scratch/

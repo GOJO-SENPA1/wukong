@@ -10,7 +10,7 @@ import {
   buildCloseSubmissions,
   buildCreateTask,
   buildSettle,
-  buildSubmitWork,
+  buildSubmitForTask,
   fetchConfig,
   fetchTask,
   newNonce,
@@ -40,6 +40,7 @@ export const ActionSchema = z.discriminatedUnion("kind", [
     judgeMode: z.enum(["aiFinal", "creatorPicks"]),
     minRating: z.number().int().min(0).max(1_000_000),
     maxSubmissions: z.number().int().min(1).max(256),
+    entryStakeUsdc: z.number().min(0).max(1_000_000).default(0),
   }),
   z.object({ kind: z.literal("submit"), signer: pubkey, task: pubkey, contentHash: hex32 }),
   z.object({ kind: z.literal("close"), signer: pubkey, task: pubkey }),
@@ -73,6 +74,7 @@ export async function buildAction(
           judgeMode: action.judgeMode,
           minRating: action.minRating,
           maxSubmissions: action.maxSubmissions,
+          entryStake: Math.round(action.entryStakeUsdc * 1_000_000),
         },
         newNonce() as BN,
       );
@@ -81,11 +83,14 @@ export async function buildAction(
       label = `Task posted, ${action.rewardUsdc} USDC locked in escrow`;
       break;
     }
-    case "submit":
-      ixs = [await buildSubmitWork(prog, signer, new PublicKey(action.task), action.contentHash)];
+    case "submit": {
+      const view = await fetchTask(prog, new PublicKey(action.task));
+      if (!view) throw new Error("Task not found");
+      ixs = [await buildSubmitForTask(prog, signer, view, action.contentHash)];
       task = action.task;
-      label = "Work submitted";
+      label = view.entryStake > 0 ? `Work submitted, ${view.entryStake / 1e6} USDC staked` : "Work submitted";
       break;
+    }
     case "close":
       ixs = [await buildCloseSubmissions(prog, signer, new PublicKey(action.task))];
       task = action.task;
