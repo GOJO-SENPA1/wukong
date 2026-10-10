@@ -23,7 +23,7 @@ Cut from the bottom if time runs short. The demo moment matters more than featur
 ### Day 1 (Oct 10–11): make it real
 1. **Run with a real Claude key.** `npm run judge:dryrun` → check every template's ranking feels right. Tune rubric guides in `src/lib/categories.ts` if not. Decide effort (`WUKONG_JUDGE_EFFORT=low|medium`) by timing a 9-entry judge run; aim for < 20 s on stage.
 2. **Devnet deploy** (one person): `anchor keys sync && npm run program:build`, fund ≥ 4 SOL, `npm run setup:devnet`, `npm run seed`. Commit the synced program id + IDL. Use a dedicated RPC (Helius/Triton) via `SOLANA_RPC_URL`; public devnet RPC rate-limits.
-3. **Host it.** The app needs a persistent disk for `.data/` (Fly.io, Railway, a VPS). Not Vercel serverless as-is. Run `npm run keeper` next to it. A public URL also makes the Blinks unfurl: post a task link on X and let people enter from the post.
+3. **Host it** with [DEPLOY.md](DEPLOY.md): Dockerfile + `fly.toml` are ready (app + keeper in one container, volume for content, secrets from `npm run export:env`). Not Vercel serverless as-is. Run `npm run keeper` next to it. A public URL also makes the Blinks unfurl: post a task link on X and let people enter from the post.
 4. **Real users.** Post 2–3 real tasks with real (devnet) rewards in your network: a Kathmandu café tagline, a Nepali translation. Real entries make the pitch.
 
 ### Day 2 (Oct 11–12): make it land
