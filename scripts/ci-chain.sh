@@ -23,7 +23,9 @@ start_validator() {
   wait_rpc
 }
 stop_validator() { kill "$VALIDATOR" 2>/dev/null || true; wait "$VALIDATOR" 2>/dev/null || true; }
-cleanup() { stop_validator; [ -n "${APP:-}" ] && kill "$APP" 2>/dev/null || true; }
+# The app runs in its own process group (npx spawns the actual server), so
+# kill the whole group or a stale server outlives the run.
+cleanup() { stop_validator; [ -n "${APP:-}" ] && kill -- -"$APP" 2>/dev/null || true; }
 trap cleanup EXIT
 
 echo "::group::program integration tests"
@@ -40,8 +42,11 @@ npx tsx scripts/seed.ts
 echo "::endgroup::"
 
 echo "::group::app"
+if curl -s -o /dev/null "http://localhost:$PORT"; then
+  echo "port $PORT is already in use; stop that server or set PORT" >&2; exit 1
+fi
 npx next build > "$LOG/build.log" 2>&1 || { tail -50 "$LOG/build.log"; exit 1; }
-npx next start -p "$PORT" > "$LOG/app.log" 2>&1 &
+setsid npx next start -p "$PORT" > "$LOG/app.log" 2>&1 &
 APP=$!
 for _ in $(seq 1 60); do curl -s -o /dev/null "http://localhost:$PORT/api/state" && break; sleep 1; done
 echo "::endgroup::"

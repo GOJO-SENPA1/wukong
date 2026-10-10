@@ -11,6 +11,7 @@ import { getJSON, postJSON, runAction, streamEvents } from "@/lib/client/api";
 import { templateById } from "@/lib/demo";
 import { fmtUsdc, shortAddr } from "@/lib/format";
 import { sha256Hex } from "@/lib/hash";
+import { stakeRefunded } from "@/lib/rules";
 
 const emptyLive = (): LiveState => ({ scoring: new Set(), scored: new Map(), signals: new Map(), verified: new Map() });
 
@@ -250,7 +251,7 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
         <div className="card shrink-0 px-5 py-3 text-right">
           <div className="label">{task.status === "settled" ? "Paid out" : "Locked in escrow"}</div>
           <Usdc
-            base={task.status === "settled" ? task.paidOut : data.vaultBalance || task.reward}
+            base={task.status === "settled" ? task.paidOut : task.reward}
             className={cx("font-display text-4xl font-bold", task.status === "settled" ? "text-jade" : "text-gold")}
           />
         </div>
@@ -383,6 +384,12 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
                 <span>Platform fee ({task.feeBps / 100}%)</span>
                 <span>{fmtUsdc(fee, { decimals: 2 })} USDC</span>
               </div>
+              {task.entryStake > 0 && task.stakesOutstanding > 0 && (
+                <div className="flex justify-between">
+                  <span>Stakes held ({task.stakesOutstanding})</span>
+                  <span>{fmtUsdc(task.stakesOutstanding * task.entryStake, { decimals: 2 })} USDC</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>Escrow vault</span>
                 <ExplorerLink kind="address" id={task.vault} />
@@ -662,7 +669,7 @@ function ShareBlink({ taskKey, cluster }: { taskKey: string; cluster?: string })
 function StakeSummary({ data }: { data: TaskPayload }) {
   const staked = data.submissions.filter((s) => s.stake > 0);
   const settled = staked.filter((s) => s.stakeSettled);
-  const slashed = settled.filter((s) => !(s.scored && s.score >= 2000));
+  const slashed = settled.filter((s) => !stakeRefunded(s));
   return (
     <div className="mt-1 flex items-center gap-2 rounded-lg bg-violet/5 p-2 text-xs text-muted">
       <Coins size={13} className="text-violet" />

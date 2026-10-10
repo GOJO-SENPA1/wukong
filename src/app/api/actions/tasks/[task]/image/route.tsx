@@ -1,16 +1,17 @@
 // Live card for the Blink: title, escrowed reward, entries, time left.
 import { ImageResponse } from "next/og";
-import { PublicKey } from "@solana/web3.js";
 import { categoryById } from "@/lib/categories";
 import { fmtUsdc, timeLeft } from "@/lib/format";
 import { fetchTask } from "@/lib/wukong";
+import { parseKey } from "@/lib/server/blinks";
 import { program } from "@/lib/server/env";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(_req: Request, ctx: { params: Promise<{ task: string }> }) {
   const { task: key } = await ctx.params;
-  const task = await fetchTask(program(), new PublicKey(key)).catch(() => null);
+  const pk = parseKey(key);
+  const task = pk ? await fetchTask(program(), pk).catch(() => null) : null;
   const title = task?.title ?? "Task not found";
   const status =
     !task ? "" : task.status === "open" ? timeLeft(task.deadline) : task.status === "settled" ? "paid out" : task.status;

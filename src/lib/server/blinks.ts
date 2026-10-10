@@ -1,5 +1,6 @@
 // Solana Actions (Blinks): any Blink client can render a Wukong task and let
 // a worker enter it from wherever the link was posted.
+import { PublicKey } from "@solana/web3.js";
 import { connection, deployment } from "./env";
 
 export const ACTION_VERSION = "2.4";
@@ -45,10 +46,26 @@ export async function preflight(): Promise<Response> {
   return new Response(null, { status: 204, headers: await actionHeaders() });
 }
 
-/** Absolute origin as the client reached us (works behind proxies). */
+/** Absolute origin as the client reached us (works behind proxy chains). */
 export function originOf(req: Request): string {
   const url = new URL(req.url);
-  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? url.host;
-  const proto = req.headers.get("x-forwarded-proto") ?? url.protocol.replace(":", "");
+  const first = (h: string | null) => h?.split(",")[0]?.trim() || null;
+  const host = first(req.headers.get("x-forwarded-host")) ?? req.headers.get("host") ?? url.host;
+  const proto = first(req.headers.get("x-forwarded-proto")) ?? url.protocol.replace(":", "");
   return `${proto}://${host}`;
 }
+
+export function parseKey(s: string): PublicKey | null {
+  try {
+    return new PublicKey(s);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Blink entries travel URL-encoded in the action href, so keep them well under
+ * common 16 KB request-line limits (Devanagari is ~9 bytes per character).
+ * Longer work goes through the app.
+ */
+export const BLINK_MAX_CHARS = 1500;

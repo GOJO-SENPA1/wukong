@@ -75,11 +75,18 @@ export function detectInjection(text: string): string | null {
   return null;
 }
 
-export function detectLowEffort(text: string): string | null {
+/** Briefs that legitimately want a very short answer (a name, a 3-word slogan). */
+export function briefAllowsShort(brief: string): boolean {
+  return /\b(one|single|1|2|3|4)[- ]word|max(imum)?\s*[1-4]\s*words?|\b(a |the )?names?\b|\bnaming\b|\btitle\b|\bheadline\b|\bhashtag/i.test(brief);
+}
+
+export function detectLowEffort(text: string, opts: { brief?: string } = {}): string | null {
   const ws = words(text);
   if (ws.length === 0) return "empty submission";
   if (!/\p{L}/u.test(text)) return "no actual words";
-  if (ws.length < 5) return `only ${ws.length} word${ws.length === 1 ? "" : "s"}`;
+  if (ws.length < 5 && !(opts.brief && briefAllowsShort(opts.brief))) {
+    return `only ${ws.length} word${ws.length === 1 ? "" : "s"}`;
+  }
   const unique = new Set(ws).size;
   if (ws.length >= 8 && unique / ws.length < 0.3) return "highly repetitive";
   return null;
@@ -102,12 +109,12 @@ export const DUPLICATE_THRESHOLD = 0.72;
 export function integritySignals(
   content: string,
   earlier: PriorEntry[],
-  opts: { headline?: boolean } = {},
+  opts: { headline?: boolean; brief?: string } = {},
 ): Signal[] {
   const out: Signal[] = [];
   const inj = detectInjection(content);
   if (inj) out.push({ flag: "prompt_injection", detail: `tries to instruct the judge: "${inj}"` });
-  const low = detectLowEffort(content);
+  const low = detectLowEffort(content, { brief: opts.brief });
   if (low) out.push({ flag: "low_effort", detail: low });
   let best: { index: number; sim: number } | null = null;
   for (const e of earlier) {

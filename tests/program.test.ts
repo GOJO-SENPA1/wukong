@@ -5,11 +5,13 @@ import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import {
+  closeAccount,
   createMint,
   getAccount,
   getAssociatedTokenAddressSync,
   getOrCreateAssociatedTokenAccount,
   mintTo,
+  transfer,
 } from "@solana/spl-token";
 import {
   buildCancel,
@@ -331,6 +333,51 @@ describe("wukong program", () => {
     await settle(task, undefined, workers[0]); // anyone can crank it now
     assert.equal(await balance(workers[3].publicKey), before + 90 * USDC);
     assert.equal((await fetchTask(program, task))!.status, "settled");
+  });
+
+  it("a stray deposit into a vault can't freeze settlement (swept to the treasury)", async () => {
+    const task = await createTask({ payoutMode: "winnerTakesAll" });
+    await submit(task, workers[0], "only entry");
+    await sendIxs(connection, keypairSigner(creator), [await buildCloseSubmissions(program, creator.publicKey, task)]);
+    await scoreAll(task, [8000]);
+    // Griefing attempt: send 1 base unit straight into the vault.
+    await transfer(connection, creator, getAssociatedTokenAddressSync(mint, creator.publicKey), pda.vault(task), creator, 1);
+    const treasuryBefore = await balance(treasury.publicKey);
+    await settle(task);
+    assert.equal(await connection.getAccountInfo(pda.vault(task)), null, "vault still closed");
+    assert.equal(await balance(treasury.publicKey), treasuryBefore + 10 * USDC + 1, "fee + swept dust");
+  });
+
+  it("a spammer can't dodge the slash by closing their token account", async () => {
+    const spammer = Keypair.generate();
+    await airdrop(spammer.publicKey);
+    const sAta = await getOrCreateAssociatedTokenAccount(connection, admin, mint, spammer.publicKey);
+    await mintTo(connection, admin, mint, sAta.address, admin, USDC);
+    const task = await createTask({ payoutMode: "winnerTakesAll", entryStake: USDC });
+    await submit(task, workers[0], "real work");
+    await submit(task, spammer, "spam");
+    await closeAccount(connection, spammer, sAta.address, spammer.publicKey, spammer); // balance is 0 after staking
+    await sendIxs(connection, keypairSigner(creator), [await buildCloseSubmissions(program, creator.publicKey, task)]);
+    await scoreAll(task, [8000, 500]);
+    await settle(task);
+    const treasuryBefore = await balance(treasury.publicKey);
+    const view = (await fetchTask(program, task))!;
+    const config = (await fetchConfig(program))!;
+    for (const ixs of await buildClaimStakes(program, judge.publicKey, view, config, await fetchSubmissions(program, task), 1)) {
+      await sendIxs(connection, keypairSigner(judge), ixs);
+    }
+    assert.equal(await balance(treasury.publicKey), treasuryBefore + USDC, "spam stake slashed anyway");
+    assert.equal(await connection.getAccountInfo(pda.vault(task)), null, "vault closed");
+  });
+
+  it("creator-picks with an empty shortlist refunds right away, no pick window", async () => {
+    const task = await createTask({ judgeMode: "creatorPicks", pickGraceSecs: 3600 });
+    await submit(task, workers[0], "weak");
+    await sendIxs(connection, keypairSigner(creator), [await buildCloseSubmissions(program, creator.publicKey, task)]);
+    await scoreAll(task, [1500]);
+    const before = await balance(creator.publicKey);
+    await settle(task, undefined, workers[1]);
+    assert.equal(await balance(creator.publicKey), before + 100 * USDC);
   });
 
   it("lets the creator cancel an empty task for a full refund", async () => {
