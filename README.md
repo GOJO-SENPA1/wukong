@@ -170,6 +170,8 @@ npm run dev
 
 Server keys live in `.data/keys/` (or `WUKONG_<ROLE>_SECRET` env vars). Never commit them.
 
+Launching on wukonghq.xyz with real accounts (domain, Supabase, Privy, email) and the build plan for the redesign: **[docs/LAUNCH.md](docs/LAUNCH.md)**.
+
 To host it on **Vercel** (Redis for content, cron + on-view keeper) or as a container (Docker image with the app + keeper, Fly.io config), secrets from env: **[docs/DEPLOY.md](docs/DEPLOY.md)**.
 
 ## Repo map
