@@ -1,6 +1,20 @@
-# Wukong film
+# Wukong film and promo
 
-A 60-second motion-graphics film, written as code. `film.html` is a deterministic timeline: `renderAt(t)` draws the frame at time `t`, and `render.mjs` screenshots every frame in headless Chromium and pipes it into ffmpeg. The voiceover drives the edit: `voice.py` speaks `script.json`, measures when each line and word lands, and writes `timing.js`, so every word on screen appears when it is said.
+Two videos, written as code:
+
+- **The film** (`film.html`, 60 s, 16:9 and a 9:16 laptop framing): kinetic typography with a voiceover.
+- **The promo** (`promo.html`, 24 s, 4:3): a lo-fi teaser with grain, typed lowercase lines, 3D pixel-art icons (`sprites.js`, a Monkey King set), a glowing figure, the clone crowd, ink and a coin-as-"o" logo. Music and effects only, from `promo_audio.py`.
+
+```bash
+node render.mjs --page promo.html --size 1440x1080 --cues     # cue list for the sound
+python promo_audio.py                                          # out/promo-mix.wav
+node render.mjs --page promo.html --size 1440x1080 --fps 24    # out/promo.mp4
+ffmpeg -i out/promo.mp4 -i out/promo-mix.wav -map 0:v -map 1:a -c:v libx264 -crf 24 -af "volume=3dB,alimiter=limit=0.89:level=false" -c:a aac -shortest ../docs/media/wukong-promo.mp4
+```
+
+## The film
+
+A 60-second motion-graphics film. `film.html` is a deterministic timeline: `renderAt(t)` draws the frame at time `t`, and `render.mjs` screenshots every frame in headless Chromium and pipes it into ffmpeg. The voiceover drives the edit: `voice.py` speaks `script.json`, measures when each line and word lands, and writes `timing.js`, so every word on screen appears when it is said.
 
 | File | What it does |
 |---|---|
