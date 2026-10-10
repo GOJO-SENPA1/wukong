@@ -29,14 +29,14 @@ export interface TaskCard extends TaskView {
 }
 
 function card(t: TaskView): TaskCard {
-  const b = store.brief(t.briefHash);
+  const meta = store.taskMeta(t.pubkey) ?? store.brief(t.briefHash);
   const names = store.names();
   return {
     ...t,
-    creatorName: b?.creatorName ?? names[t.creator],
-    origin: b?.origin ?? "unknown",
-    agent: b?.agent,
-    template: b?.template,
+    creatorName: meta?.creatorName ?? names[t.creator],
+    origin: meta?.origin ?? "unknown",
+    agent: meta?.agent,
+    template: meta?.template,
     categoryLabel: categoryById(t.category).label,
   };
 }
@@ -90,11 +90,13 @@ export async function taskView(taskKey: string) {
     vaultBalance = 0;
   }
 
+  // Entries stay sealed while the task is open so nobody can copy them.
+  const sealed = task.status === "open";
   const submissions: SubmissionDetail[] = subs.map((s) => {
     const rec = store.submission(s.contentHash);
     return {
       ...s,
-      content: rec?.content,
+      content: sealed ? undefined : rec?.content,
       contentVerified: !!rec,
       workerName: rec?.workerName ?? names[s.worker],
       report: store.report(s.pubkey),

@@ -258,6 +258,7 @@ async function scoreOne(
   }
 
   const { flags, criteria, raw, final } = finalizeScore(task.category, out, p.signals.map((s) => s.flag));
+  const summary = used === "heuristic" ? penaltySummary(flags) ?? out.summary : out.summary;
 
   return {
     version: 1,
@@ -272,7 +273,7 @@ async function scoreOne(
     criteria,
     flags,
     signals,
-    summary: out.summary,
+    summary,
     strengths: out.strengths,
     improvements: out.improvements,
     rawScore: Math.round(raw * 100) / 100,
@@ -280,4 +281,13 @@ async function scoreOne(
     onchainScore: Math.round(final * 100),
     judgedAt: Math.floor(Date.now() / 1000),
   };
+}
+
+function penaltySummary(flags: string[]): string | null {
+  if (flags.includes("prompt_injection")) return "Disqualified: the entry tries to instruct the judge instead of doing the task.";
+  if (flags.includes("duplicate")) return "Disqualified: near-copy of an earlier entry. First to commit keeps the credit.";
+  if (flags.includes("content_missing")) return "Content could not be verified against its on-chain hash.";
+  if (flags.includes("low_effort")) return "Too thin to evaluate: reads as spam or a placeholder.";
+  if (flags.includes("wrong_language")) return "Misses the language requirement, so it can't be used as delivered.";
+  return null;
 }

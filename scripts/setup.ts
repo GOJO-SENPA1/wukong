@@ -13,7 +13,12 @@ import {
   PublicKey,
   SystemProgram,
 } from "@solana/web3.js";
-import { createMint, getMint } from "@solana/spl-token";
+import {
+  createAssociatedTokenAccountIdempotentInstruction,
+  createMint,
+  getAssociatedTokenAddressSync,
+  getMint,
+} from "@solana/spl-token";
 import idl from "../src/lib/idl/wukong.json";
 import { fetchConfig, getProgram, keypairSigner, pda, sendIxs } from "../src/lib/wukong";
 
@@ -154,6 +159,22 @@ async function main() {
     log("⚠️  admin is not the mint authority: the demo faucet can't mint USDC on this deployment");
   }
   config = await fetchConfig(program);
+
+  // Token accounts the protocol pays into must exist up front (x402 payments
+  // land in the gateway's; fees in the treasury's).
+  await sendIxs(
+    conn,
+    keypairSigner(admin),
+    [gateway.publicKey, treasury.publicKey].map((owner) =>
+      createAssociatedTokenAccountIdempotentInstruction(
+        admin.publicKey,
+        getAssociatedTokenAddressSync(mint, owner, true),
+        owner,
+        mint,
+      ),
+    ),
+  );
+  log("token accounts for gateway + treasury ✓");
 
   const deployment = {
     cluster,

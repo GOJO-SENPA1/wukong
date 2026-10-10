@@ -3,7 +3,10 @@ import path from "node:path";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { getProgram, type WukongProgram } from "../wukong";
 
-export const DATA_DIR = process.env.WUKONG_DATA_DIR ?? path.join(process.cwd(), ".data");
+// turbopackIgnore: keep the dev bundler from tracing (and watching) the whole
+// project through process.cwd(); otherwise every ledger/store write reloads the page.
+export const DATA_DIR =
+  process.env.WUKONG_DATA_DIR ?? path.join(/* turbopackIgnore: true */ process.cwd(), ".data");
 export const KEYS_DIR = path.join(DATA_DIR, "keys");
 
 export interface Deployment {

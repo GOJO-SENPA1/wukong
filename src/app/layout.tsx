@@ -1,0 +1,29 @@
+import type { Metadata } from "next";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import "@solana/wallet-adapter-react-ui/styles.css";
+import "./globals.css";
+import { Providers } from "@/components/Providers";
+import { Nav } from "@/components/Nav";
+
+const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk", weight: ["500", "600", "700"] });
+const sans = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
+
+export const metadata: Metadata = {
+  title: "Wukong · Post a task. Summon the crowd. Pay the best.",
+  description:
+    "Competitive work marketplace on Solana: USDC escrow, many submissions, an AI judge that publishes every score on-chain, and portable reputation.",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
+      <body className="min-h-screen">
+        <Providers>
+          <Nav />
+          <main className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6 sm:px-6">{children}</main>
+        </Providers>
+      </body>
+    </html>
+  );
+}
