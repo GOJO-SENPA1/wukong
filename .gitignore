@@ -1,0 +1,19 @@
+# deps / builds
+node_modules/
+.next/
+out/
+target/
+*.tsbuildinfo
+next-env.d.ts
+
+# local chain + secrets
+.anchor/
+test-ledger/
+.data/
+.env
+.env.local
+*.keypair.json
+
+# misc
+.DS_Store
+npm-debug.log*

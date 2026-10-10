@@ -1,0 +1,20 @@
+[toolchain]
+anchor_version = "0.32.1"
+package_manager = "npm"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+wukong = "5BWF3ueP3ccwFMRv23nn1p1yFUA8hRsqrXy8cQye5zKk"
+
+[programs.devnet]
+wukong = "5BWF3ueP3ccwFMRv23nn1p1yFUA8hRsqrXy8cQye5zKk"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "npx tsx --test tests/*.test.ts"
