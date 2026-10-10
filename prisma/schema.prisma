@@ -1,0 +1,40 @@
+// Accounts and profiles for Wukong. Identity and sign-in are handled by Privy;
+// this database holds the durable account record and the public profile that
+// links a Privy user to their Solana wallet (and thus their on-chain reputation).
+//
+// On Supabase: DATABASE_URL is the transaction pooler (port 6543) used at
+// runtime, DIRECT_URL is the direct/session connection (port 5432) used for
+// migrations. See docs/DEPLOY.md.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id // Privy user DID, e.g. "did:privy:..."
+  email     String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  profile   Profile?
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet      String   @unique // Solana pubkey (base58); links to the on-chain Reputation PDA
+  displayName String
+  bio         String?
+  avatarUrl   String?
+  emailOnWin  Boolean  @default(true) // send "you won" payout emails
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([wallet])
+}
