@@ -42,6 +42,8 @@ pub enum WukongError {
     WrongJudgeMode,
     #[msg("Pick is not on the AI shortlist")]
     InvalidPick,
+    #[msg("Only the task creator can pick the winner")]
+    NotCreator,
     #[msg("Remaining accounts do not match the podium")]
     PodiumAccountMismatch,
     #[msg("Only tasks with zero submissions can be cancelled")]

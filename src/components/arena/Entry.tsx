@@ -105,7 +105,7 @@ export function Entry({
           )}
         </div>
 
-        <div className="flex w-24 shrink-0 flex-col items-end gap-1.5">
+        <div className="flex w-20 shrink-0 flex-col items-end sm:w-24 gap-1.5">
           {scoring ? (
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet">
               <Spinner /> judging

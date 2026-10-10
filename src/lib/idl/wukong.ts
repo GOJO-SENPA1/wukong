@@ -1166,16 +1166,21 @@ export type Wukong = {
     },
     {
       "code": 6020,
+      "name": "notCreator",
+      "msg": "Only the task creator can pick the winner"
+    },
+    {
+      "code": 6021,
       "name": "podiumAccountMismatch",
       "msg": "Remaining accounts do not match the podium"
     },
     {
-      "code": 6021,
+      "code": 6022,
       "name": "cannotCancel",
       "msg": "Only tasks with zero submissions can be cancelled"
     },
     {
-      "code": 6022,
+      "code": 6023,
       "name": "overflow",
       "msg": "Arithmetic overflow"
     }

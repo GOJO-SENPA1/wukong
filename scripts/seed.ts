@@ -5,7 +5,7 @@
 import { TEMPLATES, type TaskTemplate } from "../src/lib/demo";
 import { sha256Hex } from "../src/lib/hash";
 import { buildCreateTask, keypairSigner, sendIxs } from "../src/lib/wukong";
-import { connection, loadOrCreateKey, mint, program } from "../src/lib/server/env";
+import { connection, deployment, loadOrCreateKey, mint, program } from "../src/lib/server/env";
 import { fund } from "../src/lib/server/faucet";
 import { store } from "../src/lib/server/store";
 import { summonCrowd } from "../src/lib/server/crowd";
@@ -16,7 +16,8 @@ const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
 async function postTask(t: TaskTemplate): Promise<string> {
   const creator = loadOrCreateKey(`creators/${slug(t.creatorName)}`);
-  await fund(creator.publicKey.toBase58(), { sol: 2, usdc: t.rewardUsdc * 3, minSol: 0.5 });
+  const local = deployment().cluster === "localnet";
+  await fund(creator.publicKey.toBase58(), { sol: local ? 2 : 0.05, usdc: t.rewardUsdc * 3, minSol: local ? 0.5 : 0.02 });
   store.setName(creator.publicKey.toBase58(), t.creatorName);
   const hash = sha256Hex(t.brief);
   if (!store.brief(hash)) store.putBrief({
