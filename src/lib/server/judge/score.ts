@@ -25,7 +25,7 @@ export function finalizeScore(
   if (flags.includes("prompt_injection") || flags.includes("content_missing")) final = 0;
   if (flags.includes("unsafe")) final = 0;
   if (flags.includes("duplicate") || flags.includes("plagiarism_suspected")) final = Math.min(final, 10);
-  if (flags.includes("low_effort")) final = Math.min(final, 20);
+  if (flags.includes("low_effort")) final = Math.min(final, 15);
   if (flags.includes("wrong_language")) final = Math.min(final, 35);
   return {
     flags,

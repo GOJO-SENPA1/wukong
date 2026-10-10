@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bot, Lock, Trophy, Users } from "lucide-react";
+import { Bot, Coins, Lock, Trophy, Users } from "lucide-react";
 import type { TaskCard as TaskCardData } from "@/lib/server/views";
 import { CategoryBadge, Countdown, StatusPill, Usdc } from "./ui";
 
@@ -17,6 +17,11 @@ export function TaskCard({ task }: { task: TaskCardData }) {
         {task.origin === "x402" && (
           <span className="inline-flex items-center gap-1 rounded-full border border-sky/30 bg-sky/10 px-2 py-0.5 text-xs font-semibold text-sky">
             <Bot size={12} /> AI agent · x402
+          </span>
+        )}
+        {task.entryStake > 0 && (
+          <span className="inline-flex items-center gap-1 rounded-full border border-violet/30 bg-violet/10 px-2 py-0.5 text-xs font-semibold text-violet">
+            <Coins size={11} /> Stake {task.entryStake / 1e6}
           </span>
         )}
         {task.minRating > 0 && (

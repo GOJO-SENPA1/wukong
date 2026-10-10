@@ -84,6 +84,15 @@ pub struct Task {
     /// Minimum on-chain reputation rating required to submit.
     pub min_rating: u32,
     pub max_submissions: u16,
+    /// Refundable stake each entrant locks (0 = none). Slashed to the treasury
+    /// if the entry scores under the spam bar; refunded otherwise.
+    pub entry_stake: u64,
+    /// Staked entries whose stake has not been refunded or slashed yet.
+    pub stakes_outstanding: u16,
+    /// Creator-picks mode: after this long past closing, anyone can settle on
+    /// the AI's top pick. Protects workers from a buyer who never decides.
+    pub pick_grace_secs: u32,
+    pub closed_at: i64,
     pub submission_count: u16,
     pub scored_count: u16,
     pub podium: [PodiumEntry; 3],
@@ -111,6 +120,8 @@ pub struct Submission {
     /// 0 = not placed, 1..=3 = podium place after settlement.
     pub rank: u8,
     pub payout: u64,
+    pub stake: u64,
+    pub stake_settled: bool,
     pub bump: u8,
 }
 

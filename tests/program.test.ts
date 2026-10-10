@@ -17,6 +17,8 @@ import {
   buildCreateTask,
   buildScore,
   buildSettle,
+  buildClaimStakes,
+  buildSubmitForTask,
   buildSubmitWork,
   explainError,
   fetchConfig,
@@ -92,7 +94,8 @@ async function createTask(overrides: Partial<CreateTaskInput> = {}) {
 }
 
 async function submit(task: PublicKey, worker: Keypair, text: string) {
-  const ix = await buildSubmitWork(program, worker.publicKey, task, sha256Hex(text));
+  const view = (await fetchTask(program, task))!;
+  const ix = await buildSubmitForTask(program, worker.publicKey, view, sha256Hex(text));
   return sendIxs(connection, keypairSigner(worker), [ix]);
 }
 
@@ -117,6 +120,10 @@ describe("wukong program", () => {
     mint = await createMint(connection, admin, admin.publicKey, null, 6);
     const ata = await getOrCreateAssociatedTokenAccount(connection, admin, mint, creator.publicKey);
     await mintTo(connection, admin, mint, ata.address, admin, 10_000 * USDC);
+    for (const w of workers) {
+      const wa = await getOrCreateAssociatedTokenAccount(connection, admin, mint, w.publicKey);
+      await mintTo(connection, admin, mint, wa.address, admin, 10 * USDC); // for entry stakes
+    }
 
     const existing = await fetchConfig(program);
     if (existing) {
@@ -204,10 +211,11 @@ describe("wukong program", () => {
     // Anyone can crank settlement — use a random worker.
     await settle(task, undefined, workers[2]);
     const pool = 90 * USDC; // 100 minus 10% fee
-    assert.equal(await balance(workers[1].publicKey), pool * 0.5);
-    assert.equal(await balance(workers[3].publicKey), pool * 0.3);
-    assert.equal(await balance(workers[0].publicKey), pool * 0.2);
-    assert.equal(await balance(workers[2].publicKey), 0);
+    const start = 10 * USDC; // each worker's stake float
+    assert.equal(await balance(workers[1].publicKey), start + pool * 0.5);
+    assert.equal(await balance(workers[3].publicKey), start + pool * 0.3);
+    assert.equal(await balance(workers[0].publicKey), start + pool * 0.2);
+    assert.equal(await balance(workers[2].publicKey), start);
     assert.equal(await balance(treasury.publicKey), 10 * USDC);
     assert.equal(await connection.getAccountInfo(pda.vault(task)), null, "vault closed");
 
@@ -267,6 +275,62 @@ describe("wukong program", () => {
     const task = await createTask({ minRating: 100 });
     await expectFail(submit(task, workers[2], "nope"), "Reputation rating too low");
     await submit(task, workers[1], "veteran entry"); // rating 141 from the first task
+  });
+
+  it("entry stakes: refunded for real work, slashed for spam, vault closes on the last claim", async () => {
+    const task = await createTask({ payoutMode: "winnerTakesAll", entryStake: 2 * USDC });
+    const before = await Promise.all(workers.slice(0, 3).map((w) => balance(w.publicKey)));
+    const treasuryBefore = await balance(treasury.publicKey);
+    await submit(task, workers[0], "honest");
+    await submit(task, workers[1], "spam");
+    await submit(task, workers[2], "winner");
+    assert.equal(Number((await getAccount(connection, pda.vault(task))).amount), 106 * USDC, "reward + 3 stakes");
+
+    // A staked task without the stake accounts is rejected.
+    const noStake = await createTask({ entryStake: USDC });
+    await expectFail(
+      sendIxs(connection, keypairSigner(workers[3]), [
+        await buildSubmitWork(program, workers[3].publicKey, noStake, sha256Hex("x"), null),
+      ]),
+      "requires a stake",
+    );
+
+    await sendIxs(connection, keypairSigner(creator), [await buildCloseSubmissions(program, creator.publicKey, task)]);
+    await scoreAll(task, [6000, 1000, 9000]);
+    await settle(task);
+    assert.ok(await connection.getAccountInfo(pda.vault(task)), "vault stays open while stakes are outstanding");
+
+    const view = (await fetchTask(program, task))!;
+    const config = (await fetchConfig(program))!;
+    const groups = await buildClaimStakes(program, judge.publicKey, view, config, await fetchSubmissions(program, task), 2);
+    assert.equal(groups.length, 2);
+    await sendIxs(connection, keypairSigner(judge), groups[0]);
+    // Claims are one-shot: re-claiming a settled stake fails.
+    const settledSub = (await fetchSubmissions(program, task)).find((x) => x.stakeSettled)!;
+    const again = await buildClaimStakes(program, judge.publicKey, view, config, [{ ...settledSub, stakeSettled: false }]);
+    await expectFail(sendIxs(connection, keypairSigner(judge), again[0]), "no stake left to settle");
+    await sendIxs(connection, keypairSigner(judge), groups[1]);
+
+    assert.equal(await balance(workers[0].publicKey), before[0], "honest stake refunded");
+    assert.equal(await balance(workers[1].publicKey), before[1] - 2 * USDC, "spam stake slashed");
+    assert.equal(await balance(workers[2].publicKey), before[2] + 90 * USDC, "winner paid, stake back");
+    assert.equal(await balance(treasury.publicKey), treasuryBefore + 10 * USDC + 2 * USDC, "fee + slashed stake");
+    assert.equal(await connection.getAccountInfo(pda.vault(task)), null, "vault closed after last claim");
+    assert.equal((await fetchTask(program, task))!.stakesOutstanding, 0);
+  });
+
+  it("creator-picks: if the creator never picks, the AI's top entry wins after the grace period", async () => {
+    const task = await createTask({ judgeMode: "creatorPicks", payoutMode: "winnerTakesAll", pickGraceSecs: 2 });
+    await submit(task, workers[0], "first");
+    await submit(task, workers[3], "second");
+    await sendIxs(connection, keypairSigner(creator), [await buildCloseSubmissions(program, creator.publicKey, task)]);
+    await scoreAll(task, [7000, 9100]);
+    await expectFail(settle(task, undefined, workers[0]), "pick window is still open");
+    await new Promise((r) => setTimeout(r, 3500));
+    const before = await balance(workers[3].publicKey);
+    await settle(task, undefined, workers[0]); // anyone can crank it now
+    assert.equal(await balance(workers[3].publicKey), before + 90 * USDC);
+    assert.equal((await fetchTask(program, task))!.status, "settled");
   });
 
   it("lets the creator cancel an empty task for a full refund", async () => {

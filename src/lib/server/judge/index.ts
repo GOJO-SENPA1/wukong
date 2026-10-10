@@ -5,6 +5,7 @@ import { PublicKey } from "@solana/web3.js";
 import { categoryById } from "../../categories";
 import { canonicalJson, sha256Hex } from "../../hash";
 import {
+  buildClaimStakes,
   buildCloseSubmissions,
   buildScore,
   buildSettle,
@@ -17,7 +18,7 @@ import {
   type SubmissionView,
   type TaskView,
 } from "../../wukong";
-import { connection, loadKey, program } from "../env";
+import { DEMO_MODE, connection, loadKey, program } from "../env";
 import { store } from "../store";
 import { claudeAvailable, JUDGE_MODEL, scoreWithClaude } from "./claude";
 import { integritySignals, type PriorEntry, type Signal } from "./detect";
@@ -26,6 +27,8 @@ import { finalizeScore } from "./score";
 import type { JudgeEvent, JudgeReport, ScoringOutput } from "./types";
 
 const CONCURRENCY = Number(process.env.WUKONG_JUDGE_CONCURRENCY ?? 8);
+/** Mirrors the program's SPAM_SCORE: stakes under this are slashed. */
+const SPAM_SCORE = 2000;
 const running = new Set<string>();
 
 export function judgeEngine(): { engine: "claude" | "heuristic"; model: string } {
@@ -95,6 +98,12 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
 
     let task = await fetchTask(prog, taskPk);
     if (!task) throw new Error("Task not found on-chain");
+    if (task.status === "settled" && task.stakesOutstanding > 0) {
+      // Settled (e.g. by the creator's pick): only the entry stakes are left.
+      await settleStakes(task, emit);
+      emit({ type: "done" });
+      return;
+    }
     if (task.status === "settled" || task.status === "cancelled") {
       throw new Error(`Task is already ${task.status}`);
     }
@@ -103,6 +112,9 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
     const { engine, model } = judgeEngine();
     emit({ type: "start", task: taskKey, count: task.submissionCount, engine, model });
 
+    if (task.status === "open" && !DEMO_MODE && Date.now() / 1000 <= task.deadline) {
+      throw new Error("Submissions are still open: the creator closes them on-chain, or the deadline does");
+    }
     if (task.status === "open") {
       const sig = await sendIxs(conn, signer, [
         await buildCloseSubmissions(prog, judgeKey.publicKey, taskPk),
@@ -209,10 +221,46 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
         fee: settled.feePaid,
         refunded: settled.podium.length === 0 ? settled.reward : 0,
       });
+      if (settled.stakesOutstanding > 0) await settleStakes(settled, emit);
     }
     emit({ type: "done" });
   } finally {
     running.delete(taskKey);
+  }
+}
+
+/** Refund honest entrants' stakes and slash spammers', a few per transaction. */
+async function settleStakes(task: TaskView, emit: (e: JudgeEvent) => void) {
+  const prog = program();
+  const judgeKey = loadKey("judge");
+  const taskPk = new PublicKey(task.pubkey);
+  const subs = await fetchSubmissions(prog, taskPk);
+  const config = (await fetchConfig(prog))!;
+  const groups = await buildClaimStakes(prog, judgeKey.publicKey, task, config, subs);
+  const pending = subs.filter((s) => s.stake > 0 && !s.stakeSettled);
+  let i = 0;
+  for (const ixs of groups) {
+    const sig = await sendIxs(connection(), keypairSigner(judgeKey), ixs);
+    const batch = pending.slice(i, i + ixs.length - 1);
+    i += batch.length;
+    const slashed = batch.filter((s) => !(s.scored && s.score >= SPAM_SCORE)).length;
+    store.addTx(task.pubkey, {
+      sig,
+      kind: "settle",
+      label: `Stakes: ${batch.length - slashed} refunded, ${slashed} slashed`,
+      at: Date.now(),
+    });
+    for (const s of batch) {
+      emit({
+        type: "stake",
+        submission: s.pubkey,
+        index: s.index,
+        worker: s.worker,
+        amount: s.stake,
+        refunded: s.scored && s.score >= SPAM_SCORE,
+        sig,
+      });
+    }
   }
 }
 

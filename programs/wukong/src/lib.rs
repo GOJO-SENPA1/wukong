@@ -7,6 +7,8 @@
 //! deterministic function of published scores, not of the judge's say-so.
 //! Settlement is permissionless once every entry is scored, pays the podium
 //! straight from escrow, and updates each worker's portable Reputation PDA.
+//! Optional entry stakes make spam expensive: refunded for honest work,
+//! slashed to the treasury for entries under the spam bar.
 
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{
@@ -42,6 +44,7 @@ pub const SPAM_SCORE: u16 = 2_000;
 pub const SPAM_PENALTY: u32 = 10;
 pub const PLACE_BONUS: [u32; 3] = [100, 50, 25];
 pub const TOP_THREE_SPLIT_BPS: [u64; 3] = [5_000, 3_000, 2_000];
+pub const MAX_PICK_GRACE_SECS: u32 = 7 * 24 * 3600;
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct CreateTaskArgs {
@@ -54,6 +57,8 @@ pub struct CreateTaskArgs {
     pub judge_mode: JudgeMode,
     pub min_rating: u32,
     pub max_submissions: u16,
+    pub entry_stake: u64,
+    pub pick_grace_secs: u32,
 }
 
 #[program]
@@ -113,6 +118,8 @@ pub mod wukong {
             args.max_submissions >= 1 && args.max_submissions <= MAX_SUBMISSIONS,
             WukongError::InvalidMaxSubmissions
         );
+        require!(args.entry_stake <= args.reward, WukongError::StakeTooHigh);
+        require!(args.pick_grace_secs <= MAX_PICK_GRACE_SECS, WukongError::PickGraceTooLong);
 
         token_interface::transfer_checked(
             CpiContext::new(
@@ -152,6 +159,10 @@ pub mod wukong {
         task.judge_mode = args.judge_mode;
         task.min_rating = args.min_rating;
         task.max_submissions = args.max_submissions;
+        task.entry_stake = args.entry_stake;
+        task.stakes_outstanding = 0;
+        task.pick_grace_secs = args.pick_grace_secs;
+        task.closed_at = 0;
         task.submission_count = 0;
         task.scored_count = 0;
         task.podium = [PodiumEntry::default(); 3];
@@ -190,6 +201,36 @@ pub mod wukong {
         rep.submissions = rep.submissions.saturating_add(1);
         rep.last_active = now;
 
+        let stake = task.entry_stake;
+        if stake > 0 {
+            let (Some(mint), Some(vault), Some(worker_token), Some(token_program)) = (
+                ctx.accounts.mint.as_ref(),
+                ctx.accounts.vault.as_ref(),
+                ctx.accounts.worker_token.as_ref(),
+                ctx.accounts.token_program.as_ref(),
+            ) else {
+                return err!(WukongError::MissingStakeAccounts);
+            };
+            require_keys_eq!(mint.key(), task.mint, WukongError::StakeAccountMismatch);
+            require_keys_eq!(vault.key(), task.vault, WukongError::StakeAccountMismatch);
+            require_keys_eq!(worker_token.mint, task.mint, WukongError::StakeAccountMismatch);
+            require_keys_eq!(worker_token.owner, worker, WukongError::StakeAccountMismatch);
+            token_interface::transfer_checked(
+                CpiContext::new(
+                    token_program.to_account_info(),
+                    TransferChecked {
+                        from: worker_token.to_account_info(),
+                        mint: mint.to_account_info(),
+                        to: vault.to_account_info(),
+                        authority: ctx.accounts.worker.to_account_info(),
+                    },
+                ),
+                stake,
+                mint.decimals,
+            )?;
+            task.stakes_outstanding += 1;
+        }
+
         let sub = &mut ctx.accounts.submission;
         sub.task = task.key();
         sub.worker = worker;
@@ -201,6 +242,8 @@ pub mod wukong {
         sub.report_hash = [0u8; 32];
         sub.rank = 0;
         sub.payout = 0;
+        sub.stake = stake;
+        sub.stake_settled = false;
         sub.bump = ctx.bumps.submission;
 
         task.submission_count += 1;
@@ -226,6 +269,7 @@ pub mod wukong {
         let privileged = signer == task.creator || signer == ctx.accounts.config.judge;
         require!(privileged || now > task.deadline, WukongError::NotAllowedToClose);
         task.status = TaskStatus::Judging;
+        task.closed_at = now;
         emit!(SubmissionsClosed {
             task: task.key(),
             submission_count: task.submission_count,
@@ -291,8 +335,20 @@ pub mod wukong {
     pub fn settle<'info>(ctx: Context<'_, '_, 'info, 'info, Settle<'info>>) -> Result<()> {
         let task = &ctx.accounts.task;
         require!(task.status == TaskStatus::Judging, WukongError::TaskNotJudging);
-        require!(task.judge_mode == JudgeMode::AiFinal, WukongError::WrongJudgeMode);
         require!(task.scored_count == task.submission_count, WukongError::ScoringIncomplete);
+
+        if task.judge_mode == JudgeMode::CreatorPicks {
+            // The creator had their window and didn't pick: the AI's top
+            // entry wins outright, so workers are never left unpaid.
+            let now = Clock::get()?.unix_timestamp;
+            require!(
+                now > task.closed_at + task.pick_grace_secs as i64,
+                WukongError::PickWindowOpen
+            );
+            let winners: Vec<PodiumEntry> = task.podium[..1].iter().copied().filter(|e| e.filled).collect();
+            let shares = split_shares(PayoutMode::WinnerTakesAll, winners.len());
+            return pay_out(ctx, winners, shares);
+        }
 
         let places: Vec<usize> = match task.payout_mode {
             PayoutMode::WinnerTakesAll => vec![0],
@@ -321,6 +377,70 @@ pub mod wukong {
         require!(pick < 3 && task.podium[pick].filled, WukongError::InvalidPick);
         let winners = vec![task.podium[pick]];
         pay_out(ctx, winners, vec![BPS])
+    }
+
+    /// Settle one entry's stake after the task settles: refunded if it scored
+    /// at or above the spam bar, slashed to the treasury otherwise.
+    /// Permissionless; the last one closes the vault.
+    pub fn claim_stake(ctx: Context<ClaimStake>) -> Result<()> {
+        let task = &ctx.accounts.task;
+        require!(task.status == TaskStatus::Settled, WukongError::TaskNotSettled);
+        let sub = &ctx.accounts.submission;
+        require!(sub.stake > 0 && !sub.stake_settled, WukongError::NothingToClaim);
+
+        let refunded = sub.scored && sub.score >= SPAM_SCORE;
+        let amount = sub.stake;
+        let creator = task.creator;
+        let nonce_bytes = task.nonce.to_le_bytes();
+        let bump = [task.bump];
+        let seeds: &[&[u8]] = &[TASK_SEED, creator.as_ref(), &nonce_bytes, &bump];
+        let signer = &[seeds];
+        let to = if refunded {
+            ctx.accounts.worker_token.to_account_info()
+        } else {
+            ctx.accounts.treasury_token.to_account_info()
+        };
+        token_interface::transfer_checked(
+            CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                TransferChecked {
+                    from: ctx.accounts.vault.to_account_info(),
+                    mint: ctx.accounts.mint.to_account_info(),
+                    to,
+                    authority: ctx.accounts.task.to_account_info(),
+                },
+                signer,
+            ),
+            amount,
+            ctx.accounts.mint.decimals,
+        )?;
+
+        let task = &mut ctx.accounts.task;
+        task.stakes_outstanding -= 1;
+        let last = task.stakes_outstanding == 0;
+        let task_key = task.key();
+        let sub = &mut ctx.accounts.submission;
+        sub.stake_settled = true;
+        emit!(StakeSettled {
+            task: task_key,
+            submission: sub.key(),
+            worker: sub.worker,
+            amount,
+            refunded,
+        });
+
+        if last {
+            token_interface::close_account(CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                CloseAccount {
+                    account: ctx.accounts.vault.to_account_info(),
+                    destination: ctx.accounts.creator.to_account_info(),
+                    authority: ctx.accounts.task.to_account_info(),
+                },
+                signer,
+            ))?;
+        }
+        Ok(())
     }
 
     /// Pull the task before anyone has submitted; full refund.
@@ -426,7 +546,9 @@ fn pay_out<'info>(
     let seeds: &[&[u8]] = &[TASK_SEED, creator.as_ref(), &nonce_bytes, &bump];
     let signer = &[seeds];
     let decimals = ctx.accounts.mint.decimals;
-    let vault_balance = ctx.accounts.vault.amount;
+    // The vault also holds entry stakes; only the reward is paid out here.
+    let reward = task.reward;
+    let keep_vault_open = task.stakes_outstanding > 0;
     let remaining = ctx.remaining_accounts;
 
     require!(
@@ -462,11 +584,11 @@ fn pay_out<'info>(
 
     if winners.is_empty() {
         // Nothing cleared the quality bar: the buyer gets their money back.
-        refunded = vault_balance;
+        refunded = reward;
         transfer(ctx.accounts.creator_token.to_account_info(), refunded)?;
     } else {
-        fee = (vault_balance as u128 * task.fee_bps as u128 / BPS as u128) as u64;
-        let pool = vault_balance - fee;
+        fee = (reward as u128 * task.fee_bps as u128 / BPS as u128) as u64;
+        let pool = reward - fee;
         let mut payouts: Vec<u64> = shares
             .iter()
             .map(|s| (pool as u128 * *s as u128 / BPS as u128) as u64)
@@ -514,18 +636,20 @@ fn pay_out<'info>(
         }
     }
 
-    token_interface::close_account(CpiContext::new_with_signer(
-        ctx.accounts.token_program.to_account_info(),
-        CloseAccount {
-            account: ctx.accounts.vault.to_account_info(),
-            destination: ctx.accounts.creator.to_account_info(),
-            authority: ctx.accounts.task.to_account_info(),
-        },
-        signer,
-    ))?;
+    if !keep_vault_open {
+        token_interface::close_account(CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            CloseAccount {
+                account: ctx.accounts.vault.to_account_info(),
+                destination: ctx.accounts.creator.to_account_info(),
+                authority: ctx.accounts.task.to_account_info(),
+            },
+            signer,
+        ))?;
+    }
 
     let config = &mut ctx.accounts.config;
-    config.total_escrowed = config.total_escrowed.saturating_sub(vault_balance);
+    config.total_escrowed = config.total_escrowed.saturating_sub(reward);
     config.total_paid = config.total_paid.saturating_add(paid_total);
 
     let task = &mut ctx.accounts.task;
@@ -631,6 +755,13 @@ pub struct SubmitWork<'info> {
         bump
     )]
     pub reputation: Box<Account<'info, Reputation>>,
+    /// Stake accounts: required only when the task has an entry stake.
+    pub mint: Option<Box<InterfaceAccount<'info, Mint>>>,
+    #[account(mut)]
+    pub vault: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
+    #[account(mut)]
+    pub worker_token: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
+    pub token_program: Option<Interface<'info, TokenInterface>>,
     pub system_program: Program<'info, System>,
 }
 
@@ -711,6 +842,55 @@ pub struct Settle<'info> {
     )]
     pub creator_token: Box<InterfaceAccount<'info, TokenAccount>>,
     /// CHECK: receives the vault's rent; pinned to the task creator.
+    #[account(mut, address = task.creator)]
+    pub creator: UncheckedAccount<'info>,
+    pub token_program: Interface<'info, TokenInterface>,
+}
+
+#[derive(Accounts)]
+pub struct ClaimStake<'info> {
+    pub cranker: Signer<'info>,
+    #[account(seeds = [CONFIG_SEED], bump = config.bump)]
+    pub config: Box<Account<'info, Config>>,
+    #[account(
+        mut,
+        seeds = [TASK_SEED, task.creator.as_ref(), &task.nonce.to_le_bytes()],
+        bump = task.bump
+    )]
+    pub task: Box<Account<'info, Task>>,
+    #[account(
+        mut,
+        seeds = [SUBMISSION_SEED, task.key().as_ref(), submission.worker.as_ref()],
+        bump = submission.bump,
+        has_one = task
+    )]
+    pub submission: Box<Account<'info, Submission>>,
+    #[account(
+        mut,
+        seeds = [VAULT_SEED, task.key().as_ref()],
+        bump = task.vault_bump,
+        token::mint = mint,
+        token::authority = task,
+        token::token_program = token_program
+    )]
+    pub vault: Box<InterfaceAccount<'info, TokenAccount>>,
+    #[account(address = task.mint)]
+    pub mint: Box<InterfaceAccount<'info, Mint>>,
+    #[account(
+        mut,
+        token::mint = mint,
+        token::authority = submission.worker,
+        token::token_program = token_program
+    )]
+    pub worker_token: Box<InterfaceAccount<'info, TokenAccount>>,
+    #[account(
+        mut,
+        token::mint = mint,
+        token::authority = config.treasury,
+        token::token_program = token_program
+    )]
+    pub treasury_token: Box<InterfaceAccount<'info, TokenAccount>>,
+    /// CHECK: receives the vault's rent when the last stake settles.
     #[account(mut, address = task.creator)]
     pub creator: UncheckedAccount<'info>,
     pub token_program: Interface<'info, TokenInterface>,

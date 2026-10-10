@@ -22,6 +22,7 @@ export default function NewTaskPage() {
   const [payoutMode, setPayoutMode] = useState<"winnerTakesAll" | "topThree">("topThree");
   const [judgeMode, setJudgeMode] = useState<"aiFinal" | "creatorPicks">("aiFinal");
   const [minRating, setMinRating] = useState(0);
+  const [stake, setStake] = useState(0);
   const [template, setTemplate] = useState<string | undefined>();
   const [step, setStep] = useState<Step>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +42,7 @@ export default function NewTaskPage() {
     setPayoutMode(t.payoutMode);
     setJudgeMode(t.judgeMode);
     setMinRating(t.minRating);
+    setStake(t.entryStakeUsdc);
   }
 
   async function submit() {
@@ -62,6 +64,7 @@ export default function NewTaskPage() {
         judgeMode,
         minRating,
         maxSubmissions: 32,
+        entryStakeUsdc: stake,
       });
       setStep("done");
       await refresh();
@@ -73,7 +76,8 @@ export default function NewTaskPage() {
   }
 
   const busy = step !== "idle";
-  const valid = title.trim().length > 0 && title.length <= 64 && brief.trim().length >= 10 && reward > 0;
+  const valid =
+    title.trim().length > 0 && title.length <= 64 && brief.trim().length >= 10 && reward > 0 && stake >= 0 && stake <= reward;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
@@ -133,7 +137,7 @@ export default function NewTaskPage() {
             <span className="label">Brief (hashed on-chain, judge verifies it)</span>
             <textarea className="input min-h-48 font-mono text-[13px] leading-relaxed" value={brief} onChange={(e) => setBrief(e.target.value)} placeholder="What does great look like? Audience, tone, hard constraints…" />
           </label>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-4">
             <label className="flex flex-col gap-1.5">
               <span className="label">Reward (USDC)</span>
               <input className="input" type="number" min={1} value={reward} onChange={(e) => setReward(Number(e.target.value))} />
@@ -145,6 +149,10 @@ export default function NewTaskPage() {
             <label className="flex flex-col gap-1.5">
               <span className="label">Min. reputation</span>
               <input className="input" type="number" min={0} value={minRating} onChange={(e) => setMinRating(Number(e.target.value))} />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="label">Entry stake (USDC)</span>
+              <input className="input" type="number" min={0} step={0.5} value={stake} onChange={(e) => setStake(Number(e.target.value))} />
             </label>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -185,6 +193,7 @@ export default function NewTaskPage() {
               <Row k="1st / 2nd / 3rd" v={`${(pool * 0.5).toFixed(2)} / ${(pool * 0.3).toFixed(2)} / ${(pool * 0.2).toFixed(2)}`} />
             )}
             <Row k="If nothing scores ≥ 25" v="full refund" />
+            {stake > 0 && <Row k={`Entry stake ${stake} USDC`} v="slashed if spam" />}
           </div>
           <button className="btn btn-gold mt-5 w-full py-3 text-base" disabled={!valid || busy} onClick={submit}>
             {busy ? <Spinner /> : <Lock size={16} />} Lock {reward} USDC & post

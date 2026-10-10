@@ -119,6 +119,24 @@ export function Entry({
             <span className="text-xs text-faint">{sealed ? "awaiting close" : "queued"}</span>
           )}
           {sub.payout > 0 && <span className="text-sm font-bold text-jade">+{fmtUsdc(sub.payout, { decimals: 2 })} USDC</span>}
+          {sub.stake > 0 && (
+            <span
+              className={cx(
+                "rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                !sub.stakeSettled
+                  ? "bg-violet/10 text-violet"
+                  : sub.scored && sub.score >= 2000
+                    ? "bg-white/5 text-muted"
+                    : "bg-crimson/15 text-crimson",
+              )}
+            >
+              {!sub.stakeSettled
+                ? `${fmtUsdc(sub.stake)} staked`
+                : sub.scored && sub.score >= 2000
+                  ? "stake refunded"
+                  : `−${fmtUsdc(sub.stake)} slashed`}
+            </span>
+          )}
         </div>
       </div>
 

@@ -75,6 +75,7 @@ async function main() {
     judgeMode: t.judgeMode,
     minRating: 0,
     maxSubmissions: 32,
+    entryStakeUsdc: t.entryStakeUsdc,
   });
   assert.ok(task);
   console.log(`✓ task posted + escrowed: ${task}`);
@@ -112,6 +113,14 @@ async function main() {
   assert.ok(view.submissions.every((s: { scored: boolean }) => s.scored), "all scored on-chain");
   const paid = view.submissions.filter((s: { rank: number }) => s.rank > 0).reduce((a: number, s: { payout: number }) => a + s.payout, 0);
   assert.equal(paid + view.task.feePaid, t.rewardUsdc * 1e6, "escrow fully distributed");
+
+  const stakes = judge.filter((e) => e.type === "stake") as { refunded: boolean; index: number }[];
+  assert.equal(stakes.length, view.submissions.length, "every stake settled");
+  const slashed = stakes.filter((s) => !s.refunded).map((s) => s.index + 1).sort((a, b) => a - b);
+  assert.deepEqual(slashed, [6, 7, 8], "copycat, injection and spam lose their stake");
+  assert.equal(view.task.stakesOutstanding, 0);
+  assert.equal(view.vaultBalance, 0, "vault drained and closed");
+  console.log(`✓ stakes: ${stakes.length - slashed.length} refunded, slashed #${slashed.join(", #")}`);
   console.log("\n✅ E2E passed: post → escrow → submit → crowd → judge → on-chain scores → payout\n");
 }
 

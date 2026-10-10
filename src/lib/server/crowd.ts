@@ -5,9 +5,10 @@
 import { PublicKey } from "@solana/web3.js";
 import { templateById, type CrowdEntry } from "../demo";
 import { sha256Hex } from "../hash";
-import { buildSubmitWork, explainError, fetchTask, keypairSigner, pda, sendIxs } from "../wukong";
+import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { buildSubmitForTask, explainError, fetchTask, keypairSigner, pda, sendIxs } from "../wukong";
 import { connection, loadOrCreateKey, program } from "./env";
-import { ensureGas } from "./faucet";
+import { ensureGas, fund } from "./faucet";
 import { store } from "./store";
 
 export type CrowdEvent =
@@ -46,6 +47,12 @@ export async function* summonCrowd(taskKey: string, pace = 700): AsyncGenerator<
       }
       try {
         await ensureGas(kp.publicKey);
+        if (task.entryStake > 0) {
+          // Simulated workers stake real (demo) USDC like everyone else.
+          const ata = getAssociatedTokenAddressSync(new PublicKey(task.mint), kp.publicKey, true);
+          const have = await getAccount(conn, ata).then((a) => Number(a.amount)).catch(() => 0);
+          if (have < task.entryStake) await fund(kp.publicKey.toBase58(), { usdc: task.entryStake / 1e6 });
+        }
         const hash = sha256Hex(entry.content);
         store.putSubmission({
           hash,
@@ -56,7 +63,7 @@ export async function* summonCrowd(taskKey: string, pace = 700): AsyncGenerator<
           createdAt: Date.now(),
         });
         store.setName(kp.publicKey.toBase58(), `${entry.name} · ${entry.city}`);
-        const ix = await buildSubmitWork(prog, kp.publicKey, taskPk, hash);
+        const ix = await buildSubmitForTask(prog, kp.publicKey, task, hash);
         const sig = await sendIxs(conn, keypairSigner(kp), [ix]);
         store.addTx(taskKey, { sig, kind: "submit", label: `${entry.name} submitted`, at: Date.now() });
         submitted++;

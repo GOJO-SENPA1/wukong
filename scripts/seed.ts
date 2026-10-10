@@ -40,6 +40,7 @@ async function postTask(t: TaskTemplate): Promise<string> {
     judgeMode: t.judgeMode,
     minRating: t.minRating,
     maxSubmissions: 32,
+    entryStake: t.entryStakeUsdc * 1_000_000,
   });
   const sig = await sendIxs(connection(), keypairSigner(creator), ixs);
   store.setTaskMeta(task.toBase58(), { origin: "seed", creatorName: t.creatorName, template: t.id });
