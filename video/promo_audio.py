@@ -4,6 +4,7 @@ outro on the logo) plus effects on the promo's cue list. Synthesized, like
 audio.py, whose effects it reuses.
 
   node render.mjs --page promo.html --size 1440x1080 --cues   → out/promo-cues.json
+  python promo_voice.py --model en-us-ryan-high.onnx           → vo/promo-vo.wav (optional)
   python promo_audio.py                                        → out/promo-mix.wav
 """
 import json
@@ -230,6 +231,33 @@ def music(duration):
     return mix[:n]
 
 
+def voice(n):
+    """The voiceover from promo_voice.py, cleaned and levelled; None if it hasn't been made."""
+    path = HERE / "vo" / "promo-vo.wav"
+    if not path.exists():
+        return None
+    _, v = wavfile.read(path)
+    v = v.astype(np.float64) / 32768
+    v = np.pad(v, (0, max(0, n - len(v))))[:n]
+    v = hp(v, 110)
+    v = v + 0.35 * bp(v, 2500, 6000)  # presence
+    return np.tanh(norm(v) * 2.2) / np.tanh(2.2)  # evens out the level
+
+
+def follow(x, attack=0.015, release=0.25, hop=480):
+    """0..1 envelope of where x is sounding: fast to open, slow to let go."""
+    k = len(x) // hop
+    rms = np.sqrt((x[: k * hop].reshape(k, hop) ** 2).mean(axis=1))
+    level = np.clip(rms / (0.12 * rms.max()), 0, 1)
+    a, r = np.exp(-hop / (attack * SR)), np.exp(-hop / (release * SR))
+    out, e = np.zeros(k), 0.0
+    for i, v in enumerate(level):
+        c = a if v > e else r
+        e = c * e + (1 - c) * v
+        out[i] = e
+    return np.pad(np.repeat(out, hop), (0, len(x) - k * hop), mode="edge")
+
+
 def main():
     cues = json.loads((HERE / "out" / "promo-cues.json").read_text())
     duration = cues["duration"]
@@ -253,6 +281,15 @@ def main():
     rl, rr = reverb(fx * 0.5 + bed * 0.2, 1.4, 0.2)
     st = np.stack([bed + fx + rl, bed + fx + rr], axis=1)
     st = np.tanh(st * 1.6) / np.tanh(1.6)
+    vo = voice(n)
+    if vo is not None:
+        # the music and effects duck about 6 dB under the voice, which sits about 6 dB above them
+        talk = follow(vo)
+        st *= (1 - 0.5 * talk)[:, None]
+        on = talk > 0.5
+        gain = 2.0 * np.sqrt((st[on] ** 2).mean()) / np.sqrt((vo[on] ** 2).mean())
+        vl, vr = reverb(vo, 0.9, 0.07)
+        st += gain * np.stack([vo + vl, vo + vr], axis=1)
     st = st[: int((duration + 0.3) * SR)]
     fade = int(0.35 * SR)
     st[-fade:] *= np.linspace(1, 0, fade)[:, None]
