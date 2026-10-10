@@ -9,12 +9,12 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 import { connection, deployment, loadKey } from "./env";
+import { kv } from "./kv";
 
 export const X402_VERSION = 1;
 
@@ -76,13 +76,12 @@ export function encodePaymentResponse(r: { success: boolean; transaction: string
 }
 
 const TRANSFER_CHECKED = 12;
-const MAX_MICRO_LAMPORTS = BigInt(1_000_000);
-const ALLOWED_PROGRAMS = new Set([
-  ComputeBudgetProgram.programId.toBase58(),
-  TOKEN_PROGRAM_ID.toBase58(),
-  TOKEN_2022_PROGRAM_ID.toBase58(),
-  ASSOCIATED_TOKEN_PROGRAM_ID.toBase58(),
-]);
+// The facilitator pays the fee, so the payment must be as cheap as possible to
+// include: a compute limit is required and capped, the priority fee is capped,
+// and nothing but compute-budget settings and one USDC transfer is allowed.
+const MAX_MICRO_LAMPORTS = BigInt(100_000);
+const MAX_COMPUTE_UNITS = 200_000;
+const ALLOWED_PROGRAMS = new Set([ComputeBudgetProgram.programId.toBase58(), TOKEN_PROGRAM_ID.toBase58(), TOKEN_2022_PROGRAM_ID.toBase58()]);
 
 /** Verify the payment transaction matches the requirements, co-sign as fee payer, submit. */
 export async function verifyAndSettle(
@@ -95,6 +94,10 @@ export async function verifyAndSettle(
   const keys = msg.staticAccountKeys;
   const gateway = loadKey("gateway");
   if (!keys[0].equals(gateway.publicKey)) throw new Error("Fee payer must be the facilitator in extra.feePayer");
+  // Exactly two signers (facilitator + payer): every extra signature is a fee the facilitator pays.
+  if (msg.header.numRequiredSignatures !== 2) throw new Error("Expected exactly two signers: the facilitator and the payer");
+  if (msg.addressTableLookups.length > 0) throw new Error("Address lookup tables are not accepted");
+  let computeLimit: number | null = null;
 
   const mint = new PublicKey(req.asset);
   const expectedDest = getAssociatedTokenAddressSync(mint, new PublicKey(req.payTo), true);
@@ -110,8 +113,12 @@ export async function verifyAndSettle(
     }
     if (programId.equals(ComputeBudgetProgram.programId)) {
       const data = Buffer.from(ix.data);
-      if (data[0] === 2 && data.readUInt32LE(1) > 400_000) throw new Error("Compute limit too high");
-      if (data[0] === 3 && data.readBigUInt64LE(1) > MAX_MICRO_LAMPORTS) throw new Error("Priority fee too high");
+      if (data[0] === 2) {
+        computeLimit = data.readUInt32LE(1);
+        if (computeLimit > MAX_COMPUTE_UNITS) throw new Error("Compute limit too high");
+      } else if (data[0] === 3) {
+        if (data.readBigUInt64LE(1) > MAX_MICRO_LAMPORTS) throw new Error("Priority fee too high");
+      } else throw new Error("Only compute unit limit and price instructions are allowed");
       continue;
     }
     const isToken = programId.equals(TOKEN_PROGRAM_ID) || programId.equals(TOKEN_2022_PROGRAM_ID);
@@ -127,10 +134,18 @@ export async function verifyAndSettle(
     }
     transfer = { amount: data.readBigUInt64LE(1), payer: authority };
   }
+  if (computeLimit === null) throw new Error("Set a compute unit limit (at most 200,000)");
   if (!transfer) throw new Error("No USDC transfer found");
   if (transfer.amount !== BigInt(req.maxAmountRequired)) {
     throw new Error(`Amount mismatch: paid ${transfer.amount}, required ${req.maxAmountRequired}`);
   }
+
+  // One payment, one task: claim the payer's signature before co-signing, so a
+  // replayed or concurrent duplicate X-PAYMENT can't create a second task.
+  const payerSig = tx.signatures[1];
+  if (!payerSig || payerSig.every((b) => b === 0)) throw new Error("Payment is not signed by the payer");
+  const claimed = await kv().lock(`x402:${Buffer.from(payerSig).toString("base64url")}`, 7 * 24 * 3600 * 1000);
+  if (!claimed) throw new Error("This payment was already used");
 
   tx.sign([gateway]);
   const conn = connection();
@@ -141,4 +156,18 @@ export async function verifyAndSettle(
   const res = await conn.confirmTransaction({ signature: sig, ...bh }, "confirmed");
   if (res.value.err) throw new Error(`Payment failed: ${JSON.stringify(res.value.err)}`);
   return { sig, payer: transfer.payer.toBase58() };
+}
+
+/** Send a settled payment back to its payer (the facilitator pays the fee). */
+export async function refundPayment(payer: string, amountBase: number): Promise<string> {
+  const { createAssociatedTokenAccountIdempotentInstruction, createTransferCheckedInstruction } = await import("@solana/spl-token");
+  const { keypairSigner, sendIxs } = await import("../wukong");
+  const gateway = loadKey("gateway");
+  const mint = new PublicKey(deployment().mint);
+  const to = new PublicKey(payer);
+  const dest = getAssociatedTokenAddressSync(mint, to, true);
+  return sendIxs(connection(), keypairSigner(gateway), [
+    createAssociatedTokenAccountIdempotentInstruction(gateway.publicKey, dest, to, mint),
+    createTransferCheckedInstruction(getAssociatedTokenAddressSync(mint, gateway.publicKey, true), mint, dest, gateway.publicKey, BigInt(amountBase), 6),
+  ]);
 }

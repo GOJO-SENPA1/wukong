@@ -2,18 +2,43 @@
 // On localnet SOL comes from airdrops; on devnet from the admin wallet.
 
 import {
+  type Keypair,
   LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   type TransactionInstruction,
 } from "@solana/web3.js";
 import {
+  getMint,
   createAssociatedTokenAccountIdempotentInstruction,
   createMintToInstruction,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 import { keypairSigner, sendIxs } from "../wukong";
 import { connection, deployment, loadKey, mint } from "./env";
+
+/**
+ * The faucet's own key: WUKONG_FAUCET_SECRET (or .data/keys/faucet.json), holding
+ * a little SOL and the demo mint's authority (scripts/faucet-key.ts sets that up).
+ * Falls back to the admin key, which is fine on localnet; on a hosted deploy, use a
+ * faucet key so the admin (upgrade + config authority) never lives on the web host.
+ */
+let minter: { mint: string; key: Keypair } | null = null;
+export async function faucetKey(): Promise<Keypair> {
+  const m = mint();
+  if (minter?.mint === m.toBase58()) return minter.key;
+  let key: Keypair;
+  try {
+    const faucet = loadKey("faucet");
+    // Use the faucet key only if it really holds this mint's authority (a fresh local setup may not).
+    const info = await getMint(connection(), m);
+    key = info.mintAuthority?.equals(faucet.publicKey) ? faucet : loadKey("admin");
+  } catch {
+    key = loadKey("admin");
+  }
+  minter = { mint: m.toBase58(), key };
+  return key;
+}
 
 export async function fund(
   address: string,
@@ -22,7 +47,7 @@ export async function fund(
   const to = new PublicKey(address);
   const conn = connection();
   const dep = deployment();
-  const admin = loadKey("admin");
+  const admin = await faucetKey();
   const wantSol = opts.sol ?? 0;
   const wantUsdc = opts.usdc ?? 0;
 

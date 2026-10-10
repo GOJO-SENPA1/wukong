@@ -19,14 +19,15 @@ import {
   type SubmissionView,
   type TaskView,
 } from "../../wukong";
-import { demoMode, connection, loadKey, program } from "../env";
+import { connection, demoMode, isDemoCreator, loadKey, program } from "../env";
 import { kv } from "../kv";
 import { store } from "../store";
-import { claudeAvailable, JUDGE_MODEL, scoreWithClaude } from "./claude";
+import { claudeAvailable, JUDGE_MODEL, JudgeRefusal, scoreWithClaude } from "./claude";
 import { integritySignals, type PriorEntry, type Signal } from "./detect";
 import { scoreHeuristic } from "./heuristic";
 import { finalizeScore } from "./score";
 import type { JudgeEvent, JudgeReport, ScoringOutput } from "./types";
+import { notifyTaskSafe } from "../notify";
 
 const CONCURRENCY = Number(process.env.WUKONG_JUDGE_CONCURRENCY ?? 8);
 const running = new Set<string>();
@@ -67,6 +68,8 @@ export function judgeTask(taskKey: string): AsyncIterable<JudgeEvent> {
   const stream = new EventStream<JudgeEvent>();
   run(taskKey, (e) => stream.push(e))
     .catch((err) => stream.push({ type: "error", message: explainError(err) }))
+    // Result emails go out before the stream ends, so serverless hosts keep the function alive for them.
+    .then(() => notifyTaskSafe(taskKey))
     .finally(() => stream.close());
   return stream;
 }
@@ -86,7 +89,8 @@ interface Prepared {
   peers: string[];
 }
 
-const LOCK_TTL_MS = 10 * 60 * 1000;
+// Long enough for a 256-entry run on a container host; a crashed holder frees it after this.
+const LOCK_TTL_MS = 45 * 60 * 1000;
 
 async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
   if (running.has(taskKey)) throw new Error("The judge is already working on this task");
@@ -117,7 +121,9 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
     const { engine, model } = judgeEngine();
     emit({ type: "start", task: taskKey, count: task.submissionCount, engine, model });
 
-    if (task.status === "open" && !demoMode() && Date.now() / 1000 <= task.deadline) {
+    // Before the deadline only the creator closes submissions (on-chain, with their own signature).
+    // The one exception: in demo mode, the seeded demo companies' tasks, so visitors can watch the judge.
+    if (task.status === "open" && Date.now() / 1000 <= task.deadline && !(demoMode() && isDemoCreator(task.creator))) {
       throw new Error("Submissions are still open: the creator closes them on-chain, or the deadline does");
     }
     if (task.status === "open") {
@@ -171,7 +177,12 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
     const todo = prepared.filter((p) => !p.sub.scored);
     await pool(todo, CONCURRENCY, async (p) => {
       emit({ type: "scoring", submission: p.sub.pubkey, index: p.sub.index });
-      const report = await scoreOne(task!, briefText, p, engine);
+      // A report computed on an earlier pass (but not yet published) is reused, not recomputed.
+      const prior = await store.report(p.sub.pubkey);
+      const report =
+        prior && !prior.txSig && prior.report.contentHash === p.sub.contentHash && prior.report.briefHash === task!.briefHash
+          ? prior.report
+          : await scoreOne(task!, briefText, p, engine);
       const reportHash = sha256Hex(canonicalJson(report));
       // Never replace a report whose hash is already on-chain.
       if ((await store.report(p.sub.pubkey))?.txSig) return;
@@ -292,12 +303,25 @@ async function scoreOne(
       model: "none",
     };
   } else if (engine === "claude") {
+    // Never mix engines within a task: a transient failure leaves the entry
+    // unscored (the keeper retries), and a firm refusal scores it as unsafe.
     try {
-      out = await scoreWithClaude(input);
+      out = await scoreWithClaude(input).catch(async (err) => {
+        if (err instanceof JudgeRefusal) throw err;
+        await new Promise((r) => setTimeout(r, 2000));
+        return scoreWithClaude(input);
+      });
     } catch (err) {
-      used = "heuristic";
-      signals.push(`claude_unavailable: ${explainError(err).slice(0, 160)}`);
-      out = scoreHeuristic(input);
+      if (!(err instanceof JudgeRefusal)) throw new Error(`The AI judge is unavailable right now; entry #${p.sub.index + 1} will be scored on the next pass`);
+      out = {
+        criteria: cat.criteria.map((c) => ({ key: c.key, score: 0, comment: "The judge declined to evaluate this content." })),
+        flags: ["unsafe"],
+        summary: "The judge declined to score this entry; it was flagged for review.",
+        strengths: [],
+        improvements: ["Keep entries within the brief and the platform's content rules."],
+        model: JUDGE_MODEL,
+      };
+      signals.push(`judge_refusal: ${(err as JudgeRefusal).category}`);
     }
   } else {
     out = scoreHeuristic(input);

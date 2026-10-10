@@ -7,18 +7,23 @@
 //   - judging, all scored, AI-final          → settles
 //   - creator-picks past the pick grace      → settles on the AI's top pick
 //   - settled with stakes outstanding        → refunds / slashes the stakes
-import { buildSettle, fetchConfig, fetchTasks, keypairSigner, sendIxs, type TaskView } from "../wukong";
+//   - judging, scores missing 7 days after close → refunds the creator (expire_judging)
+import { buildExpireJudging, buildSettle, fetchConfig, fetchTasks, keypairSigner, sendIxs, type TaskView } from "../wukong";
 import { connection, loadKey, program } from "./env";
 import { judgeTask } from "./judge";
+import { notifyTaskSafe } from "./notify";
 import { store } from "./store";
 
-export type KeeperAction = "judge" | "pick-timeout";
+export type KeeperAction = "judge" | "pick-timeout" | "expire";
+
+/** Mirrors JUDGE_TIMEOUT_SECS in the program. */
+export const JUDGE_TIMEOUT_SECS = 7 * 24 * 3600;
 
 export function due(t: TaskView, now = Math.floor(Date.now() / 1000)): KeeperAction | null {
   if (t.status === "settled") return t.stakesOutstanding > 0 ? "judge" : null; // stakes to settle
   if (t.status === "open") return now > t.deadline && t.submissionCount > 0 ? "judge" : null;
   if (t.status !== "judging") return null;
-  if (t.scoredCount < t.submissionCount) return "judge";
+  if (t.scoredCount < t.submissionCount) return t.closedAt > 0 && now > t.closedAt + JUDGE_TIMEOUT_SECS ? "expire" : "judge";
   if (t.judgeMode === "aiFinal") return "judge";
   if (t.closedAt > 0 && now > t.closedAt + t.pickGraceSecs) return "pick-timeout";
   return null;
@@ -36,13 +41,25 @@ export async function keepTask(t: TaskView, log: (msg: string) => void = () => {
     }
     return;
   }
-  // The creator never picked: the AI's top entry wins (permissionless).
   const prog = program();
   const judge = loadKey("judge");
   const config = (await fetchConfig(prog))!;
+  if (action === "expire") {
+    // The judge never finished: the creator gets the reward back; stakes are refunded next pass.
+    const sig = await sendIxs(connection(), keypairSigner(judge), await buildExpireJudging(prog, judge.publicKey, t, config));
+    await store.addTx(t.pubkey, { sig, kind: "settle", label: "Judging timed out: reward refunded to the creator", at: Date.now() });
+    log(`  judging expired, refunded ${sig.slice(0, 12)}…`);
+    await notifyTaskSafe(t.pubkey);
+    return;
+  }
+  // The creator never picked: the AI's top entry wins (permissionless). Their window runs
+  // from the last score, not from close, so a slow judge can't eat into it.
+  const lastScore = Math.max(0, ...(await store.txs(t.pubkey)).filter((x) => x.kind === "score").map((x) => Math.floor(x.at / 1000)));
+  if (Date.now() / 1000 <= Math.max(t.closedAt, lastScore) + t.pickGraceSecs) return;
   const sig = await sendIxs(connection(), keypairSigner(judge), await buildSettle(prog, judge.publicKey, t, config));
   await store.addTx(t.pubkey, { sig, kind: "settle", label: "Creator never picked: AI top pick paid", at: Date.now() });
   log(`  settled on the AI's top pick ${sig.slice(0, 12)}…`);
+  await notifyTaskSafe(t.pubkey);
   if (t.entryStake > 0) for await (const e of judgeTask(t.pubkey)) if (e.type === "error") log(`  ! ${e.message}`);
 }
 

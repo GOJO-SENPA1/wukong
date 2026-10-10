@@ -7,3 +7,7 @@ target
 test-ledger
 docs/img
 *.log
+.env*
+!.env.example
+*.pem
+keys

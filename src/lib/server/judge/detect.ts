@@ -65,11 +65,23 @@ const INJECTION_PATTERNS: RegExp[] = [
   /<\/?(system|instructions?|judge)>/i,
   /as the (ai )?judge,? you (must|should|will)/i,
   /new instructions?:/i,
+  // tag breakout: closing or forging the judge's own blocks
+  /<\/?\s*(submission|brief|rubric|task|precheck_signals)[\w-]*\s*[>\s]/i,
+  /\b(assign|give|award)\b.{0,40}\b(full|maximum|perfect|100)\b.{0,20}\b(score|marks|points)\b/i,
 ];
 
+/** Undo the usual disguises: compatibility forms, zero-width and soft-hyphen characters, odd spacing. */
+function normalizeForScan(text: string): string {
+  return text
+    .normalize("NFKC")
+    .replace(/[\u00AD\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]/g, "")
+    .replace(/\s+/g, " ");
+}
+
 export function detectInjection(text: string): string | null {
+  const norm = normalizeForScan(text);
   for (const re of INJECTION_PATTERNS) {
-    const m = text.match(re);
+    const m = norm.match(re);
     if (m) return m[0];
   }
   return null;

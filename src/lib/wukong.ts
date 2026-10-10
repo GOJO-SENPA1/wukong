@@ -508,6 +508,24 @@ export async function buildSettle(
   return ixs;
 }
 
+/** The judge went dark: refund the reward to the creator once JUDGE_TIMEOUT has passed since close. */
+export async function buildExpireJudging(program: WukongProgram, cranker: PublicKey, task: TaskView, config: ConfigView): Promise<TransactionInstruction[]> {
+  const mint = new PublicKey(task.mint);
+  const taskKey = new PublicKey(task.pubkey);
+  const creator = new PublicKey(task.creator);
+  const treasury = new PublicKey(config.treasury);
+  const treasuryToken = getAssociatedTokenAddressSync(mint, treasury, true);
+  const creatorToken = getAssociatedTokenAddressSync(mint, creator, true);
+  return [
+    createAssociatedTokenAccountIdempotentInstruction(cranker, treasuryToken, treasury, mint),
+    createAssociatedTokenAccountIdempotentInstruction(cranker, creatorToken, creator, mint),
+    await program.methods
+      .expireJudging()
+      .accountsPartial({ cranker, config: pda.config(), task: taskKey, vault: pda.vault(taskKey), mint, treasuryToken, creatorToken, creator, tokenProgram: TOKEN_PROGRAM_ID })
+      .instruction(),
+  ];
+}
+
 /** claim_stake for every unsettled staked entry, grouped a few per transaction. */
 export async function buildClaimStakes(
   program: WukongProgram,

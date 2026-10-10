@@ -5,6 +5,7 @@ import { use, useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowDown, Bot, ChevronRight, Gavel, Lock, Users } from "lucide-react";
 import { useApp } from "@/components/Providers";
+import { useAccount } from "@/components/auth/Account";
 import { Entry } from "@/components/arena/Entry";
 import { CancelButton, EscrowCard, JudgeStage, LiveLog, PickPanel, Rubric, SealedBanner, SettledSummary, ShareBlink, SubmitPanel } from "@/components/arena/Panels";
 import type { CrowdEvent, JudgeEvent, LiveState, LogLine, TaskPayload } from "@/components/arena/types";
@@ -32,7 +33,8 @@ function loadMine(task: string): Record<string, string> {
 
 export default function ArenaPage({ params }: { params: Promise<{ task: string }> }) {
   const { task: taskKey } = use(params);
-  const { signer, personaName, refresh: refreshState, state: appState } = useApp();
+  const { signer, personaName, refresh: refreshState, state: appState, role } = useApp();
+  const account = useAccount();
   const demoMode = appState.demoMode !== false;
   const [data, setData] = useState<TaskPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -192,7 +194,8 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
   });
   const podiumRank = new Map(task.podium.map((p, i) => [p.submission, i + 1]));
   const liveScored = data.submissions.filter((s) => s.scored || live.scored.has(s.pubkey)).length;
-  const canEnter = task.status === "open" && !isCreator;
+  const canEnter = task.status === "open" && !isCreator && role === "worker";
+  const needsSignIn = task.status === "open" && role === null && account.enabled && !account.authenticated;
 
   return (
     <div className="flex flex-col gap-8">
@@ -360,7 +363,17 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
                       Enter this task <ArrowDown size={16} />
                     </a>
                   )}
-                  {isCreator || demoMode ? (
+                  {needsSignIn && (
+                    <button className="btn btn-red h-12 w-full" onClick={account.login}>
+                      Sign in to enter
+                    </button>
+                  )}
+                  {role === "company" && !isCreator && (
+                    <p className="rounded-xl bg-white/[0.07] p-3 text-center text-[13px] text-white/65">You&apos;re viewing as an organisation. Freelancer accounts enter tasks.</p>
+                  )}
+                  {isCreator && task.judgeMode === "creatorPicks" && Date.now() / 1000 <= task.deadline && task.submissionCount < task.maxSubmissions ? (
+                    <p className="text-center text-[13px] text-white/55">Creator-picks tasks close at the deadline. Then you pick the winner from the AI shortlist.</p>
+                  ) : isCreator || (demoMode && task.demoCreator) ? (
                     <button className={cx("btn h-12 w-full", isCreator ? "btn-red" : "btn-blue")} disabled={judging || task.submissionCount === 0} onClick={runJudge}>
                       {judging ? <Spinner /> : <Gavel size={17} />} {isCreator ? "Close and judge" : "Close and judge (demo)"}
                     </button>

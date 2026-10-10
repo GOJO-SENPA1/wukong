@@ -74,7 +74,7 @@ async function main() {
     payoutMode: t.payoutMode,
     judgeMode: t.judgeMode,
     minRating: 0,
-    maxSubmissions: 32,
+    maxSubmissions: 256,
     entryStakeUsdc: t.entryStakeUsdc,
   });
   assert.ok(task);
@@ -123,6 +123,10 @@ async function main() {
   const crowd = await events("/api/crowd", { task, pace: 0 });
   const submitted = crowd.filter((e) => e.type === "submitted").length;
   console.log(`✓ crowd submitted ${submitted} entries`);
+
+  // The creator closes submissions with their own signature (the server never closes someone else's task early).
+  await act(company, { kind: "close", task });
+  console.log("✓ creator closed submissions");
 
   const judge = await events("/api/judge", { task });
   const err = judge.find((e) => e.type === "error");

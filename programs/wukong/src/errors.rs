@@ -64,4 +64,18 @@ pub enum WukongError {
     PickWindowOpen,
     #[msg("Arithmetic overflow")]
     Overflow,
+    #[msg("Reward must be at least 1 USDC")]
+    RewardTooSmall,
+    #[msg("Deadline can be at most 90 days away")]
+    DeadlineTooFar,
+    #[msg("A task with fewer than 256 entry slots needs an entry stake of at least reward / slots")]
+    CapNeedsStake,
+    #[msg("Creator-picks tasks pay a single winner: use winner takes all")]
+    PicksAreWinnerTakesAll,
+    #[msg("Creator-picks tasks close at the deadline (or when full), not early")]
+    PicksCloseAtDeadline,
+    #[msg("Every entry is scored; settle the task instead")]
+    JudgingComplete,
+    #[msg("The judge still has time to finish scoring")]
+    JudgeTimeoutNotReached,
 }

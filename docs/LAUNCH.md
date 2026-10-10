@@ -74,7 +74,7 @@ Add these in Vercel (Production, plus Preview if you use preview deploys). Copy 
 | `RESEND_API_KEY` | Resend → API Keys | **no** |
 | `EMAIL_FROM` | `Wukong <noreply@send.wukonghq.xyz>` | no |
 
-These are already set from the earlier deploy: `WUKONG_DEPLOYMENT`, `WUKONG_JUDGE_SECRET`, `WUKONG_GATEWAY_SECRET`, `WUKONG_ADMIN_SECRET`, `SOLANA_RPC_URL`, `KV_URL` / `REDIS_URL`, `CRON_SECRET`, `WUKONG_DEMO_MODE`, `ANTHROPIC_API_KEY`. See [DEPLOY.md](DEPLOY.md).
+These are already set from the earlier deploy: `WUKONG_DEPLOYMENT`, `WUKONG_JUDGE_SECRET`, `WUKONG_GATEWAY_SECRET`, `SOLANA_RPC_URL`, `KV_URL` / `REDIS_URL`, `CRON_SECRET`, `WUKONG_DEMO_MODE`, `ANTHROPIC_API_KEY`. Replace `WUKONG_ADMIN_SECRET` with `WUKONG_FAUCET_SECRET` (see [SECURITY.md](SECURITY.md)). See [DEPLOY.md](DEPLOY.md).
 
 For real users, set `WUKONG_DEMO_MODE=0`. That turns off the faucet, the simulated crowd and early closing, as the production design expects.
 

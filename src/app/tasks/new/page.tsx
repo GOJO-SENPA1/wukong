@@ -5,6 +5,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { Check, Lock } from "lucide-react";
 import { useApp } from "@/components/Providers";
+import { useAccount } from "@/components/auth/Account";
 import { Counter, Kinetic, Magnetic, Reveal } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
 import { burst } from "@/components/fx/Overlay";
@@ -26,7 +27,8 @@ const HOURS = [
 
 export default function NewTaskPage() {
   const router = useRouter();
-  const { signer, persona, personaName, state, refresh } = useApp();
+  const { signer, persona, personaName, state, refresh, role, personasOn, setPersona } = useApp();
+  const account = useAccount();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState(0);
   const [brief, setBrief] = useState("");
@@ -65,7 +67,7 @@ export default function NewTaskPage() {
     setError(null);
     try {
       setStep("brief");
-      const creatorName = persona === "company" ? "Himalayan Java" : persona === "wallet" ? undefined : personaName;
+      const creatorName = persona === "company" ? "Himalayan Java" : persona === "wallet" ? undefined : personaName.split(" · ")[0];
       const { hash } = await postJSON<{ hash: string }>("/api/briefs", { title, category, brief, creatorName, template });
       setStep("sign");
       const { task } = await runAction(signer, {
@@ -78,7 +80,7 @@ export default function NewTaskPage() {
         payoutMode,
         judgeMode,
         minRating,
-        maxSubmissions: 32,
+        maxSubmissions: 256,
         entryStakeUsdc: stake,
       });
       setStep("done");
@@ -91,8 +93,11 @@ export default function NewTaskPage() {
     }
   }
 
+  if (role !== "company") return <PostGate signedIn={role !== null} personasOn={personasOn} onDemo={() => setPersona("company")} onSignIn={account.enabled && !account.authenticated ? account.login : undefined} />;
+
   const busy = step !== "idle";
-  const valid = title.trim().length > 0 && title.length <= 64 && brief.trim().length >= 10 && reward > 0 && stake >= 0 && stake <= reward;
+  const valid =
+    title.trim().length > 0 && new TextEncoder().encode(title).length <= 64 && brief.trim().length >= 10 && reward >= 1 && stake >= 0 && stake <= reward;
 
   return (
     <div className="flex flex-col gap-8">
@@ -205,9 +210,11 @@ export default function NewTaskPage() {
             </label>
             <LayoutGroup id="payout">
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <Option active={payoutMode === "topThree"} onClick={() => setPayoutMode("topThree")} group="payout">
+                <Option active={payoutMode === "topThree"} onClick={() => judgeMode === "aiFinal" && setPayoutMode("topThree")} group="payout" disabled={judgeMode === "creatorPicks"}>
                   <div className="font-semibold">Top 3 paid</div>
-                  <div className="mt-1 text-[13px] text-muted">Split 50 / 30 / 20 between the three best entries.</div>
+                  <div className="mt-1 text-[13px] text-muted">
+                    {judgeMode === "creatorPicks" ? "Not with “AI shortlists, I pick”: you choose one winner." : "Split 50 / 30 / 20 between the three best entries."}
+                  </div>
                 </Option>
                 <Option active={payoutMode === "winnerTakesAll"} onClick={() => setPayoutMode("winnerTakesAll")} group="payout">
                   <div className="font-semibold">Winner takes all</div>
@@ -224,9 +231,16 @@ export default function NewTaskPage() {
                   <div className="font-semibold">The AI decides</div>
                   <div className="mt-1 text-[13px] text-muted">Scores are final and winners are paid the moment judging ends.</div>
                 </Option>
-                <Option active={judgeMode === "creatorPicks"} onClick={() => setJudgeMode("creatorPicks")} group="judge">
+                <Option
+                  active={judgeMode === "creatorPicks"}
+                  onClick={() => {
+                    setJudgeMode("creatorPicks");
+                    setPayoutMode("winnerTakesAll");
+                  }}
+                  group="judge"
+                >
                   <div className="font-semibold">AI shortlists, I pick</div>
-                  <div className="mt-1 text-[13px] text-muted">You choose from the top three. Payment waits for your pick.</div>
+                  <div className="mt-1 text-[13px] text-muted">You choose one winner from the top three after the deadline. Payment waits for your pick.</div>
                 </Option>
               </div>
             </LayoutGroup>
@@ -387,13 +401,14 @@ function Section({ n, title, children }: { n: string; title: string; children: R
   );
 }
 
-function Option({ active, onClick, children, group }: { active: boolean; onClick: () => void; children: ReactNode; group: string }) {
+function Option({ active, onClick, children, group, disabled }: { active: boolean; onClick: () => void; children: ReactNode; group: string; disabled?: boolean }) {
   return (
     <motion.button
       onClick={onClick}
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      className="relative rounded-2xl border-[1.5px] border-line-2 bg-white p-4 text-left transition-colors hover:border-navy/50"
+      whileHover={disabled ? undefined : { y: -2 }}
+      whileTap={disabled ? undefined : { scale: 0.98 }}
+      disabled={disabled}
+      className={cx("relative rounded-2xl border-[1.5px] border-line-2 bg-white p-4 text-left transition-colors", disabled ? "cursor-not-allowed opacity-50" : "hover:border-navy/50")}
       aria-pressed={active}
     >
       {active && (
@@ -432,6 +447,38 @@ function Progress({ active, done, label }: { active: boolean; done: boolean; lab
         )}
       </span>
       <span className={done ? "text-white" : "text-white/55"}>{label}</span>
+    </div>
+  );
+}
+
+/** Freelancer accounts can't post tasks; say so, and offer the way in. */
+function PostGate({ signedIn, personasOn, onDemo, onSignIn }: { signedIn: boolean; personasOn: boolean; onDemo: () => void; onSignIn?: () => void }) {
+  return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 text-center">
+      <PixelIcon name="lock" px={4} motion="bob" />
+      <h1 className="display text-[clamp(2.6rem,6vw,4.5rem)]">{signedIn ? "Organisations post tasks" : "Sign in to post a task"}</h1>
+      <p className="max-w-md text-muted">
+        {signedIn
+          ? "Your account is a freelancer account: you find tasks, enter them and get paid. Posting tasks is for organisation accounts."
+          : "Posting a task needs an organisation account: you lock the reward, the crowd competes, the best work gets paid."}
+      </p>
+      <div className="flex flex-wrap justify-center gap-3">
+        {onSignIn && (
+          <button className="btn btn-red h-12 px-6" onClick={onSignIn}>
+            Sign in
+          </button>
+        )}
+        {personasOn && (
+          <button className="btn btn-line h-12 px-6" onClick={onDemo}>
+            Use the demo organisation
+          </button>
+        )}
+        {signedIn && (
+          <a href="/tasks" className="btn btn-red h-12 px-6">
+            Find work instead
+          </a>
+        )}
+      </div>
     </div>
   );
 }

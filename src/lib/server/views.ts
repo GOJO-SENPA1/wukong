@@ -16,9 +16,10 @@ import {
   type SubmissionView,
   type TaskView,
 } from "../wukong";
-import { demoMode, connection, deployment, program } from "./env";
+import { demoMode, connection, deployment, isDemoCreator, program, publicRpcUrl } from "./env";
 import { judgeEngine } from "./judge";
 import { store, type BriefRecord, type ReportRecord, type TaskMeta, type TxRecord } from "./store";
+import { profileByWallet, publicProfile } from "./accounts";
 
 export interface TaskCard extends TaskView {
   creatorName?: string;
@@ -26,6 +27,8 @@ export interface TaskCard extends TaskView {
   agent?: BriefRecord["agent"];
   template?: string;
   categoryLabel: string;
+  /** Posted by a seeded demo company: in demo mode anyone may close it early */
+  demoCreator: boolean;
 }
 
 /** Join tasks with their off-chain metadata (three store round trips, however many tasks). */
@@ -46,6 +49,7 @@ function card(t: TaskView, meta: TaskMeta | BriefRecord | undefined, names: Reco
     agent: meta?.agent,
     template: meta?.template,
     categoryLabel: categoryById(t.category).label,
+    demoCreator: demoMode() && isDemoCreator(t.creator),
   };
 }
 
@@ -57,7 +61,7 @@ export async function stateView() {
   return {
     deployment: {
       cluster: dep.cluster,
-      rpcUrl: dep.rpcUrl,
+      rpcUrl: publicRpcUrl(),
       programId: dep.programId,
       mint: dep.mint,
       judge: dep.judge,
@@ -145,10 +149,15 @@ export async function workerView(worker: string) {
   } catch {
     usdc = 0;
   }
-  const [names, reports] = await Promise.all([store.names(), store.reports(subs.map((s) => s.pubkey))]);
+  const [names, reports, profile] = await Promise.all([
+    store.names(),
+    store.reports(subs.map((s) => s.pubkey)),
+    profileByWallet(worker).catch(() => null),
+  ]);
   return {
     worker,
     name: names[worker],
+    profile: profile?.onboardedAt ? publicProfile(profile) : null,
     usdc,
     reputation: rep,
     reputationAccount: pda.reputation(pk).toBase58(),

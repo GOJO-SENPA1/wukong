@@ -39,6 +39,12 @@ pub const MAX_TITLE_LEN: usize = 64;
 /// Entries scoring below this can never reach the podium. If nothing clears
 /// the bar, the creator is refunded: the buyer's quality guarantee.
 pub const MIN_PODIUM_SCORE: u16 = 2_500;
+/// Smallest reward a task may lock (1 USDC at 6 decimals): makes reputation farming with dust tasks cost real money.
+pub const MIN_REWARD: u64 = 1_000_000;
+/// Longest a task may stay open, so entry stakes can't be locked indefinitely.
+pub const MAX_OPEN_SECS: i64 = 90 * 24 * 3600;
+/// If the judge hasn't scored everything this long after close, anyone may refund the creator.
+pub const JUDGE_TIMEOUT_SECS: i64 = 7 * 24 * 3600;
 /// Scores under this count as spam and cost the worker rating.
 pub const SPAM_SCORE: u16 = 2_000;
 pub const SPAM_PENALTY: u32 = 10;
@@ -112,13 +118,26 @@ pub mod wukong {
             !args.title.is_empty() && args.title.len() <= MAX_TITLE_LEN,
             WukongError::InvalidTitle
         );
-        require!(args.reward > 0, WukongError::InvalidReward);
+        require!(args.reward >= MIN_REWARD, WukongError::RewardTooSmall);
         require!(args.deadline > now, WukongError::InvalidDeadline);
+        require!(args.deadline <= now.saturating_add(MAX_OPEN_SECS), WukongError::DeadlineTooFar);
         require!(
             args.max_submissions >= 1 && args.max_submissions <= MAX_SUBMISSIONS,
             WukongError::InvalidMaxSubmissions
         );
         require!(args.entry_stake <= args.reward, WukongError::StakeTooHigh);
+        // A small entry cap is a scarce, first-come resource: without a meaningful stake, one
+        // actor could fill every slot with throwaway wallets and be the only real entry.
+        require!(
+            args.max_submissions == MAX_SUBMISSIONS
+                || args.entry_stake >= args.reward / args.max_submissions as u64,
+            WukongError::CapNeedsStake
+        );
+        // The creator picks a single winner; a 50/30/20 split can't apply.
+        require!(
+            !(args.judge_mode == JudgeMode::CreatorPicks && args.payout_mode == PayoutMode::TopThree),
+            WukongError::PicksAreWinnerTakesAll
+        );
         require!(args.pick_grace_secs <= MAX_PICK_GRACE_SECS, WukongError::PickGraceTooLong);
 
         token_interface::transfer_checked(
@@ -268,6 +287,12 @@ pub mod wukong {
         require!(task.submission_count > 0, WukongError::NoSubmissions);
         let privileged = signer == task.creator || signer == ctx.accounts.config.judge;
         require!(privileged || now > task.deadline, WukongError::NotAllowedToClose);
+        // In creator-picks mode the creator also chooses the winner: closing early would let them
+        // stop the field while a favoured entry is on the shortlist. They wait for the deadline
+        // (or a full task) like everyone else.
+        if signer == task.creator && signer != ctx.accounts.config.judge && now <= task.deadline && task.judge_mode == JudgeMode::CreatorPicks {
+            require!(task.submission_count == task.max_submissions, WukongError::PicksCloseAtDeadline);
+        }
         task.status = TaskStatus::Judging;
         task.closed_at = now;
         emit!(SubmissionsClosed {
@@ -389,7 +414,8 @@ pub mod wukong {
         let sub = &ctx.accounts.submission;
         require!(sub.stake > 0 && !sub.stake_settled, WukongError::NothingToClaim);
 
-        let refunded = sub.scored && sub.score >= SPAM_SCORE;
+        // Unscored is only possible after expire_judging: the judge failed, not the worker.
+        let refunded = !sub.scored || sub.score >= SPAM_SCORE;
         let amount = sub.stake;
         let creator = task.creator;
         let nonce_bytes = task.nonce.to_le_bytes();
@@ -445,6 +471,60 @@ pub mod wukong {
                 signer,
             )?;
         }
+        Ok(())
+    }
+
+    /// The judge went dark: if not every entry is scored long after close, anyone may
+    /// refund the reward to the creator. Stakes are then refunded via claim_stake.
+    pub fn expire_judging<'info>(ctx: Context<'_, '_, 'info, 'info, Settle<'info>>) -> Result<()> {
+        let now = Clock::get()?.unix_timestamp;
+        let task = &ctx.accounts.task;
+        require!(task.status == TaskStatus::Judging, WukongError::TaskNotJudging);
+        require!(task.scored_count < task.submission_count, WukongError::JudgingComplete);
+        require!(
+            now > task.closed_at.saturating_add(JUDGE_TIMEOUT_SECS),
+            WukongError::JudgeTimeoutNotReached
+        );
+        let creator = task.creator;
+        let nonce_bytes = task.nonce.to_le_bytes();
+        let bump = [task.bump];
+        let seeds: &[&[u8]] = &[TASK_SEED, creator.as_ref(), &nonce_bytes, &bump];
+        let signer = &[seeds];
+        let reward = task.reward;
+        let keep_vault_open = task.stakes_outstanding > 0;
+        vault_transfer(
+            &ctx.accounts.token_program,
+            &ctx.accounts.vault,
+            &ctx.accounts.mint,
+            &ctx.accounts.task,
+            ctx.accounts.creator_token.to_account_info(),
+            reward,
+            signer,
+        )?;
+        if !keep_vault_open {
+            let treasury = ctx.accounts.treasury_token.to_account_info();
+            let creator_info = ctx.accounts.creator.to_account_info();
+            sweep_and_close_vault(
+                &ctx.accounts.token_program,
+                &mut ctx.accounts.vault,
+                &ctx.accounts.mint,
+                &ctx.accounts.task,
+                treasury,
+                creator_info,
+                signer,
+            )?;
+        }
+        let config = &mut ctx.accounts.config;
+        config.total_escrowed = config.total_escrowed.saturating_sub(reward);
+        let task = &mut ctx.accounts.task;
+        task.status = TaskStatus::Settled;
+        task.paid_out = 0;
+        task.fee_paid = 0;
+        task.settled_at = now;
+        emit!(JudgingExpired {
+            task: task.key(),
+            refunded: reward,
+        });
         Ok(())
     }
 

@@ -15,6 +15,7 @@ import {
 } from "@solana/spl-token";
 import {
   buildCancel,
+  buildExpireJudging,
   buildCloseSubmissions,
   buildCreateTask,
   buildScore,
@@ -84,7 +85,7 @@ function taskInput(overrides: Partial<CreateTaskInput> = {}): CreateTaskInput {
     payoutMode: "topThree",
     judgeMode: "aiFinal",
     minRating: 0,
-    maxSubmissions: 16,
+    maxSubmissions: 256,
     ...overrides,
   };
 }
@@ -325,7 +326,12 @@ describe("wukong program", () => {
     const task = await createTask({ judgeMode: "creatorPicks", payoutMode: "winnerTakesAll", pickGraceSecs: 2 });
     await submit(task, workers[0], "first");
     await submit(task, workers[3], "second");
-    await sendIxs(connection, keypairSigner(creator), [await buildCloseSubmissions(program, creator.publicKey, task)]);
+    // The creator also picks the winner, so they can't stop the field early.
+    await expectFail(
+      sendIxs(connection, keypairSigner(creator), [await buildCloseSubmissions(program, creator.publicKey, task)]),
+      "close at the deadline",
+    );
+    await sendIxs(connection, keypairSigner(judge), [await buildCloseSubmissions(program, judge.publicKey, task)]);
     await scoreAll(task, [7000, 9100]);
     await expectFail(settle(task, undefined, workers[0]), "pick window is still open");
     await new Promise((r) => setTimeout(r, 3500));
@@ -371,13 +377,32 @@ describe("wukong program", () => {
   });
 
   it("creator-picks with an empty shortlist refunds right away, no pick window", async () => {
-    const task = await createTask({ judgeMode: "creatorPicks", pickGraceSecs: 3600 });
+    const task = await createTask({ judgeMode: "creatorPicks", payoutMode: "winnerTakesAll", pickGraceSecs: 3600 });
     await submit(task, workers[0], "weak");
-    await sendIxs(connection, keypairSigner(creator), [await buildCloseSubmissions(program, creator.publicKey, task)]);
+    await sendIxs(connection, keypairSigner(judge), [await buildCloseSubmissions(program, judge.publicKey, task)]);
     await scoreAll(task, [1500]);
     const before = await balance(creator.publicKey);
     await settle(task, undefined, workers[1]);
     assert.equal(await balance(creator.publicKey), before + 100 * USDC);
+  });
+
+  it("rejects task parameters that enable abuse", async () => {
+    const tryCreate = (o: Partial<CreateTaskInput>) => createTask(o);
+    await expectFail(tryCreate({ reward: USDC / 2 }), "at least 1 USDC");
+    await expectFail(tryCreate({ deadline: Math.floor(Date.now() / 1000) + 91 * 24 * 3600 }), "90 days");
+    // A small entry cap needs a stake of at least reward / cap, or one actor could fill every slot.
+    await expectFail(tryCreate({ maxSubmissions: 10 }), "entry stake of at least");
+    await tryCreate({ maxSubmissions: 10, entryStake: 10 * USDC });
+    await expectFail(tryCreate({ judgeMode: "creatorPicks", payoutMode: "topThree" }), "single winner");
+  });
+
+  it("the judge can't be timed out early: expire_judging waits for JUDGE_TIMEOUT", async () => {
+    const task = await createTask({ payoutMode: "winnerTakesAll", entryStake: USDC });
+    await submit(task, workers[0], "an entry");
+    await sendIxs(connection, keypairSigner(creator), [await buildCloseSubmissions(program, creator.publicKey, task)]);
+    const view = (await fetchTask(program, task))!;
+    const config = (await fetchConfig(program))!;
+    await expectFail(sendIxs(connection, keypairSigner(workers[1]), await buildExpireJudging(program, workers[1].publicKey, view, config)), "still has time");
   });
 
   it("lets the creator cancel an empty task for a full refund", async () => {

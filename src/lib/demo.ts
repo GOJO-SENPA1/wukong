@@ -271,7 +271,7 @@ export function slugify(title: string): string {
     title: "Explain x402 to a Nepali SME owner (gated)",
     category: 4,
     rewardUsdc: 120,
-    payoutMode: "topThree",
+    payoutMode: "winnerTakesAll",
     judgeMode: "creatorPicks",
     minRating: 100,
     entryStakeUsdc: 0,

@@ -14,7 +14,8 @@ import { Keypair, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { ConnectionProvider, WalletProvider, useWallet } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { PERSONAS, type PersonaId } from "@/lib/demo";
-import { getJSON, postJSON, type ClientSigner } from "@/lib/client/api";
+import { getJSON, postJSON, setAuthHeaderSource, type ClientSigner } from "@/lib/client/api";
+import { AccountProvider, useAccount, type Role } from "./auth/Account";
 import type { TaskCard } from "@/lib/server/views";
 import type { ConfigView } from "@/lib/wukong";
 
@@ -29,12 +30,18 @@ export interface AppState {
   stats?: { tasks: number; open: number; escrowed: number; paid: number; submissions: number };
 }
 
+export type ActiveId = PersonaId | "wallet" | "account";
+
 interface Ctx {
   state: AppState;
   refresh: () => Promise<void>;
-  persona: PersonaId | "wallet";
-  setPersona: (p: PersonaId | "wallet") => void;
+  persona: ActiveId;
+  setPersona: (p: ActiveId) => void;
   signer: ClientSigner | null;
+  /** What the active identity may do: workers enter tasks, companies post them. null: not signed in / not set up */
+  role: Role | null;
+  /** Demo personas are on offer (demo mode, or accounts not configured) */
+  personasOn: boolean;
   personaName: string;
   personaKeys: Record<string, string>;
   funding: boolean;
@@ -102,21 +109,35 @@ function burnerSigner(kp: Keypair): ClientSigner {
 
 function Inner({ children, state, refresh }: { children: ReactNode; state: AppState; refresh: () => Promise<void> }) {
   const wallet = useWallet();
+  const account = useAccount();
+  const personasOn = !account.enabled || state.demoMode === true;
   const [keys, setKeys] = useState<Record<string, Keypair>>({});
-  const [persona, setPersonaState] = useState<PersonaId | "wallet">("company");
+  const [persona, setPersonaState] = useState<ActiveId>("company");
   const [funding, setFunding] = useState(false);
   const fundedFor = useRef<string | null>(null);
 
   useEffect(() => {
     setKeys(loadPersonaKeys());
-    const saved = safeGet(ACTIVE_KEY) as PersonaId | "wallet" | null;
+    const saved = safeGet(ACTIVE_KEY) as ActiveId | null;
     if (saved) setPersonaState(saved);
   }, []);
 
-  const setPersona = useCallback((p: PersonaId | "wallet") => {
+  const setPersona = useCallback((p: ActiveId) => {
     setPersonaState(p);
     safeSet(ACTIVE_KEY, p);
   }, []);
+
+  // Signing in switches to the account; with the demo off, the account is the only identity.
+  useEffect(() => {
+    if (!personasOn || account.authenticated) setPersonaState("account");
+    else setPersonaState((p) => (p === "account" ? "company" : p));
+  }, [account.authenticated, personasOn]);
+
+  // The account's Privy tokens go with API calls while the account is the active identity.
+  useEffect(() => {
+    setAuthHeaderSource(persona === "account" && account.authenticated ? account.tokens : null);
+    return () => setAuthHeaderSource(null);
+  }, [persona, account.authenticated, account.tokens]);
 
   // Fund personas (gas + demo USDC for the company) once per deployment.
   const mint = state.deployment?.mint;
@@ -139,23 +160,45 @@ function Inner({ children, state, refresh }: { children: ReactNode; state: AppSt
   }, [mint, keys]);
 
   const signer: ClientSigner | null = useMemo(() => {
+    if (persona === "account") return account.signer;
     if (persona === "wallet") {
       if (!wallet.publicKey || !wallet.signTransaction) return null;
       return { publicKey: wallet.publicKey, signTransaction: wallet.signTransaction };
     }
     const kp = keys[persona];
     return kp ? burnerSigner(kp) : null;
-  }, [persona, keys, wallet.publicKey, wallet.signTransaction]);
+  }, [persona, keys, wallet.publicKey, wallet.signTransaction, account.signer]);
 
+  const profile = account.me?.profile;
   const personaName =
-    persona === "wallet"
-      ? wallet.publicKey
-        ? "Your wallet"
-        : "Connect wallet"
-      : (() => {
-          const p = PERSONAS.find((x) => x.id === persona)!;
-          return `${p.name} · ${p.city}`;
-        })();
+    persona === "account"
+      ? account.authenticated
+        ? profile
+          ? `${profile.role === "company" ? profile.company || profile.displayName : profile.displayName}${profile.city ? ` · ${profile.city}` : ""}`
+          : (account.me?.email ?? "Your account")
+        : "Sign in"
+      : persona === "wallet"
+        ? wallet.publicKey
+          ? "Your wallet"
+          : "Connect wallet"
+        : (() => {
+            const p = PERSONAS.find((x) => x.id === persona)!;
+            return `${p.name} · ${p.city}`;
+          })();
+
+  // Workers enter tasks, companies post them. A bare wallet (no account) counts as a worker.
+  const role: Role | null =
+    persona === "account" ? account.role : persona === "wallet" ? (wallet.publicKey ? "worker" : null) : PERSONAS.find((x) => x.id === persona)?.role === "company" ? "company" : "worker";
+
+  // Demo deployments fund a signed-in account's wallet once, like the personas.
+  const accountWallet = persona === "account" && account.role ? account.me?.wallet : undefined;
+  useEffect(() => {
+    if (!accountWallet || !state.demoMode || !mint) return;
+    const key = `${FUNDED_KEY}.${accountWallet}`;
+    if (safeGet(key) === mint) return;
+    safeSet(key, mint);
+    postJSON("/api/faucet", { address: accountWallet, role: account.role === "company" ? "company" : "worker" }).catch(() => {});
+  }, [accountWallet, state.demoMode, mint, account.role]);
 
   const personaKeys = useMemo(
     () => Object.fromEntries(Object.entries(keys).map(([k, v]) => [k, v.publicKey.toBase58()])),
@@ -175,7 +218,7 @@ function Inner({ children, state, refresh }: { children: ReactNode; state: AppSt
 
   return (
     <AppCtx.Provider
-      value={{ state, refresh, persona, setPersona, signer, personaName, personaKeys, funding, explorer }}
+      value={{ state, refresh, persona, setPersona, signer, role, personasOn, personaName, personaKeys, funding, explorer }}
     >
       {children}
     </AppCtx.Provider>
@@ -207,9 +250,11 @@ export function Providers({ children }: { children: ReactNode }) {
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <Inner state={state} refresh={refresh}>
-            {children}
-          </Inner>
+          <AccountProvider cluster={state.deployment?.cluster}>
+            <Inner state={state} refresh={refresh}>
+              {children}
+            </Inner>
+          </AccountProvider>
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>

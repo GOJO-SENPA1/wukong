@@ -24,20 +24,22 @@ Use a dedicated devnet RPC (Helius, Triton, QuickNode free tiers) for `SOLANA_RP
 ## 2. Export secrets
 
 ```bash
-npm run export:env        # writes .data/deploy.env: deployment info, judge, gateway and admin keys
+npx tsx scripts/faucet-key.ts   # demo deploys: give the faucet its own key + the demo mint authority
+npm run export:env        # writes .data/deploy.env: deployment info, judge, gateway and faucet keys (never the admin)
 ```
 
-`.data/deploy.env` holds private keys. It is gitignored. Import it as secrets; never commit it or paste it anywhere else. The admin key is included because the demo faucet mints demo USDC with it (`--no-admin` for a production deploy without the faucet).
+`.data/deploy.env` holds private keys. It is gitignored. Import it as secrets; never commit it or paste it anywhere else. The admin key (program upgrade, config and mint authority) is deliberately left out: the web host never needs it. If you deployed before, delete `WUKONG_ADMIN_SECRET` from your host's env and add `WUKONG_FAUCET_SECRET` instead.
 
 ## 3a. Vercel
 
 1. **Import the repo** at [vercel.com/new](https://vercel.com/new) (framework: Next.js, defaults are fine). Don't deploy yet, or let the first deploy fail.
 2. **Add a Redis store:** project → **Storage** → create **Upstash for Redis** (free tier is plenty) and connect it to the project. That sets `KV_URL` / `REDIS_URL`; Wukong uses either.
 3. **Environment variables** (project → Settings → Environment Variables), for Production:
-   - every line of `.data/deploy.env` (`WUKONG_DEPLOYMENT`, `WUKONG_JUDGE_SECRET`, `WUKONG_GATEWAY_SECRET`, `WUKONG_ADMIN_SECRET`): paste the file into the first field and Vercel splits it
+   - every line of `.data/deploy.env` (`WUKONG_DEPLOYMENT`, `WUKONG_JUDGE_SECRET`, `WUKONG_GATEWAY_SECRET`, `WUKONG_FAUCET_SECRET`): paste the file into the first field and Vercel splits it
    - `SOLANA_RPC_URL` = your devnet RPC
    - `WUKONG_DEMO_MODE` = `1` (judges can summon the crowd and judge; `0` for real usage)
-   - `CRON_SECRET` = any long random string (protects `/api/cron/keeper`)
+   - `CRON_SECRET` = any long random string (required in production: `/api/cron/keeper` refuses without it)
+   - `WUKONG_PUBLIC_RPC_URL` = an RPC URL browsers may use (optional; defaults to the cluster's public endpoint, so your keyed `SOLANA_RPC_URL` never reaches the browser)
    - `ANTHROPIC_API_KEY` (optional: without it the offline judge scores)
 4. **Deploy** (Deployments → Redeploy), then **seed** the arena into the same Redis from your laptop:
    ```bash
@@ -96,13 +98,14 @@ Without Redis the app keeps content in a JSON file on the volume; set `REDIS_URL
 | Variable | Default | Meaning |
 |---|---|---|
 | `WUKONG_DEPLOYMENT` | `.data/deployment.json` | Cluster, RPC, program id, mint, judge, treasury, gateway (JSON) |
-| `WUKONG_JUDGE_SECRET` / `WUKONG_GATEWAY_SECRET` / `WUKONG_ADMIN_SECRET` | `.data/keys/*.json` | Server keys as JSON byte arrays |
+| `WUKONG_JUDGE_SECRET` / `WUKONG_GATEWAY_SECRET` / `WUKONG_FAUCET_SECRET` | `.data/keys/*.json` | Server keys as JSON byte arrays (the admin key stays off the web host) |
 | `REDIS_URL` / `KV_URL` | unset → JSON file in `WUKONG_DATA_DIR` | Redis for content and the judge lock (required on Vercel) |
 | `WUKONG_DATA_DIR` | `./.data` (`/data` in Docker) | Content store and judge locks when there's no Redis |
 | `WUKONG_SIM_SEED` | the judge key | Seed for demo keys (simulated workers, seeded creators) that have no key file |
-| `CRON_SECRET` | unset → open | Bearer token `/api/cron/keeper` requires |
+| `CRON_SECRET` | required in production | Bearer token `/api/cron/keeper` requires (compared in constant time) |
+| `WUKONG_PUBLIC_RPC_URL` | the cluster's public RPC | The RPC URL sent to browsers |
 | `SOLANA_RPC_URL` | the deployment's `rpcUrl` | Server-side RPC override |
 | `ANTHROPIC_API_KEY` | unset → offline judge | Enables the Claude judge |
 | `WUKONG_JUDGE_MODEL` / `WUKONG_JUDGE_EFFORT` / `WUKONG_JUDGE_CONCURRENCY` | `claude-opus-5-5` / `medium` / `8` | Judge tuning |
-| `WUKONG_DEMO_MODE` | on for localnet only | Faucet, simulated crowd, early close by anyone |
+| `WUKONG_DEMO_MODE` | on for localnet only; `1` turns it on elsewhere; never on mainnet | Faucet, simulated crowd, early close of the seeded demo companies' and x402 tasks |
 | `KEEPER` / `KEEPER_INTERVAL_MS` | `1` / `30000` | Run the keeper loop in the container, and how often |

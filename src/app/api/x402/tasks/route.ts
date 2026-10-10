@@ -6,26 +6,38 @@ import { buildCreateTask, keypairSigner, sendIxs } from "@/lib/wukong";
 import { connection, loadKey, mint, program } from "@/lib/server/env";
 import { fail } from "@/lib/server/http";
 import { store } from "@/lib/server/store";
-import { decodePayment, encodePaymentResponse, network, paymentRequired, requirements, verifyAndSettle } from "@/lib/server/x402";
+import { decodePayment, encodePaymentResponse, network, paymentRequired, refundPayment, requirements, verifyAndSettle } from "@/lib/server/x402";
+import { rateLimit, readJson } from "@/lib/server/guard";
 
 export const dynamic = "force-dynamic";
 
+// Everything the program would reject is rejected here, before any money moves.
 const Body = z.object({
-  title: z.string().min(1).max(64),
+  title: z
+    .string()
+    .trim()
+    .min(1)
+    .refine((t) => Buffer.byteLength(t) <= 64, "at most 64 bytes"),
   brief: z.string().min(10).max(8000),
   category: z.number().int().min(0).max(4).default(0),
-  rewardUsdc: z.number().positive().max(10_000),
-  hours: z.number().positive().max(24 * 30).default(24),
+  // Whole micro-USDC, at least 1 USDC: dust rewards would make the gateway pay rent and fees for junk tasks.
+  rewardUsdc: z
+    .number()
+    .min(1)
+    .max(10_000)
+    .refine((x) => Math.abs(x * 1e6 - Math.round(x * 1e6)) < 1e-6, "at most 6 decimal places"),
+  hours: z.number().min(1).max(24 * 30).default(24),
   payoutMode: z.enum(["winnerTakesAll", "topThree"]).default("winnerTakesAll"),
-  minRating: z.number().int().min(0).default(0),
-  agentName: z.string().max(40).default("Anonymous agent"),
+  minRating: z.number().int().min(0).max(1_000_000).default(0),
+  agentName: z.string().trim().min(1).max(40).default("Anonymous agent"),
   template: z.string().max(64).optional(),
 });
 
 export async function POST(req: Request) {
   let body: z.infer<typeof Body>;
   try {
-    body = Body.parse(await req.json());
+    await rateLimit(req, "x402", 20, 60_000);
+    body = Body.parse(await readJson(req, 32 * 1024));
   } catch (err) {
     return fail(err);
   }
@@ -66,7 +78,7 @@ export async function POST(req: Request) {
       payoutMode: body.payoutMode,
       judgeMode: "aiFinal",
       minRating: body.minRating,
-      maxSubmissions: 64,
+      maxSubmissions: 256,
     });
     const sig = await sendIxs(connection(), keypairSigner(gateway), ixs);
     const taskKey = task.toBase58();
@@ -95,6 +107,19 @@ export async function POST(req: Request) {
       },
     );
   } catch (err) {
-    return fail(err, 500);
+    // The payment settled but the task didn't: send the money back.
+    console.error("x402: task creation failed after payment", err instanceof Error ? err.message : err);
+    const refund = await refundPayment(paid.payer, amount).catch((e) => {
+      console.error("x402: refund failed", e instanceof Error ? e.message : e);
+      return null;
+    });
+    return Response.json(
+      {
+        error: refund ? "Couldn't create the task; your payment was refunded" : "Couldn't create the task; the refund is pending, contact support with your payment transaction",
+        refundTx: refund,
+        paymentTx: paid.sig,
+      },
+      { status: refund ? 502 : 500 },
+    );
   }
 }

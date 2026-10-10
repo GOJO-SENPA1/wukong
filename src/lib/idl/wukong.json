@@ -448,6 +448,119 @@
       ]
     },
     {
+      "name": "expire_judging",
+      "docs": [
+        "The judge went dark: if not every entry is scored long after close, anyone may",
+        "refund the reward to the creator. Stakes are then refunded via claim_stake."
+      ],
+      "discriminator": [
+        223,
+        195,
+        207,
+        106,
+        14,
+        156,
+        93,
+        186
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "docs": [
+            "Anyone may crank `settle`; `settle_pick` requires the creator."
+          ],
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "task",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  97,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "task.creator",
+                "account": "Task"
+              },
+              {
+                "kind": "account",
+                "path": "task.nonce",
+                "account": "Task"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "task"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "treasury_token",
+          "writable": true
+        },
+        {
+          "name": "creator_token",
+          "writable": true
+        },
+        {
+          "name": "creator",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initialize_config",
       "discriminator": [
         208,
@@ -1149,6 +1262,19 @@
   ],
   "events": [
     {
+      "name": "JudgingExpired",
+      "discriminator": [
+        175,
+        213,
+        165,
+        1,
+        101,
+        72,
+        145,
+        195
+      ]
+    },
+    {
       "name": "StakeSettled",
       "discriminator": [
         171,
@@ -1395,6 +1521,41 @@
       "code": 6030,
       "name": "Overflow",
       "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6031,
+      "name": "RewardTooSmall",
+      "msg": "Reward must be at least 1 USDC"
+    },
+    {
+      "code": 6032,
+      "name": "DeadlineTooFar",
+      "msg": "Deadline can be at most 90 days away"
+    },
+    {
+      "code": 6033,
+      "name": "CapNeedsStake",
+      "msg": "A task with fewer than 256 entry slots needs an entry stake of at least reward / slots"
+    },
+    {
+      "code": 6034,
+      "name": "PicksAreWinnerTakesAll",
+      "msg": "Creator-picks tasks pay a single winner: use winner takes all"
+    },
+    {
+      "code": 6035,
+      "name": "PicksCloseAtDeadline",
+      "msg": "Creator-picks tasks close at the deadline (or when full), not early"
+    },
+    {
+      "code": 6036,
+      "name": "JudgingComplete",
+      "msg": "Every entry is scored; settle the task instead"
+    },
+    {
+      "code": 6037,
+      "name": "JudgeTimeoutNotReached",
+      "msg": "The judge still has time to finish scoring"
     }
   ],
   "types": [
@@ -1541,6 +1702,22 @@
           },
           {
             "name": "CreatorPicks"
+          }
+        ]
+      }
+    },
+    {
+      "name": "JudgingExpired",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "task",
+            "type": "pubkey"
+          },
+          {
+            "name": "refunded",
+            "type": "u64"
           }
         ]
       }

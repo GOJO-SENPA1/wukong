@@ -51,9 +51,10 @@ export interface TxRecord {
 export const store = {
   brief: (hash: string) => kv().get<BriefRecord>("briefs", hash),
   briefs: (hashes: string[]) => kv().many<BriefRecord>("briefs", hashes),
+  /** First write wins: once a brief is stored, re-posting the same text can't change its author or metadata. */
   async putBrief(rec: BriefRecord) {
-    const prev = await kv().get<BriefRecord>("briefs", rec.hash);
-    await kv().set("briefs", rec.hash, { ...prev, ...rec });
+    if (await kv().get<BriefRecord>("briefs", rec.hash)) return;
+    await kv().set("briefs", rec.hash, rec);
   },
 
   taskMeta: (task: string) => kv().get<TaskMeta>("taskMeta", task),
@@ -62,7 +63,11 @@ export const store = {
 
   submission: (hash: string) => kv().get<SubmissionRecord>("submissions", hash),
   submissions: (hashes: string[]) => kv().many<SubmissionRecord>("submissions", hashes),
-  putSubmission: (rec: SubmissionRecord) => kv().set("submissions", rec.hash, rec),
+  /** First write wins (keyed by content hash), so nobody can re-attribute stored work. */
+  async putSubmission(rec: SubmissionRecord) {
+    if (await kv().get<SubmissionRecord>("submissions", rec.hash)) return;
+    await kv().set("submissions", rec.hash, rec);
+  },
 
   report: (submission: string) => kv().get<ReportRecord>("reports", submission),
   reports: (submissions: string[]) => kv().many<ReportRecord>("reports", submissions),
@@ -78,5 +83,11 @@ export const store = {
   },
 
   names: () => kv().all<string>("names"),
+  /** Authoritative (a verified account's own profile). */
   setName: (pubkey: string, name: string) => kv().set("names", pubkey, name.slice(0, 40)),
+  /** Unverified callers (demo personas): only names a wallet that has no name yet. */
+  async setNameOnce(pubkey: string, name: string) {
+    if (await kv().get<string>("names", pubkey)) return;
+    await kv().set("names", pubkey, name.slice(0, 40));
+  },
 };

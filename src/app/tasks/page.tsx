@@ -11,7 +11,6 @@ import { Counter, Kinetic, Reveal } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
 import { Avatar, Empty, Skeleton, TierBadge, cx } from "@/components/ui";
 import { CATEGORIES } from "@/lib/categories";
-import { PERSONAS } from "@/lib/demo";
 import { useWorker } from "@/lib/client/hooks";
 import { fmtScore, toUsdc } from "@/lib/format";
 import { categoryIcon } from "@/lib/fx/sprites";
@@ -180,14 +179,14 @@ function Chip({
 }
 
 function Sidebar() {
-  const { persona, personaKeys, signer } = useApp();
-  const p = PERSONAS.find((x) => x.id === persona);
-  const pk = persona === "wallet" ? signer?.publicKey.toBase58() : personaKeys[persona];
-  const worker = useWorker(p?.role === "company" ? null : pk);
+  const { signer, role, personaName } = useApp();
+  const pk = signer?.publicKey.toBase58();
+  const [who, city] = personaName.split(" · ");
+  const worker = useWorker(role === "worker" ? pk : null);
   const rep = worker?.reputation;
   const active = (worker?.history ?? []).filter((h) => h.taskStatus === "open" || h.taskStatus === "judging" || h.scored).slice(0, 4);
 
-  if (p?.role === "company") {
+  if (role === "company") {
     return (
       <Reveal delay={0.35} className="flex flex-col gap-4 lg:sticky lg:top-24">
         <div className="card-navy relative overflow-hidden p-6">
@@ -195,7 +194,7 @@ function Sidebar() {
             <PixelIcon name="cash" px={3.4} motion="bob" />
           </div>
           <div className="mono-label text-white/55">Hiring as</div>
-          <div className="mt-1 text-lg font-semibold">{p.name}</div>
+          <div className="mt-1 text-lg font-semibold">{who}</div>
           <p className="mt-3 text-[14px] leading-relaxed text-white/65">Post a brief, lock the reward and get many finished takes back, judged in public.</p>
           <Link href="/tasks/new" className="btn btn-red mt-5 h-11 w-full">
             Post a task <ArrowRight size={16} />
@@ -210,10 +209,10 @@ function Sidebar() {
     <Reveal delay={0.35} className="flex flex-col gap-4 lg:sticky lg:top-24">
       <div className="card-navy relative overflow-hidden p-6">
         <div className="flex items-center gap-3">
-          {pk && <Avatar id={pk} name={p?.name ?? "You"} size={44} />}
+          {pk && <Avatar id={pk} name={who} size={44} />}
           <div className="min-w-0">
-            <div className="truncate text-[17px] font-semibold">{p?.name ?? "Your wallet"}</div>
-            <div className="text-[13px] text-white/55">{p ? `Worker · ${p.city}` : "Connected wallet"}</div>
+            <div className="truncate text-[17px] font-semibold">{role ? who : "Browsing as a guest"}</div>
+            <div className="text-[13px] text-white/55">{role ? `Freelancer${city ? ` · ${city}` : ""}` : "Sign in to enter tasks"}</div>
           </div>
         </div>
         <div className="mt-6 grid grid-cols-3 gap-3">

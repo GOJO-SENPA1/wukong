@@ -39,7 +39,7 @@ async function postTask(t: TaskTemplate): Promise<string> {
     payoutMode: t.payoutMode,
     judgeMode: t.judgeMode,
     minRating: t.minRating,
-    maxSubmissions: 32,
+    maxSubmissions: 256,
     entryStake: t.entryStakeUsdc * 1_000_000,
   });
   const sig = await sendIxs(connection(), keypairSigner(creator), ixs);

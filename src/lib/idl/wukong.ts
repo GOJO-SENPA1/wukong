@@ -454,6 +454,119 @@ export type Wukong = {
       ]
     },
     {
+      "name": "expireJudging",
+      "docs": [
+        "The judge went dark: if not every entry is scored long after close, anyone may",
+        "refund the reward to the creator. Stakes are then refunded via claim_stake."
+      ],
+      "discriminator": [
+        223,
+        195,
+        207,
+        106,
+        14,
+        156,
+        93,
+        186
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "docs": [
+            "Anyone may crank `settle`; `settle_pick` requires the creator."
+          ],
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "task",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  97,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "task.creator",
+                "account": "task"
+              },
+              {
+                "kind": "account",
+                "path": "task.nonce",
+                "account": "task"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "task"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "treasuryToken",
+          "writable": true
+        },
+        {
+          "name": "creatorToken",
+          "writable": true
+        },
+        {
+          "name": "creator",
+          "writable": true
+        },
+        {
+          "name": "tokenProgram"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initializeConfig",
       "discriminator": [
         208,
@@ -1155,6 +1268,19 @@ export type Wukong = {
   ],
   "events": [
     {
+      "name": "judgingExpired",
+      "discriminator": [
+        175,
+        213,
+        165,
+        1,
+        101,
+        72,
+        145,
+        195
+      ]
+    },
+    {
       "name": "stakeSettled",
       "discriminator": [
         171,
@@ -1401,6 +1527,41 @@ export type Wukong = {
       "code": 6030,
       "name": "overflow",
       "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6031,
+      "name": "rewardTooSmall",
+      "msg": "Reward must be at least 1 USDC"
+    },
+    {
+      "code": 6032,
+      "name": "deadlineTooFar",
+      "msg": "Deadline can be at most 90 days away"
+    },
+    {
+      "code": 6033,
+      "name": "capNeedsStake",
+      "msg": "A task with fewer than 256 entry slots needs an entry stake of at least reward / slots"
+    },
+    {
+      "code": 6034,
+      "name": "picksAreWinnerTakesAll",
+      "msg": "Creator-picks tasks pay a single winner: use winner takes all"
+    },
+    {
+      "code": 6035,
+      "name": "picksCloseAtDeadline",
+      "msg": "Creator-picks tasks close at the deadline (or when full), not early"
+    },
+    {
+      "code": 6036,
+      "name": "judgingComplete",
+      "msg": "Every entry is scored; settle the task instead"
+    },
+    {
+      "code": 6037,
+      "name": "judgeTimeoutNotReached",
+      "msg": "The judge still has time to finish scoring"
     }
   ],
   "types": [
@@ -1547,6 +1708,22 @@ export type Wukong = {
           },
           {
             "name": "creatorPicks"
+          }
+        ]
+      }
+    },
+    {
+      "name": "judgingExpired",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "task",
+            "type": "pubkey"
+          },
+          {
+            "name": "refunded",
+            "type": "u64"
           }
         ]
       }

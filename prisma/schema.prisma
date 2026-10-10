@@ -1,10 +1,13 @@
 // Accounts and profiles for Wukong. Identity and sign-in are handled by Privy;
 // this database holds the durable account record and the public profile that
 // links a Privy user to their Solana wallet (and thus their on-chain reputation).
+// Reputation, scores and payouts stay on-chain; nothing here is a source of truth
+// for money.
 //
 // On Supabase: DATABASE_URL is the transaction pooler (port 6543) used at
 // runtime, DIRECT_URL is the direct/session connection (port 5432) used for
-// migrations. See docs/DEPLOY.md.
+// schema changes. `npm run build` applies this schema and prisma/rls.sql (row
+// level security on, no public access) when DIRECT_URL is set. See docs/LAUNCH.md.
 
 generator client {
   provider = "prisma-client-js"
@@ -17,24 +20,49 @@ datasource db {
 }
 
 model User {
-  id        String   @id // Privy user DID, e.g. "did:privy:..."
-  email     String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  profile   Profile?
+  id            String         @id // Privy user DID, e.g. "did:privy:..."
+  email         String?        @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  profile       Profile?
+  notifications Notification[]
 }
 
 model Profile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet      String   @unique // Solana pubkey (base58); links to the on-chain Reputation PDA
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet      String    @unique // Solana pubkey (base58); links to the on-chain Reputation PDA
+  handle      String?   @unique // lowercase a-z, 0-9 and _, 3 to 20 characters; set during onboarding
   displayName String
+  role        String    @default("worker") // "worker" (does tasks) or "company" (posts tasks); fixed at onboarding
+  company     String? // organisation name, for role "company"
+  city        String?
   bio         String?
   avatarUrl   String?
-  emailOnWin  Boolean  @default(true) // send "you won" payout emails
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  skills      String[]  @default([])
+  languages   String[]  @default([])
+  emailOnWin  Boolean   @default(true) // email me about results and payouts
+  onboardedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([wallet])
+}
+
+// One row per (user, event, task): the unique key makes every email idempotent,
+// however many times the judge, the keeper or a retry reports the same event.
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String // "judged" | "paid_out" | "shortlist" | "refunded"
+  task      String
+  payload   Json?
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+  emailedAt DateTime?
+
+  @@unique([userId, kind, task])
+  @@index([userId, createdAt])
 }

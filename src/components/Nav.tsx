@@ -4,25 +4,38 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/react";
-import { ArrowUpRight, Check, ChevronDown, LogIn, Menu, Wallet, X } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, LayoutDashboard, LogIn, LogOut, Menu, UserRound, Wallet, X } from "lucide-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { PERSONAS } from "@/lib/demo";
 import { useApp } from "./Providers";
+import { useAccount } from "./auth/Account";
 import { Logo } from "./Logo";
 import { Avatar, EngineBadge, Spinner, cx } from "./ui";
 
-let usePrivyHook: (() => { ready: boolean; authenticated: boolean; user: any; login: () => void; logout: () => void }) | null = null;
-try {
-  const mod = require("@privy-io/react-auth");
-  if (process.env.NEXT_PUBLIC_PRIVY_APP_ID) usePrivyHook = mod.usePrivy;
-} catch {}
+type NavLink = { href: string; label: string };
 
-const LINKS = [
-  { href: "/tasks", label: "Explore" },
-  { href: "/tasks/new", label: "Post a task" },
-  { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/agents", label: "For agents" },
-];
+/** What the main nav offers depends on who you are: workers find work, companies hire. */
+function linksFor(role: "worker" | "company" | null): NavLink[] {
+  if (role === "company")
+    return [
+      { href: "/dashboard", label: "My tasks" },
+      { href: "/tasks/new", label: "Post a task" },
+      { href: "/tasks", label: "Explore" },
+      { href: "/leaderboard", label: "Leaderboard" },
+    ];
+  if (role === "worker")
+    return [
+      { href: "/tasks", label: "Find work" },
+      { href: "/dashboard", label: "My work" },
+      { href: "/leaderboard", label: "Leaderboard" },
+      { href: "/agents", label: "For agents" },
+    ];
+  return [
+    { href: "/tasks", label: "Explore" },
+    { href: "/leaderboard", label: "Leaderboard" },
+    { href: "/agents", label: "For agents" },
+  ];
+}
 
 function isActive(path: string, href: string) {
   if (href === "/tasks") return path === "/tasks" || /^\/tasks\/(?!new)/.test(path);
@@ -31,7 +44,8 @@ function isActive(path: string, href: string) {
 
 export function Nav() {
   const path = usePathname();
-  const { state } = useApp();
+  const { state, role } = useApp();
+  const account = useAccount();
   const [hidden, setHidden] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -43,6 +57,8 @@ export function Nav() {
   });
   useEffect(() => setOpen(false), [path]);
   const dark = path === "/" && !scrolled;
+  const links = linksFor(role);
+  const signedOut = account.enabled && !account.authenticated && state.demoMode === false;
 
   return (
     <>
@@ -59,7 +75,7 @@ export function Nav() {
             <Logo size={24} light={dark} />
           </Link>
           <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
-            {LINKS.map((l) => {
+            {links.map((l) => {
               const active = isActive(path, l.href);
               return (
                 <Link
@@ -96,10 +112,25 @@ export function Nav() {
             <span className="hidden lg:inline">
               <EngineBadge dark={dark} />
             </span>
-            <PersonaSwitcher dark={dark} />
-            <Link href="/tasks/new" className="btn btn-red hidden h-10 sm:inline-flex">
-              Post a task
-            </Link>
+            {signedOut ? (
+              <button className="btn btn-red h-10" onClick={account.login}>
+                <LogIn size={16} /> Sign in
+              </button>
+            ) : (
+              <>
+                <AccountMenu dark={dark} />
+                {role === "company" && (
+                  <Link href="/tasks/new" className="btn btn-red hidden h-10 sm:inline-flex">
+                    Post a task
+                  </Link>
+                )}
+                {role === "worker" && (
+                  <Link href="/tasks" className="btn btn-red hidden h-10 sm:inline-flex">
+                    Find work
+                  </Link>
+                )}
+              </>
+            )}
             <button
               className={cx("flex h-10 w-10 items-center justify-center rounded-xl md:hidden", dark ? "text-white" : "text-navy")}
               onClick={() => setOpen(true)}
@@ -110,12 +141,12 @@ export function Nav() {
           </div>
         </div>
       </motion.header>
-      <MobileMenu open={open} onClose={() => setOpen(false)} path={path} />
+      <MobileMenu open={open} onClose={() => setOpen(false)} path={path} links={links} />
     </>
   );
 }
 
-function MobileMenu({ open, onClose, path }: { open: boolean; onClose: () => void; path: string }) {
+function MobileMenu({ open, onClose, path, links }: { open: boolean; onClose: () => void; path: string; links: NavLink[] }) {
   return (
     <AnimatePresence>
       {open && (
@@ -133,7 +164,7 @@ function MobileMenu({ open, onClose, path }: { open: boolean; onClose: () => voi
             </button>
           </div>
           <nav className="mt-14 flex flex-col gap-2" aria-label="Main">
-            {[{ href: "/", label: "Home" }, ...LINKS].map((l, i) => (
+            {[{ href: "/", label: "Home" }, ...links].map((l, i) => (
               <motion.div
                 key={l.href}
                 initial={{ y: 40, opacity: 0 }}
@@ -157,8 +188,9 @@ function MobileMenu({ open, onClose, path }: { open: boolean; onClose: () => voi
   );
 }
 
-function PersonaSwitcher({ dark }: { dark: boolean }) {
-  const { persona, setPersona, personaName, personaKeys, funding } = useApp();
+function AccountMenu({ dark }: { dark: boolean }) {
+  const { persona, setPersona, personaName, personaKeys, funding, role, personasOn, signer } = useApp();
+  const account = useAccount();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -168,7 +200,12 @@ function PersonaSwitcher({ dark }: { dark: boolean }) {
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, []);
-  const activeKey = persona === "wallet" ? "wallet" : personaKeys[persona] ?? persona;
+  const activeKey = persona === "account" ? (account.me?.wallet ?? "account") : persona === "wallet" ? "wallet" : (personaKeys[persona] ?? persona);
+  const profile = account.me?.profile;
+  const pick = (p: typeof persona) => {
+    setPersona(p);
+    setOpen(false);
+  };
 
   return (
     <div className="relative" ref={ref}>
@@ -181,7 +218,15 @@ function PersonaSwitcher({ dark }: { dark: boolean }) {
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        {funding ? <Spinner className="text-red" /> : persona === "wallet" ? <Wallet size={16} /> : <Avatar id={activeKey} name={personaName} size={26} />}
+        {funding ? (
+          <Spinner className="text-red" />
+        ) : persona === "wallet" ? (
+          <Wallet size={16} />
+        ) : persona === "account" && !account.authenticated ? (
+          <UserRound size={16} />
+        ) : (
+          <Avatar id={activeKey} name={personaName} size={26} />
+        )}
         <span className="hidden max-w-32 truncate sm:inline">{personaName.split(" · ")[0]}</span>
         <motion.span animate={{ rotate: open ? 180 : 0 }} className="opacity-60">
           <ChevronDown size={14} />
@@ -197,73 +242,101 @@ function PersonaSwitcher({ dark }: { dark: boolean }) {
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="label px-2 pb-1.5 pt-1.5">Demo accounts · burner wallets</div>
-            {PERSONAS.map((p, i) => (
-              <motion.button
-                key={p.id}
-                role="menuitem"
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.03 * i }}
-                onClick={() => {
-                  setPersona(p.id);
-                  setOpen(false);
-                }}
-                className={cx("flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-paper", persona === p.id && "bg-paper")}
-              >
-                <Avatar id={personaKeys[p.id] ?? p.id} name={p.name} size={34} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold">{p.name}</div>
-                  <div className="text-xs text-muted">{p.role === "company" ? "Company · posts tasks" : `Worker · ${p.city}`}</div>
+            {account.enabled &&
+              (account.authenticated ? (
+                <div className={cx("rounded-xl p-2", persona === "account" && "bg-paper")}>
+                  <button className="flex w-full items-center gap-3 text-left" onClick={() => pick("account")}>
+                    <Avatar id={account.me?.wallet ?? "account"} name={profile?.displayName ?? account.me?.email ?? "You"} size={38} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold">{profile?.displayName ?? account.me?.email ?? "Your account"}</div>
+                      <div className="truncate text-xs text-muted">
+                        {profile?.handle ? `@${profile.handle} · ` : ""}
+                        {account.role === "company" ? "Organisation" : account.role === "worker" ? "Freelancer" : "Finish setting up"}
+                      </div>
+                    </div>
+                    {persona === "account" && <Check size={16} className="text-red" />}
+                  </button>
+                  <div className="mt-2 grid grid-cols-3 gap-1">
+                    {[
+                      { href: account.me?.onboarded ? "/dashboard" : "/welcome", label: "Dashboard", Icon: LayoutDashboard },
+                      { href: "/wallet", label: "Wallet", Icon: Wallet },
+                      { href: profile?.handle ? `/u/${profile.handle}` : "/welcome", label: "Profile", Icon: UserRound },
+                    ].map(({ href, label, Icon }) => (
+                      <Link key={label} href={href} onClick={() => setOpen(false)} className="flex flex-col items-center gap-1 rounded-lg py-2 text-[12px] text-muted transition-colors hover:bg-white hover:text-navy">
+                        <Icon size={16} />
+                        {label}
+                      </Link>
+                    ))}
+                  </div>
+                  <button
+                    className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg py-1.5 text-[12px] text-muted transition-colors hover:text-red"
+                    onClick={async () => {
+                      setOpen(false);
+                      await account.logout();
+                    }}
+                  >
+                    <LogOut size={13} /> Sign out
+                  </button>
                 </div>
-                {persona === p.id && <Check size={16} className="text-red" />}
-              </motion.button>
-            ))}
-            <div className="my-2 border-t border-line" />
-            <div className="label px-2 pb-1.5">Your own wallet</div>
-            <PrivyLoginSection setPersona={setPersona} persona={persona} />
-            <div className="flex items-center justify-between gap-2 rounded-xl px-2 py-1" onClick={() => setPersona("wallet")}>
-              <WalletMultiButton />
-              {persona === "wallet" && <Check size={16} className="text-red" />}
-            </div>
-            <p className="px-2 pb-1 pt-2 text-[11.5px] leading-relaxed text-muted">
-              Demo accounts are burner keys funded by the demo faucet (gas, plus test USDC for the company). Every action is a real signed transaction.
-            </p>
+              ) : (
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    account.login();
+                  }}
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold text-red transition-colors hover:bg-paper"
+                >
+                  <LogIn size={16} /> Sign in with email, Google or a wallet
+                </button>
+              ))}
+            {personasOn && (
+              <>
+                {account.enabled && <div className="my-2 border-t border-line" />}
+                <div className="label px-2 pb-1.5 pt-1.5">Demo accounts · burner wallets</div>
+                {PERSONAS.map((p, i) => (
+                  <motion.button
+                    key={p.id}
+                    role="menuitem"
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.03 * i }}
+                    onClick={() => pick(p.id)}
+                    className={cx("flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-paper", persona === p.id && "bg-paper")}
+                  >
+                    <Avatar id={personaKeys[p.id] ?? p.id} name={p.name} size={34} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold">{p.name}</div>
+                      <div className="text-xs text-muted">{p.role === "company" ? "Organisation · posts tasks" : `Freelancer · ${p.city}`}</div>
+                    </div>
+                    {persona === p.id && <Check size={16} className="text-red" />}
+                  </motion.button>
+                ))}
+                {!account.enabled && (
+                  <>
+                    <div className="my-2 border-t border-line" />
+                    <div className="label px-2 pb-1.5">Your own wallet</div>
+                    <div className="flex items-center justify-between gap-2 rounded-xl px-2 py-1" onClick={() => setPersona("wallet")}>
+                      <WalletMultiButton />
+                      {persona === "wallet" && <Check size={16} className="text-red" />}
+                    </div>
+                  </>
+                )}
+                <p className="px-2 pb-1 pt-2 text-[11.5px] leading-relaxed text-muted">
+                  Demo accounts are burner keys funded by the demo faucet. Every action is a real signed transaction.
+                </p>
+              </>
+            )}
+            {persona === "account" && account.authenticated && !signer && (
+              <p className="px-2 pb-1 pt-2 text-[11.5px] text-muted">Your wallet is loading…</p>
+            )}
+            {role === null && persona === "account" && account.authenticated && (
+              <Link href="/welcome" onClick={() => setOpen(false)} className="btn btn-red mt-2 h-10 w-full">
+                Finish setting up
+              </Link>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-function PrivyLoginSection({ setPersona, persona }: { setPersona: (p: any) => void; persona: string }) {
-  if (!usePrivyHook) return null;
-  const privy = usePrivyHook();
-  if (!privy.ready) return null;
-
-  if (privy.authenticated && privy.user) {
-    const email = privy.user.email?.address;
-    const wallet = privy.user.wallet?.address;
-    return (
-      <div className="mb-2 rounded-xl bg-paper px-3 py-2">
-        <div className="flex items-center justify-between">
-          <div className="min-w-0">
-            <div className="truncate text-sm font-semibold">{email ?? "Signed in"}</div>
-            {wallet && <div className="truncate font-mono text-[11px] text-muted">{wallet.slice(0, 4)}...{wallet.slice(-4)}</div>}
-          </div>
-          <button onClick={() => privy.logout()} className="text-xs text-muted hover:text-navy">Sign out</button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <button
-      onClick={() => privy.login()}
-      className="mb-2 flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-red hover:bg-paper"
-    >
-      <LogIn size={16} />
-      Sign in with email or Google
-    </button>
   );
 }

@@ -56,3 +56,9 @@ pub struct StakeSettled {
     pub amount: u64,
     pub refunded: bool,
 }
+
+#[event]
+pub struct JudgingExpired {
+    pub task: Pubkey,
+    pub refunded: u64,
+}

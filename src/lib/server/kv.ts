@@ -21,6 +21,22 @@ export interface Backend {
   list<T>(coll: Coll, key: string): Promise<T[]>;
   /** Exclusive lock that expires after ttlMs even if its holder dies. Null if taken. */
   lock(name: string, ttlMs: number): Promise<Release | null>;
+  /** Count a hit in a fixed window; returns the count so far in this window. */
+  hit(name: string, windowMs: number): Promise<number>;
+}
+
+// Fixed-window counters for the file backend (single process, so memory is enough).
+const counters = new Map<string, { n: number; until: number }>();
+function memoryHit(name: string, windowMs: number): number {
+  const now = Date.now();
+  const c = counters.get(name);
+  if (!c || c.until <= now) {
+    if (counters.size > 50_000) for (const [k, v] of counters) if (v.until <= now) counters.delete(k);
+    counters.set(name, { n: 1, until: now + windowMs });
+    return 1;
+  }
+  c.n++;
+  return c.n;
 }
 
 // ---------- JSON file
@@ -81,6 +97,7 @@ function fileBackend(): Backend {
       }
       return null;
     },
+    hit: async (name, windowMs) => memoryHit(name, windowMs),
   };
 }
 
@@ -126,6 +143,13 @@ function redisBackend(url: string): Backend {
       const ok = await c.set(key, token, { condition: "NX", expiration: { type: "PX", value: ttlMs } });
       if (ok !== "OK") return null;
       return async () => void (await c.eval(RELEASE, { keys: [key], arguments: [token] }));
+    },
+    async hit(name, windowMs) {
+      const c = await client();
+      const key = `${prefix}rl:${name}`;
+      const n = await c.incr(key);
+      if (n === 1) await c.pExpire(key, windowMs);
+      return n;
     },
   };
 }

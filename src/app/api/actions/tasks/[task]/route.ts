@@ -7,6 +7,8 @@ import { buildSubmitForTask, explainError, fetchTask, pda } from "@/lib/wukong";
 import { BLINK_MAX_CHARS, actionError, actionJson, originOf, parseKey, preflight } from "@/lib/server/blinks";
 import { connection, program } from "@/lib/server/env";
 import { store } from "@/lib/server/store";
+import { profileByWallet } from "@/lib/server/accounts";
+import { rateLimit, readJson } from "@/lib/server/guard";
 
 export const dynamic = "force-dynamic";
 
@@ -60,11 +62,16 @@ export async function GET(req: Request, ctx: Ctx) {
 export async function POST(req: Request, ctx: Ctx) {
   const { task: key } = await ctx.params;
   try {
+    try {
+      await rateLimit(req, "blink", 20, 60_000);
+    } catch {
+      return actionError("Too many requests. Try again shortly.", 429);
+    }
     const task = await loadTask(key);
     if (!task) return actionError("Task not found", 404);
     if (task.status !== "open" || Date.now() / 1000 > task.deadline) return actionError("Task is not open for entries");
 
-    const body = (await req.json().catch(() => ({}))) as { account?: string; data?: { content?: string } };
+    const body = ((await readJson(req, 16 * 1024).catch(() => ({}))) ?? {}) as { account?: string; data?: { content?: string } };
     const content = (body.data?.content ?? new URL(req.url).searchParams.get("content") ?? "").trim();
     if (!content) return actionError("Write your entry first");
     if (content.length > BLINK_MAX_CHARS) {
@@ -78,6 +85,10 @@ export async function POST(req: Request, ctx: Ctx) {
     }
     if (await connection().getAccountInfo(pda.submission(new PublicKey(key), worker))) {
       return actionError("This wallet already entered this task");
+    }
+    // Organisation accounts post tasks; they don't enter them.
+    if ((await profileByWallet(worker.toBase58()).catch(() => null))?.role === "company") {
+      return actionError("Organisation accounts can't enter tasks");
     }
 
     // Store the work off-chain first; the transaction commits its hash.

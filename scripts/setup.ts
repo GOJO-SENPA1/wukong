@@ -140,7 +140,11 @@ async function main() {
     mint = new PublicKey(config.mint);
     log(`config    exists (mint ${config.mint})`);
     if (config.admin !== admin.publicKey.toBase58()) {
-      log("⚠️  config admin is a different key; leaving judge/treasury unchanged");
+      // Someone else initialised this program's config (e.g. front-ran a fresh deploy): their judge
+      // and treasury would control every task. Never write that into deployment.json.
+      throw new Error(
+        `Config admin is ${config.admin}, not this admin (${admin.publicKey.toBase58()}). If that's not you, the config was hijacked: redeploy under a new program id.`,
+      );
     } else if (config.judge !== judge.publicKey.toBase58() || config.treasury !== treasury.publicKey.toBase58()) {
       const ix = await program.methods
         .updateConfig(judge.publicKey, treasury.publicKey, feeBps)
