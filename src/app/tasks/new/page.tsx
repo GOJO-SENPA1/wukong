@@ -1,15 +1,28 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Check, Lock, Sparkles } from "lucide-react";
+import { useRef, useState, type ReactNode } from "react";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { Check, Lock } from "lucide-react";
 import { useApp } from "@/components/Providers";
-import { Spinner, Usdc, cx } from "@/components/ui";
+import { Counter, Kinetic, Magnetic, Reveal } from "@/components/fx/motion";
+import { PixelIcon } from "@/components/fx/PixelIcon";
+import { burst } from "@/components/fx/Overlay";
+import { Spinner, cx } from "@/components/ui";
 import { CATEGORIES, categoryById } from "@/lib/categories";
 import { TEMPLATES } from "@/lib/demo";
 import { postJSON, runAction } from "@/lib/client/api";
+import { categoryIcon } from "@/lib/fx/sprites";
 
 type Step = "idle" | "brief" | "sign" | "done";
+const EASE = [0.16, 1, 0.3, 1] as const;
+const HOURS = [
+  { h: 1, label: "1 hour" },
+  { h: 6, label: "6 hours" },
+  { h: 24, label: "24 hours" },
+  { h: 72, label: "3 days" },
+  { h: 168, label: "7 days" },
+];
 
 export default function NewTaskPage() {
   const router = useRouter();
@@ -26,10 +39,12 @@ export default function NewTaskPage() {
   const [template, setTemplate] = useState<string | undefined>();
   const [step, setStep] = useState<Step>("idle");
   const [error, setError] = useState<string | null>(null);
+  const cta = useRef<HTMLButtonElement>(null);
 
   const fee = state.config?.feeBps ?? 1000;
-  const pool = reward * (1 - fee / 10000);
-  const cat = categoryById(category);
+  const safeReward = Number.isFinite(reward) && reward > 0 ? reward : 0;
+  const pool = safeReward * (1 - fee / 10000);
+  const splits = payoutMode === "topThree" ? [0.5, 0.3, 0.2] : [1];
 
   function applyTemplate(id: string) {
     const t = TEMPLATES.find((x) => x.id === id)!;
@@ -46,7 +61,7 @@ export default function NewTaskPage() {
   }
 
   async function submit() {
-    if (!signer) return setError("Pick a persona or connect a wallet first.");
+    if (!signer) return setError("Pick an account or connect a wallet first.");
     setError(null);
     try {
       setStep("brief");
@@ -67,8 +82,9 @@ export default function NewTaskPage() {
         entryStakeUsdc: stake,
       });
       setStep("done");
+      burst(cta.current, { icons: ["coin", "coin", "lock", "monkey"], count: 30 });
       await refresh();
-      router.push(`/tasks/${task}`);
+      setTimeout(() => router.push(`/tasks/${task}`), 900);
     } catch (err) {
       setError((err as Error).message);
       setStep("idle");
@@ -76,173 +92,346 @@ export default function NewTaskPage() {
   }
 
   const busy = step !== "idle";
-  const valid =
-    title.trim().length > 0 && title.length <= 64 && brief.trim().length >= 10 && reward > 0 && stake >= 0 && stake <= reward;
+  const valid = title.trim().length > 0 && title.length <= 64 && brief.trim().length >= 10 && reward > 0 && stake >= 0 && stake <= reward;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-      <div className="flex flex-col gap-5">
-        <div>
-          <h1 className="font-display text-4xl font-bold">Post a task</h1>
-          <p className="mt-1 text-muted">Lock the reward, describe the outcome, let the crowd compete.</p>
-        </div>
-
-        <div className="card p-4">
-          <div className="label mb-2 flex items-center gap-1.5">
-            <Sparkles size={13} /> Demo templates
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {TEMPLATES.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => applyTemplate(t.id)}
-                className={cx(
-                  "rounded-full border px-3 py-1 text-sm",
-                  template === t.id ? "border-gold bg-gold/10 text-gold" : "border-line-2 text-muted hover:text-text",
-                )}
-              >
-                {categoryById(t.category).emoji} {t.title}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="card flex flex-col gap-4 p-5">
-          <label className="flex flex-col gap-1.5">
-            <span className="label">Title ({title.length}/64, stored on-chain)</span>
-            <input className="input" value={title} maxLength={64} onChange={(e) => setTitle(e.target.value)} placeholder="Launch tagline for our cold brew" />
-          </label>
-          <div className="flex flex-col gap-1.5">
-            <span className="label">Category (sets the judge's rubric)</span>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => setCategory(c.id)}
-                  className={cx("rounded-xl border px-3 py-1.5 text-sm", category === c.id ? "border-gold bg-gold/10 text-gold" : "border-line-2 text-muted")}
-                >
-                  {c.emoji} {c.label}
-                </button>
-              ))}
-            </div>
-            <div className="mt-1 flex flex-wrap gap-1.5">
-              {cat.criteria.map((c) => (
-                <span key={c.key} className="rounded-md bg-white/5 px-2 py-0.5 text-[11px] text-muted">
-                  {c.label} {Math.round(c.weight * 100)}%
-                </span>
-              ))}
-            </div>
-          </div>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">Brief (hashed on-chain, judge verifies it)</span>
-            <textarea className="input min-h-48 font-mono text-[13px] leading-relaxed" value={brief} onChange={(e) => setBrief(e.target.value)} placeholder="What does great look like? Audience, tone, hard constraints…" />
-          </label>
-          <div className="grid gap-4 sm:grid-cols-4">
-            <label className="flex flex-col gap-1.5">
-              <span className="label">Reward (USDC)</span>
-              <input className="input" type="number" min={1} value={reward} onChange={(e) => setReward(Number(e.target.value))} />
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className="label">Open for (hours)</span>
-              <input className="input" type="number" min={1} value={hours} onChange={(e) => setHours(Number(e.target.value))} />
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className="label">Min. reputation</span>
-              <input className="input" type="number" min={0} value={minRating} onChange={(e) => setMinRating(Number(e.target.value))} />
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className="label">Entry stake (USDC)</span>
-              <input className="input" type="number" min={0} step={0.5} value={stake} onChange={(e) => setStake(Number(e.target.value))} />
-            </label>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-1.5">
-              <span className="label">Payout</span>
-              <Segmented
-                value={payoutMode}
-                onChange={setPayoutMode}
-                options={[
-                  { value: "topThree", label: "Top 3 · 50/30/20" },
-                  { value: "winnerTakesAll", label: "Winner takes all" },
-                ]}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="label">Final call</span>
-              <Segmented
-                value={judgeMode}
-                onChange={setJudgeMode}
-                options={[
-                  { value: "aiFinal", label: "AI score is final" },
-                  { value: "creatorPicks", label: "AI shortlists, I pick" },
-                ]}
-              />
-            </div>
-          </div>
-        </div>
+    <div className="flex flex-col gap-8">
+      <div>
+        <Kinetic text="Post a task" className="display text-[clamp(3rem,7vw,5.5rem)]" />
+        <Reveal delay={0.2} className="mt-3 text-[16px] text-muted">
+          Describe the work, lock the reward, and the crowd gets to it.
+        </Reveal>
       </div>
 
-      <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
-        <div className="card p-5">
-          <div className="label">You lock now</div>
-          <Usdc base={reward * 1_000_000} className="font-display text-4xl font-bold text-gold" />
-          <div className="mt-4 space-y-1.5 text-sm">
-            <Row k="Worker pool" v={<Usdc base={pool * 1_000_000} decimals={2} />} />
-            <Row k={`Platform fee (${fee / 100}%)`} v={<Usdc base={(reward - pool) * 1_000_000} decimals={2} />} />
-            {payoutMode === "topThree" && (
-              <Row k="1st / 2nd / 3rd" v={`${(pool * 0.5).toFixed(2)} / ${(pool * 0.3).toFixed(2)} / ${(pool * 0.2).toFixed(2)}`} />
-            )}
-            <Row k="If nothing scores ≥ 25" v="full refund" />
-            {stake > 0 && <Row k={`Entry stake ${stake} USDC`} v="slashed if spam" />}
-          </div>
-          <button className="btn btn-gold mt-5 w-full py-3 text-base" disabled={!valid || busy} onClick={submit}>
-            {busy ? <Spinner /> : <Lock size={16} />} Lock {reward} USDC & post
-          </button>
-          <p className="mt-2 text-center text-xs text-faint">Signing as {personaName}</p>
-          {error && <p className="mt-3 rounded-lg bg-crimson/10 p-2 text-sm text-crimson">{error}</p>}
+      <Reveal delay={0.25}>
+        <div className="mono-label mb-3 text-muted">Start from a template</div>
+        <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0 sm:[mask-image:linear-gradient(to_right,black_88%,transparent)]">
+          {TEMPLATES.map((t, i) => (
+            <motion.button
+              key={t.id}
+              onClick={() => applyTemplate(t.id)}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + i * 0.05, ease: EASE, duration: 0.6 }}
+              whileHover={{ y: -4 }}
+              whileTap={{ scale: 0.97 }}
+              className={cx(
+                "group flex w-60 shrink-0 items-start gap-3 rounded-2xl border-2 bg-white p-4 text-left transition-colors",
+                template === t.id ? "border-blue" : "border-transparent hover:border-line-2",
+              )}
+            >
+              <PixelIcon name={categoryIcon(t.category)} px={1.6} motion="hover" className="-ml-1 -mt-1 shrink-0" />
+              <span className="min-w-0">
+                <span className="line-clamp-2 text-[14px] font-semibold leading-snug">{t.title}</span>
+                <span className="mt-1 block font-mono text-[11px] text-muted">{t.rewardUsdc} USDC · {categoryById(t.category).label}</span>
+              </span>
+            </motion.button>
+          ))}
         </div>
-        {busy && (
-          <div className="card animate-rise space-y-2 p-4 text-sm">
-            <Progress active={step === "brief"} done={step !== "brief"} label="Brief stored, sha256 computed" />
-            <Progress active={step === "sign"} done={step === "done"} label="create_task signed: USDC → escrow vault" />
-            <Progress active={false} done={step === "done"} label="Task live in the arena" />
-          </div>
-        )}
-      </aside>
+      </Reveal>
+
+      <div className="grid items-start gap-6 lg:grid-cols-[1fr_380px]">
+        <div className="flex flex-col gap-5">
+          <Section n="01" title="What kind of work?">
+            <LayoutGroup id="category">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {CATEGORIES.map((c) => (
+                  <Option key={c.id} active={category === c.id} onClick={() => setCategory(c.id)} group="category">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-semibold">{c.label}</div>
+                        <div className="mt-1 text-[13px] leading-snug text-muted">{c.blurb}</div>
+                      </div>
+                      <PixelIcon name={categoryIcon(c.id)} px={1.5} motion={category === c.id ? "bob" : "still"} className="-mr-2 -mt-2 shrink-0" />
+                    </div>
+                  </Option>
+                ))}
+              </div>
+            </LayoutGroup>
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              <AnimatePresence mode="popLayout">
+                {categoryById(category).criteria.map((c, i) => (
+                  <motion.span
+                    key={`${category}-${c.key}`}
+                    layout
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="rounded-full bg-paper px-3 py-1 font-mono text-[11px] text-muted"
+                  >
+                    {c.label} <span className="text-red">{Math.round(c.weight * 100)}%</span>
+                  </motion.span>
+                ))}
+              </AnimatePresence>
+            </div>
+          </Section>
+
+          <Section n="02" title="The brief">
+            <label className="flex flex-col gap-2">
+              <span className="flex justify-between text-[14px] font-semibold">
+                Title <span className={cx("font-mono text-[11px] font-normal", title.length > 56 ? "text-red" : "text-faint")}>{title.length}/64 · stored on-chain</span>
+              </span>
+              <input className="input" value={title} maxLength={64} onChange={(e) => setTitle(e.target.value)} placeholder="Launch tagline: Himalayan cold brew" />
+            </label>
+            <label className="mt-5 flex flex-col gap-2">
+              <span className="text-[14px] font-semibold">Brief</span>
+              <textarea
+                className="input min-h-52 text-[15px] leading-relaxed"
+                value={brief}
+                onChange={(e) => setBrief(e.target.value)}
+                placeholder="What does great look like? Audience, tone, length and hard constraints."
+              />
+            </label>
+            <p className="mt-2 text-[13px] leading-relaxed text-muted">
+              Spell out the audience, tone, length and must-haves: the judge scores against exactly this. Once published, the brief is fingerprinted on-chain and
+              can&apos;t be edited.
+            </p>
+          </Section>
+
+          <Section n="03" title="Reward and payout">
+            <label className="flex max-w-xs flex-col gap-2">
+              <span className="text-[14px] font-semibold">Reward</span>
+              <span className="relative">
+                <input
+                  className="input !py-3 !pr-16 font-display !text-3xl"
+                  type="number"
+                  min={1}
+                  value={Number.isFinite(reward) ? reward : ""}
+                  onChange={(e) => setReward(Number(e.target.value))}
+                />
+                <span className="mono-label absolute right-4 top-1/2 -translate-y-1/2 text-faint">USDC</span>
+              </span>
+            </label>
+            <LayoutGroup id="payout">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <Option active={payoutMode === "topThree"} onClick={() => setPayoutMode("topThree")} group="payout">
+                  <div className="font-semibold">Top 3 paid</div>
+                  <div className="mt-1 text-[13px] text-muted">Split 50 / 30 / 20 between the three best entries.</div>
+                </Option>
+                <Option active={payoutMode === "winnerTakesAll"} onClick={() => setPayoutMode("winnerTakesAll")} group="payout">
+                  <div className="font-semibold">Winner takes all</div>
+                  <div className="mt-1 text-[13px] text-muted">The single best entry gets the whole pool.</div>
+                </Option>
+              </div>
+            </LayoutGroup>
+          </Section>
+
+          <Section n="04" title="Who picks the winners?">
+            <LayoutGroup id="judge">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Option active={judgeMode === "aiFinal"} onClick={() => setJudgeMode("aiFinal")} group="judge">
+                  <div className="font-semibold">The AI decides</div>
+                  <div className="mt-1 text-[13px] text-muted">Scores are final and winners are paid the moment judging ends.</div>
+                </Option>
+                <Option active={judgeMode === "creatorPicks"} onClick={() => setJudgeMode("creatorPicks")} group="judge">
+                  <div className="font-semibold">AI shortlists, I pick</div>
+                  <div className="mt-1 text-[13px] text-muted">You choose from the top three. Payment waits for your pick.</div>
+                </Option>
+              </div>
+            </LayoutGroup>
+          </Section>
+
+          <Section n="05" title="Deadline and who can enter">
+            <div className="text-[14px] font-semibold">Open for</div>
+            <LayoutGroup id="hours">
+              <div className="mt-2 flex flex-wrap gap-2">
+                {HOURS.map((o) => (
+                  <button key={o.h} onClick={() => setHours(o.h)} className={cx("chip relative", hours === o.h ? "!border-navy text-white" : "text-navy")}>
+                    {hours === o.h && (
+                      <motion.span layoutId="hours-pill" className="absolute inset-0 rounded-full bg-navy" transition={{ type: "spring", stiffness: 500, damping: 36 }} />
+                    )}
+                    <span className="relative">{o.label}</span>
+                  </button>
+                ))}
+                {!HOURS.some((o) => o.h === hours) && <span className="chip !border-navy bg-navy text-white">{hours} hours</span>}
+              </div>
+            </LayoutGroup>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <label className="flex flex-col gap-2">
+                <span className="text-[14px] font-semibold">Minimum rating</span>
+                <select className="input" value={minRating} onChange={(e) => setMinRating(Number(e.target.value))}>
+                  {withValue([0, 50, 100, 150, 400], minRating).map((r) => (
+                    <option key={r} value={r}>
+                      {r === 0 ? "Anyone" : `${r}+`}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col gap-2">
+                <span className="text-[14px] font-semibold">Entry stake</span>
+                <select className="input" value={stake} onChange={(e) => setStake(Number(e.target.value))}>
+                  {withValue([0, 0.5, 1, 2, 5], stake).map((v) => (
+                    <option key={v} value={v}>
+                      {v === 0 ? "None" : `${v} USDC`}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <p className="mt-3 text-[13px] text-muted">A small refundable stake filters out spam. Honest entrants get it back; entries scoring under 20 lose it.</p>
+          </Section>
+        </div>
+
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-24">
+          <Reveal delay={0.3} x={20} y={0}>
+            <div className="card-navy relative overflow-hidden p-6">
+              <div className="grid-lines absolute inset-0 opacity-50" aria-hidden />
+              <div className="relative">
+                <div className="mono-label text-white/50">Summary</div>
+                <div className="mt-4 text-[13.5px] text-white/60">Locked in escrow when you publish</div>
+                <div className="mt-1 flex items-end gap-2">
+                  <span className="display text-[64px] leading-[0.85]">
+                    <Counter value={safeReward} decimals={2} duration={0.6} />
+                  </span>
+                  <span className="pb-1 text-sm text-white/60">USDC</span>
+                </div>
+                <div className="mt-3 text-[13.5px] text-white/60">{payoutMode === "topThree" ? "Top 3 paid" : "Winner takes all"}, after the fee</div>
+                <motion.div layout className={cx("mt-4 grid gap-2", splits.length === 3 ? "grid-cols-3" : "grid-cols-1")}>
+                  <AnimatePresence mode="popLayout">
+                    {splits.map((s, i) => (
+                      <motion.div
+                        key={`${payoutMode}-${i}`}
+                        layout
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="rounded-xl bg-white/[0.07] px-3 py-2.5"
+                      >
+                        <div className={cx("mono-label !text-[9.5px]", i === 0 ? "text-red-2" : "text-white/50")}>{["1st", "2nd", "3rd"][i]}</div>
+                        <div className="mt-0.5 text-[17px] font-semibold tabular-nums">
+                          <Counter value={pool * s} decimals={2} duration={0.5} />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+                <dl className="mt-5 flex flex-col gap-2.5 border-t border-white/10 pt-4 text-[13.5px]">
+                  <Row k="Platform fee" v={`${(safeReward - pool).toFixed(2)} USDC, from payouts`} />
+                  <Row k="Judging" v={judgeMode === "aiFinal" ? "AI, final" : "AI shortlist, you pick"} />
+                  <Row k="Open for" v={HOURS.find((o) => o.h === hours)?.label ?? `${hours} hours`} />
+                  <Row k="Entry stake" v={stake ? `${stake} USDC` : "None"} />
+                </dl>
+                <Magnetic className="mt-5 block w-full" strength={0.15}>
+                  <button ref={cta} className="btn btn-red h-12 w-full text-[15px]" disabled={!valid || busy} onClick={submit}>
+                    {busy && step !== "done" ? <Spinner /> : step === "done" ? <Check size={17} /> : <Lock size={16} />}
+                    {step === "done" ? "Published" : `Lock ${safeReward.toFixed(2)} USDC and publish`}
+                  </button>
+                </Magnetic>
+                <p className="mt-3 text-[12px] leading-relaxed text-white/45">
+                  Refunded in full if no entry scores 25 or more. You can cancel and get it back until the first entry arrives. Signing as {personaName}.
+                </p>
+                <AnimatePresence>
+                  {error && (
+                    <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-3 rounded-xl bg-red/20 p-3 text-[13px] text-white">
+                      {error}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+                <AnimatePresence>
+                  {busy && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-4 flex flex-col gap-2.5 border-t border-white/10 pt-4 text-[13px]">
+                        <Progress active={step === "brief"} done={step !== "brief"} label="Brief stored, sha256 computed" />
+                        <Progress active={step === "sign"} done={step === "done"} label="Signed: USDC moves into the escrow vault" />
+                        <Progress active={false} done={step === "done"} label="Task live in the arena" />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </Reveal>
+          <Reveal delay={0.4}>
+            <div className="mono-label mb-2 px-1 text-muted">How workers will see it</div>
+            <div className="card p-5">
+              <div className="flex items-center justify-between">
+                <span className="mono-label text-muted">{categoryById(category).label}</span>
+                <span className="mono-label text-red">{HOURS.find((o) => o.h === hours)?.label ?? `${hours}h`} left</span>
+              </div>
+              <div className="mt-2 min-h-[1.5em] text-[17px] font-semibold leading-snug">{title || <span className="text-faint">Your title</span>}</div>
+              <div className="mt-4 flex items-baseline gap-1.5">
+                <span className="display text-4xl leading-none">
+                  <Counter value={safeReward} duration={0.5} />
+                </span>
+                <span className="text-[12px] font-semibold text-muted">USDC · {payoutMode === "topThree" ? "top 3 paid" : "winner takes all"}</span>
+              </div>
+            </div>
+          </Reveal>
+        </aside>
+      </div>
     </div>
   );
 }
 
-function Row({ k, v }: { k: string; v: React.ReactNode }) {
+/** The preset options plus the current value, so a template's value always shows. */
+const withValue = (opts: number[], v: number) => (opts.includes(v) || !Number.isFinite(v) ? opts : [...opts, v].sort((a, b) => a - b));
+
+function Section({ n, title, children }: { n: string; title: string; children: ReactNode }) {
+  return (
+    <Reveal>
+      <section className="card p-6 sm:p-7">
+        <h2 className="mb-5 flex items-baseline gap-3 text-[19px] font-semibold tracking-tight">
+          <span className="font-mono text-[11px] text-red">{n}</span>
+          {title}
+        </h2>
+        {children}
+      </section>
+    </Reveal>
+  );
+}
+
+function Option({ active, onClick, children, group }: { active: boolean; onClick: () => void; children: ReactNode; group: string }) {
+  return (
+    <motion.button
+      onClick={onClick}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      className="relative rounded-2xl border-[1.5px] border-line-2 bg-white p-4 text-left transition-colors hover:border-navy/50"
+      aria-pressed={active}
+    >
+      {active && (
+        <motion.span
+          layoutId={`opt-${group}`}
+          className="pointer-events-none absolute -inset-px rounded-2xl border-2 border-blue shadow-[0_0_0_4px_rgb(43_60_255/0.1)]"
+          transition={{ type: "spring", stiffness: 500, damping: 38 }}
+        />
+      )}
+      <span className="relative block">{children}</span>
+    </motion.button>
+  );
+}
+
+function Row({ k, v }: { k: string; v: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="text-muted">{k}</span>
-      <span className="font-medium">{v}</span>
-    </div>
-  );
-}
-
-function Segmented<T extends string>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[] }) {
-  return (
-    <div className="flex rounded-xl border border-line-2 p-1">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          onClick={() => onChange(o.value)}
-          className={cx("flex-1 rounded-lg px-2 py-1.5 text-sm", value === o.value ? "bg-gold/15 font-semibold text-gold" : "text-muted")}
-        >
-          {o.label}
-        </button>
-      ))}
+      <dt className="text-white/55">{k}</dt>
+      <dd className="text-right">{v}</dd>
     </div>
   );
 }
 
 function Progress({ active, done, label }: { active: boolean; done: boolean; label: string }) {
   return (
-    <div className="flex items-center gap-2">
-      {done ? <Check size={16} className="text-jade" /> : active ? <Spinner className="text-gold" /> : <span className="h-4 w-4 rounded-full border border-line-2" />}
-      <span className={done ? "text-text" : "text-muted"}>{label}</span>
+    <div className="flex items-center gap-2.5">
+      <span className="flex h-5 w-5 items-center justify-center">
+        {done ? (
+          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 15 }} className="flex h-5 w-5 items-center justify-center rounded-full bg-green">
+            <Check size={12} strokeWidth={3} />
+          </motion.span>
+        ) : active ? (
+          <Spinner className="text-white" />
+        ) : (
+          <span className="h-4 w-4 rounded-full border border-white/25" />
+        )}
+      </span>
+      <span className={done ? "text-white" : "text-white/55"}>{label}</span>
     </div>
   );
 }

@@ -24,7 +24,7 @@ export function Container({ children, className }: { children: ReactNode; classN
   return <div className={cx("mx-auto w-full max-w-7xl px-4 pb-28 pt-10 sm:px-6 lg:px-8", className)}>{children}</div>;
 }
 
-const AVATAR_COLORS = ["#E4261C", "#2B3CFF", "#0C1424", "#0E9F5A", "#FF7A1A", "#7C3AED", "#0891B2"];
+const AVATAR_COLORS = ["#E4261C", "#2B3CFF", "#DB2777", "#0E9F5A", "#FF7A1A", "#7C3AED", "#0891B2"];
 
 export function Avatar({ id, name, size = 32, ring = false }: { id: string; name?: string; size?: number; ring?: boolean }) {
   const h = hashCode(id);

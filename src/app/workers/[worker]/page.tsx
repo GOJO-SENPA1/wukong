@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
-import { Award, Coins, Copy, Target, TrendingUp } from "lucide-react";
-import { Avatar, Empty, ExplorerLink, ScoreNumber, Spinner, Stat, StatusPill, TierBadge, Usdc } from "@/components/ui";
+import { AnimatePresence, motion } from "motion/react";
+import { Check, Copy, Link2 } from "lucide-react";
+import { Counter, Kinetic, Reveal, Scramble, Spotlight } from "@/components/fx/motion";
+import { PixelIcon } from "@/components/fx/PixelIcon";
+import { Avatar, Container, Empty, ExplorerLink, ScoreBar, Skeleton, TierBadge, cx } from "@/components/ui";
 import { getJSON } from "@/lib/client/api";
-import { TIERS, fmtUsdc, shortAddr, tierFor, timeAgo } from "@/lib/format";
+import { TIERS, fmtUsdc, shortAddr, tierFor, toUsdc } from "@/lib/format";
 import type { ReputationView, SubmissionView, TaskStatus } from "@/lib/wukong";
 
 interface WorkerPayload {
@@ -17,11 +20,14 @@ interface WorkerPayload {
   history: (SubmissionView & { taskTitle: string; taskStatus?: TaskStatus; category: string; summary?: string })[];
 }
 
+const EASE = [0.16, 1, 0.3, 1] as const;
+const PLACE = ["", "1st", "2nd", "3rd"];
+
 export default function WorkerPage({ params }: { params: Promise<{ worker: string }> }) {
   const { worker } = use(params);
   const [data, setData] = useState<WorkerPayload | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"link" | "code" | null>(null);
 
   useEffect(() => {
     const load = () =>
@@ -33,18 +39,45 @@ export default function WorkerPage({ params }: { params: Promise<{ worker: strin
     return () => clearInterval(id);
   }, [worker]);
 
-  if (err && !data) return <Empty>{err}</Empty>;
+  const copy = (what: "link" | "code", text: string) => {
+    navigator.clipboard?.writeText(text);
+    setCopied(what);
+    setTimeout(() => setCopied(null), 1400);
+  };
+
+  if (err && !data)
+    return (
+      <Container>
+        <Empty>{err}</Empty>
+      </Container>
+    );
   if (!data) {
     return (
-      <div className="flex justify-center py-24 text-muted">
-        <Spinner />
-      </div>
+      <>
+        <div className="h-64 bg-navy" />
+        <Container className="flex flex-col gap-4">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-96" />
+        </Container>
+      </>
     );
   }
 
   const rep = data.reputation;
-  const tier = tierFor(rep?.rating ?? 0);
-  const next = TIERS.find((t) => t.min > (rep?.rating ?? 0));
+  const rating = rep?.rating ?? 0;
+  const tier = tierFor(rating);
+  const next = TIERS.find((t) => t.min > rating);
+  const [who, city] = (data.name ?? "").split(" · ");
+  const display = who || shortAddr(data.worker, 6);
+  const scored = data.history.filter((h) => h.scored);
+  const byCat = Object.entries(
+    scored.reduce<Record<string, number[]>>((acc, h) => {
+      (acc[h.category || "Other"] ??= []).push(h.score);
+      return acc;
+    }, {}),
+  )
+    .map(([cat, s]) => ({ cat, avg: s.reduce((a, b) => a + b, 0) / s.length }))
+    .sort((a, b) => b.avg - a.avg);
   const snippet = `// Read this worker's reputation from any app, no Wukong API needed
 const [pda] = PublicKey.findProgramAddressSync(
   [Buffer.from("reputation"), new PublicKey("${data.worker}").toBuffer()],
@@ -52,120 +85,175 @@ const [pda] = PublicKey.findProgramAddressSync(
 );
 const rep = await program.account.reputation.fetch(pda);`;
 
+  const stats = [
+    { label: "Rating", value: rating, cls: "text-red" },
+    { label: "Wins", value: rep?.wins ?? 0 },
+    { label: "Top-3 finishes", value: rep?.podiums ?? 0 },
+    { label: "Entries", value: rep?.submissions ?? 0 },
+    { label: "Average score", value: rep?.scored ? Math.round(rep.avgScore / 100) : 0 },
+    { label: "Earned", value: toUsdc(rep?.totalEarned ?? 0), decimals: 2 },
+  ];
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="card flex flex-col gap-5 p-6 sm:flex-row sm:items-center">
-        <Avatar id={data.worker} name={data.name} size={76} />
-        <div className="min-w-0 flex-1">
-          <h1 className="font-display text-3xl font-bold">{data.name ?? shortAddr(data.worker, 6)}</h1>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
-            <span className="font-mono text-xs">{shortAddr(data.worker, 6)}</span>
-            <TierBadge rating={rep?.rating ?? 0} />
+    <>
+      <section className="relative overflow-hidden bg-navy text-white">
+        <div className="grid-lines absolute inset-0 [mask-image:radial-gradient(ellipse_at_20%_50%,black,transparent_75%)]" aria-hidden />
+        <Spotlight color="rgb(228 38 28 / 0.16)" />
+        <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-12 sm:px-6 md:flex-row md:items-center lg:px-8">
+          <motion.div initial={{ scale: 0.6, rotate: -12, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 260, damping: 18 }} className="relative w-fit">
+            <Avatar id={data.worker} name={data.name} size={112} />
+            <span className="absolute -bottom-2 -right-3">
+              <PixelIcon name={rep?.wins ? "trophy" : "monkey"} px={2} motion="bob" />
+            </span>
+          </motion.div>
+          <div className="min-w-0 flex-1">
+            <Kinetic text={display} className="display text-[clamp(2.8rem,6vw,4.8rem)]" />
+            <Reveal delay={0.2} className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px] text-white/70">
+              {city && <span>{city}</span>}
+              <span className="font-mono text-[13px]">
+                <Scramble text={shortAddr(data.worker, 6)} trigger="mount" />
+              </span>
+              <TierBadge rating={rating} />
+            </Reveal>
+            {next && (
+              <Reveal delay={0.3} className="mt-4 max-w-md">
+                <div className="flex justify-between text-[12.5px] text-white/55">
+                  <span>{tier.name}</span>
+                  <span>
+                    {next.min - rating} to {next.name}
+                  </span>
+                </div>
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/15">
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ background: tier.color }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${((rating - tier.min) / (next.min - tier.min)) * 100}%` }}
+                    transition={{ delay: 0.5, duration: 1.2, ease: EASE }}
+                  />
+                </div>
+              </Reveal>
+            )}
           </div>
-          {next && (
-            <div className="mt-3 max-w-sm">
-              <div className="flex justify-between text-xs text-muted">
-                <span>{tier.name}</span>
-                <span>
-                  {next.min - (rep?.rating ?? 0)} to {next.name}
-                </span>
+          <Reveal delay={0.3} className="flex flex-col items-start gap-3 md:items-end">
+            <button className="btn btn-ghost-light h-11" onClick={() => copy("link", window.location.href)}>
+              <AnimatePresence mode="wait">
+                <motion.span key={copied === "link" ? "ok" : "link"} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }}>
+                  {copied === "link" ? <Check size={16} /> : <Link2 size={16} />}
+                </motion.span>
+              </AnimatePresence>
+              {copied === "link" ? "Copied" : "Copy profile link"}
+            </button>
+            <span className="text-[13px] text-white/50">
+              Wallet balance <b className="font-mono text-white">{fmtUsdc(data.usdc, { decimals: 2 })} USDC</b>
+            </span>
+          </Reveal>
+        </div>
+      </section>
+
+      <Container className="flex flex-col gap-6 !pt-8">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+          {stats.map((s, i) => (
+            <Reveal key={s.label} delay={i * 0.06}>
+              <div className="card lift p-5">
+                <div className="label">{s.label}</div>
+                <div className={cx("display mt-2 text-[44px] leading-none", s.cls)}>
+                  <Counter value={s.value} decimals={s.decimals ?? 0} />
+                </div>
               </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/5">
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${(((rep?.rating ?? 0) - tier.min) / (next.min - tier.min)) * 100}%`,
-                    background: tier.color,
-                  }}
-                />
+            </Reveal>
+          ))}
+        </div>
+
+        <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px]">
+          <Reveal>
+            <div className="card p-6 sm:p-7">
+              <h2 className="text-[19px] font-semibold tracking-tight">Results</h2>
+              {data.history.length === 0 ? (
+                <div className="mt-6 flex flex-col items-center gap-3 py-8 text-center text-muted">
+                  <PixelIcon name="monkey" px={3} motion="bob" />
+                  No entries yet.
+                </div>
+              ) : (
+                <div className="mt-4 flex flex-col">
+                  {data.history.map((h, i) => (
+                    <motion.div
+                      key={h.pubkey}
+                      initial={{ opacity: 0, y: 14 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: Math.min(i, 8) * 0.05, duration: 0.6, ease: EASE }}
+                    >
+                      <Link href={`/tasks/${h.task}`} className="group grid grid-cols-[72px_1fr_auto] gap-4 border-t border-line py-5 transition-colors hover:bg-paper/60 sm:px-2">
+                        <span className={cx("display text-[46px] leading-[0.9]", h.scored ? "text-navy" : "text-faint")}>{h.scored ? Math.round(h.score / 100) : "–"}</span>
+                        <div className="min-w-0">
+                          <div className="font-semibold leading-snug transition-colors group-hover:text-red">{h.taskTitle}</div>
+                          <div className="mt-0.5 text-[13px] text-muted">
+                            {h.category}
+                            {h.taskStatus === "open" ? " · sealed, awaiting close" : h.taskStatus === "judging" ? " · being judged" : ""}
+                          </div>
+                          {h.summary && <p className="serif-quote mt-2 text-[17px] leading-snug text-navy/80">“{h.summary}”</p>}
+                        </div>
+                        <div className="text-right">
+                          {h.rank > 0 && <div className="mono-label !text-[10px] text-red">{PLACE[h.rank]}</div>}
+                          <div className="mt-0.5 font-semibold tabular-nums">{h.payout > 0 ? `+${fmtUsdc(h.payout, { decimals: 2 })}` : "—"}</div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </Reveal>
+
+          <aside className="flex flex-col gap-4 lg:sticky lg:top-24">
+            {byCat.length > 0 && (
+              <Reveal delay={0.1}>
+                <div className="card p-6">
+                  <div className="text-[16px] font-semibold">Strongest in</div>
+                  <div className="mt-4 flex flex-col gap-4">
+                    {byCat.map((c, i) => (
+                      <div key={c.cat}>
+                        <div className="flex justify-between text-[14px]">
+                          <span>{c.cat}</span>
+                          <span className="font-semibold">avg {Math.round(c.avg / 100)}</span>
+                        </div>
+                        <ScoreBar score={c.avg} tone="navy" className="mt-2" delay={i * 0.1} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Reveal>
+            )}
+            <Reveal delay={0.2}>
+              <div className="relative overflow-hidden rounded-[18px] bg-blue p-6 text-white">
+                <Spotlight color="rgb(255 255 255 / 0.15)" size={300} />
+                <div className="mono-label relative text-white/70">On-chain reputation</div>
+                <p className="relative mt-3 text-[15px] leading-relaxed">
+                  Every score and payout above is recorded on Solana in an account {display} owns. If Wukong disappears tomorrow, it survives. Any app can read it.
+                </p>
+                <div className="relative mt-4 flex items-center justify-between gap-3 font-mono text-[12px] text-white/80">
+                  <span>Reputation account</span>
+                  <ExplorerLink kind="address" id={data.reputationAccount} className="!text-white" />
+                </div>
+                <div className="relative mt-4">
+                  <pre className="overflow-x-auto rounded-xl bg-navy/60 p-3.5 font-mono text-[10.5px] leading-relaxed text-white/75">{snippet}</pre>
+                  <button
+                    className="absolute right-2 top-2 rounded-lg bg-white/10 p-1.5 text-white/80 transition-colors hover:bg-white/20"
+                    onClick={() => copy("code", snippet)}
+                    aria-label="Copy snippet"
+                  >
+                    {copied === "code" ? <Check size={13} /> : <Copy size={13} />}
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            </Reveal>
+            <Reveal delay={0.3} className="px-1 text-[12.5px] leading-relaxed text-muted">
+              Rating = quality above 50, plus podium bonuses (100 / 50 / 25). Spam costs 10. Best score {rep?.bestScore ? (rep.bestScore / 100).toFixed(1) : "–"}.
+            </Reveal>
+          </aside>
         </div>
-        <div className="text-right">
-          <div className="label">Wallet balance</div>
-          <Usdc base={data.usdc} decimals={2} className="font-display text-2xl font-bold text-jade" />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat label="Rating" value={<span style={{ color: tier.color }}>{rep?.rating ?? 0}</span>} />
-        <Stat label="Wins / podiums" value={`${rep?.wins ?? 0} / ${rep?.podiums ?? 0}`} accent="text-gold" />
-        <Stat label="Earned on Wukong" value={<Usdc base={rep?.totalEarned ?? 0} decimals={2} />} accent="text-jade" />
-        <Stat label="Avg score" value={rep?.scored ? (rep.avgScore / 100).toFixed(1) : "–"} />
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        <div>
-          <h2 className="mb-3 font-display text-lg font-semibold">Track record</h2>
-          {data.history.length === 0 ? (
-            <Empty>No submissions yet.</Empty>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {data.history.map((h) => (
-                <Link key={h.pubkey} href={`/tasks/${h.task}`} className="card flex items-center gap-4 p-4 hover:border-gold/40">
-                  <div className="w-8 text-center text-xl">{["", "🥇", "🥈", "🥉"][h.rank] || (h.scored ? "·" : "⏳")}</div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-semibold">{h.taskTitle}</div>
-                    <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted">
-                      {h.taskStatus && <StatusPill status={h.taskStatus} />}
-                      <span>{h.category}</span>
-                      <span>{timeAgo(h.submittedAt)}</span>
-                    </div>
-                    {h.summary && <p className="mt-1 truncate text-xs text-muted">{h.summary}</p>}
-                  </div>
-                  <div className="text-right">
-                    {h.scored ? <ScoreNumber score={h.score} className="text-2xl" /> : <span className="text-xs text-faint">pending</span>}
-                    {h.payout > 0 && <div className="text-xs font-bold text-jade">+{fmtUsdc(h.payout, { decimals: 2 })}</div>}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <aside className="flex flex-col gap-4">
-          <div className="card p-5">
-            <div className="flex items-center gap-2 font-display font-semibold">
-              <Award size={18} className="text-gold" /> Portable, on-chain reputation
-            </div>
-            <p className="mt-2 text-sm leading-relaxed text-muted">
-              This record lives in a program-derived account keyed by the worker&apos;s wallet, not in our database. If Wukong disappears
-              tomorrow, it survives. Any app can read it and gate, rank or pay on it.
-            </p>
-            <div className="mt-3 flex items-center justify-between text-xs">
-              <span className="text-muted">Reputation PDA</span>
-              <ExplorerLink kind="address" id={data.reputationAccount} />
-            </div>
-            <div className="relative mt-3">
-              <pre className="overflow-x-auto rounded-xl bg-ink p-3 font-mono text-[11px] leading-relaxed text-muted">{snippet}</pre>
-              <button
-                className="absolute right-2 top-2 rounded-md bg-white/5 p-1.5 text-muted hover:text-text"
-                onClick={() => {
-                  navigator.clipboard?.writeText(snippet);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 1200);
-                }}
-                aria-label="Copy snippet"
-              >
-                <Copy size={12} />
-              </button>
-              {copied && <span className="absolute right-10 top-2.5 text-[10px] text-jade">copied</span>}
-            </div>
-          </div>
-          <div className="card space-y-3 p-5 text-sm">
-            <div className="flex items-center gap-2">
-              <Target size={15} className="text-violet" /> {rep?.submissions ?? 0} {rep?.submissions === 1 ? "submission" : "submissions"}, {rep?.scored ?? 0} scored
-            </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp size={15} className="text-gold" /> best score {rep?.bestScore ? (rep.bestScore / 100).toFixed(1) : "–"}
-            </div>
-            <div className="flex items-center gap-2">
-              <Coins size={15} className="text-jade" /> rating = quality above 50 + podium bonuses (100/50/25), spam costs 10
-            </div>
-          </div>
-        </aside>
-      </div>
-    </div>
+      </Container>
+    </>
   );
 }
