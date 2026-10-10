@@ -4,12 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/react";
-import { ArrowUpRight, Check, ChevronDown, Menu, Wallet, X } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, LogIn, Menu, Wallet, X } from "lucide-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { PERSONAS } from "@/lib/demo";
 import { useApp } from "./Providers";
 import { Logo } from "./Logo";
 import { Avatar, EngineBadge, Spinner, cx } from "./ui";
+
+let usePrivyHook: (() => { ready: boolean; authenticated: boolean; user: any; login: () => void; logout: () => void }) | null = null;
+try {
+  const mod = require("@privy-io/react-auth");
+  if (process.env.NEXT_PUBLIC_PRIVY_APP_ID) usePrivyHook = mod.usePrivy;
+} catch {}
 
 const LINKS = [
   { href: "/tasks", label: "Explore" },
@@ -215,6 +221,7 @@ function PersonaSwitcher({ dark }: { dark: boolean }) {
             ))}
             <div className="my-2 border-t border-line" />
             <div className="label px-2 pb-1.5">Your own wallet</div>
+            <PrivyLoginSection setPersona={setPersona} persona={persona} />
             <div className="flex items-center justify-between gap-2 rounded-xl px-2 py-1" onClick={() => setPersona("wallet")}>
               <WalletMultiButton />
               {persona === "wallet" && <Check size={16} className="text-red" />}
@@ -226,5 +233,37 @@ function PersonaSwitcher({ dark }: { dark: boolean }) {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function PrivyLoginSection({ setPersona, persona }: { setPersona: (p: any) => void; persona: string }) {
+  if (!usePrivyHook) return null;
+  const privy = usePrivyHook();
+  if (!privy.ready) return null;
+
+  if (privy.authenticated && privy.user) {
+    const email = privy.user.email?.address;
+    const wallet = privy.user.wallet?.address;
+    return (
+      <div className="mb-2 rounded-xl bg-paper px-3 py-2">
+        <div className="flex items-center justify-between">
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold">{email ?? "Signed in"}</div>
+            {wallet && <div className="truncate font-mono text-[11px] text-muted">{wallet.slice(0, 4)}...{wallet.slice(-4)}</div>}
+          </div>
+          <button onClick={() => privy.logout()} className="text-xs text-muted hover:text-navy">Sign out</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => privy.login()}
+      className="mb-2 flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-red hover:bg-paper"
+    >
+      <LogIn size={16} />
+      Sign in with email or Google
+    </button>
   );
 }

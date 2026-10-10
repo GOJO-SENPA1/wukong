@@ -3,6 +3,7 @@ import { Anton, Instrument_Sans, Instrument_Serif, JetBrains_Mono } from "next/f
 import "@solana/wallet-adapter-react-ui/styles.css";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import { PrivyWrapper } from "@/components/PrivyWrapper";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { BurstLayer, Cursor } from "@/components/fx/Overlay";
@@ -24,15 +25,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${display.variable} ${sans.variable} ${serif.variable} ${mono.variable}`}>
       <body className="min-h-screen">
-        <Providers>
-          <ScrollProgress />
-          <Nav />
-          <main className="relative">{children}</main>
-          <Footer />
-          <BurstLayer />
-          <Cursor />
-          <div className="grain" aria-hidden />
-        </Providers>
+        <PrivyWrapper>
+          <Providers>
+            <ScrollProgress />
+            <Nav />
+            <main className="relative">{children}</main>
+            <Footer />
+            <BurstLayer />
+            <Cursor />
+            <div className="grain" aria-hidden />
+          </Providers>
+        </PrivyWrapper>
       </body>
     </html>
   );
