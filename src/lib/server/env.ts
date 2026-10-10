@@ -39,8 +39,13 @@ export interface Deployment {
 
 let deploymentCache: Deployment | null = null;
 
+/** From WUKONG_DEPLOYMENT (JSON, for hosted deploys) or .data/deployment.json. */
 export function deployment(): Deployment {
   if (deploymentCache) return deploymentCache;
+  if (process.env.WUKONG_DEPLOYMENT) {
+    deploymentCache = JSON.parse(process.env.WUKONG_DEPLOYMENT) as Deployment;
+    return deploymentCache;
+  }
   const file = path.join(DATA_DIR, "deployment.json");
   if (!fs.existsSync(file)) {
     throw new Error("No deployment found. Run `npm run setup:localnet` (or setup:devnet) first.");
