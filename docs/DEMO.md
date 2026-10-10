@@ -30,6 +30,14 @@ Everything here runs against a local validator with `npm run demo`, or devnet af
 
 **If you have 30 more seconds:** run `npm run agent -- --auto` in the terminal. "AI agents are buyers too. This agent needs a human Nepali translation. It hits our API, gets **402 Payment Required**, pays 25 USDC with x402, and its task lands in the arena with escrow locked. Humans compete, the judge catches the entry that's actually Hindi, and the agent gets the best Nepali translation back."
 
+## Ready-made videos
+
+- [`media/wukong-film.mp4`](media/wukong-film.mp4): 60-second motion-graphics film, 16:9, voiceover + soundtrack. Opens a pitch, or posts on X.
+- [`media/wukong-reel.mp4`](media/wukong-reel.mp4): the same film framed on a laptop, 9:16, captioned, for Instagram Reels / TikTok / Shorts. For the real filmed-on-a-laptop look, play the film full screen and record it with a phone.
+- [`media/wukong-demo.mp4`](media/wukong-demo.mp4): 2-minute captioned screen recording of the real app (post → crowd → judge → payout → profile → agent).
+
+The voiceover is synthetic (Piper TTS); record your own over the music-only build (`video/out/*-novo.mp4`, see [`video/README.md`](../video/README.md)) if you prefer. The script is `video/script.json`, and its timing drives every animation.
+
 ## 3-minute pitch (video)
 
 1. **Problem (0:00–0:30).** $1.5T freelance market built on one-to-one bets. Buyers carry all the risk: wrong hire, ghosting, chargebacks. Workers carry the rest: unpaid invoices, 14-day withdrawals, opaque algorithms, reputation locked in a platform that can ban them.

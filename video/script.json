@@ -1,0 +1,200 @@
+{
+ "voice": {
+  "lengthScale": 0.98,
+  "gapAfterLine": 0.3,
+  "gapAfterScene": 0.5,
+  "lead": 0.55,
+  "tail": 1.6
+ },
+ "scenes": [
+  {
+   "id": "gamble",
+   "lines": [
+    {
+     "id": "hook",
+     "text": "Hiring a freelancer is a gamble.",
+     "hold": 0.35
+    }
+   ]
+  },
+  {
+   "id": "hope",
+   "lines": [
+    {
+     "id": "pick",
+     "text": "You pick one person."
+    },
+    {
+     "id": "wait",
+     "text": "You wait three days."
+    },
+    {
+     "id": "hope",
+     "text": "And you hope.",
+     "hold": 0.45
+    }
+   ]
+  },
+  {
+   "id": "flip",
+   "lines": [
+    {
+     "id": "flip",
+     "text": "So we flipped it.",
+     "hold": 0.2
+    }
+   ]
+  },
+  {
+   "id": "crowd",
+   "lines": [
+    {
+     "id": "post",
+     "text": "Post a task once."
+    },
+    {
+     "id": "hundred",
+     "text": "A hundred people compete."
+    },
+    {
+     "id": "best",
+     "text": "You only pay the best.",
+     "hold": 0.3
+    }
+   ]
+  },
+  {
+   "id": "logo",
+   "lines": [
+    {
+     "id": "this",
+     "text": "This is Wukong.",
+     "say": "This is, Woo-kong.",
+     "hold": 0.7
+    }
+   ]
+  },
+  {
+   "id": "escrow",
+   "lines": [
+    {
+     "id": "lock",
+     "text": "The reward locks in escrow, on Solana, before anyone starts.",
+     "hold": 0.3
+    }
+   ]
+  },
+  {
+   "id": "sealed",
+   "lines": [
+    {
+     "id": "sealed",
+     "text": "Every entry is sealed. Nobody can copy.",
+     "hold": 0.2
+    }
+   ]
+  },
+  {
+   "id": "crazy",
+   "lines": [
+    {
+     "id": "judge",
+     "text": "Then an AI judge scores every single one.",
+     "say": "Then an A.I. judge scores every single one.",
+     "hold": 0.3
+    }
+   ]
+  },
+  {
+   "id": "caught",
+   "lines": [
+    {
+     "id": "cheats",
+     "text": "Copycats. Prompt injections. Spam."
+    },
+    {
+     "id": "caught",
+     "text": "All of them, caught.",
+     "hold": 0.55
+    }
+   ]
+  },
+  {
+   "id": "chain",
+   "lines": [
+    {
+     "id": "chain",
+     "text": "Every score goes on-chain, with a hash of the report.",
+     "say": "Every score goes on chain, with a hash of the report.",
+     "hold": 0.2
+    }
+   ]
+  },
+  {
+   "id": "random",
+   "lines": [
+    {
+     "id": "random",
+     "text": "So nothing is random.",
+     "hold": 0.35
+    }
+   ]
+  },
+  {
+   "id": "podium",
+   "lines": [
+    {
+     "id": "top3",
+     "text": "The program pays the top three, in one transaction.",
+     "hold": 0.3
+    }
+   ]
+  },
+  {
+   "id": "stake",
+   "lines": [
+    {
+     "id": "stake",
+     "text": "Cheaters lose their stake.",
+     "hold": 0.3
+    }
+   ]
+  },
+  {
+   "id": "rep",
+   "lines": [
+    {
+     "id": "rep",
+     "text": "And every win builds a reputation the worker owns.",
+     "hold": 0.3
+    }
+   ]
+  },
+  {
+   "id": "agents",
+   "lines": [
+    {
+     "id": "agents",
+     "text": "Even AI agents can hire humans, paying over x402.",
+     "say": "Even A.I. agents can hire humans, paying over x, four oh two.",
+     "hold": 0.35
+    }
+   ]
+  },
+  {
+   "id": "cta",
+   "lines": [
+    {
+     "id": "name",
+     "text": "Wukong.",
+     "say": "Woo-kong.",
+     "hold": 0.15
+    },
+    {
+     "id": "tag",
+     "text": "Post a task. Summon the crowd. Pay the best."
+    }
+   ]
+  }
+ ]
+}

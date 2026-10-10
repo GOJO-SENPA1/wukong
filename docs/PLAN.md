@@ -28,7 +28,7 @@ Cut from the bottom if time runs short. The demo moment matters more than featur
 
 ### Day 2 (Oct 11–12): make it land
 5. Record the 3-min pitch and the 2–3 min technical demo from [DEMO.md](DEMO.md).
-6. Write the Colosseum submission: problem, solution, why Solana, links (repo, live app, videos), team.
+6. Write the Colosseum submission: start from [SUBMISSION.md](SUBMISSION.md) (problem, solution, why Solana, tech, business, Nepal angle); fill in links, real users and team.
 7. Polish only what shows on camera.
 
 ### Stretch (only if everything above is done)

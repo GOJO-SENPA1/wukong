@@ -1,0 +1,1047 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Wukong film</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=block" rel="stylesheet">
+<style>
+  :root {
+    --red: #e4261c; --red2: #ff4a3c; --navy: #0c1424; --navy2: #141f38; --blue: #2b3cff; --ink: #0e1018;
+    --paper: #e3ecf5; --white: #f4f7fb; --hl: #bfd0ff; --muted: #6b7a90; --hud: rgba(255,255,255,.62); --caret: var(--red);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow: hidden; background: #000; }
+  body.film { width: 1920px; height: 1080px; }
+  body.reel { width: 1080px; height: 1920px; }
+  #stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--navy); font-family: Inter, sans-serif; color: var(--white); }
+  .scene { position: absolute; inset: 0; overflow: hidden; display: none; transform-origin: 50% 50%; }
+  .red { background: var(--red); }
+  .navy { background: var(--navy); }
+  .blue { background: var(--blue); }
+  .pale { background: radial-gradient(ellipse at 50% 42%, #f3f8fd 0%, #dfe9f3 62%, #cddbe9 100%); color: var(--ink); }
+  .abs { position: absolute; will-change: transform, opacity, filter; }
+  .cx { left: 0; right: 0; text-align: center; }
+  .mono { font-family: "JetBrains Mono", monospace; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; white-space: pre; }
+  .anton { font-family: Anton, sans-serif; line-height: .98; text-transform: uppercase; letter-spacing: .005em; white-space: nowrap; }
+  .serif { font-family: "Instrument Serif", serif; font-style: italic; letter-spacing: -.01em; white-space: nowrap; }
+  .ch, .wd { display: inline-block; will-change: transform, opacity, filter; }
+  .caret { display: inline-block; width: .6em; height: .95em; margin-right: -.6em; background: var(--caret); vertical-align: -.12em; }
+  .ghost { visibility: hidden; }
+  .reddot { color: var(--red); }
+
+  /* HUD */
+  #hud { position: absolute; inset: 0; pointer-events: none; color: var(--hud); font: 500 15px/1 "JetBrains Mono", monospace; letter-spacing: .28em; text-transform: uppercase; }
+  #hud .br { position: absolute; width: 34px; height: 34px; border-color: var(--hud); border-style: solid; border-width: 0; }
+  #hud .tl { left: 40px; top: 40px; border-left-width: 3px; border-top-width: 3px; }
+  #hud .tr { right: 40px; top: 40px; border-right-width: 3px; border-top-width: 3px; }
+  #hud .bl { left: 40px; bottom: 40px; border-left-width: 3px; border-bottom-width: 3px; }
+  #hud .bR { right: 40px; bottom: 40px; border-right-width: 3px; border-bottom-width: 3px; }
+  #hud .lab { position: absolute; white-space: nowrap; }
+  #hud i.dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: var(--hudDot, var(--red)); margin-right: 12px; vertical-align: -1px; }
+
+  /* gamble */
+  .die { position: absolute; width: 190px; height: 190px; border-radius: 38px; background: var(--navy); box-shadow: 0 30px 60px rgba(0,0,0,.35), inset 0 -10px 0 rgba(0,0,0,.25); }
+  .die i { position: absolute; width: 34px; height: 34px; border-radius: 50%; background: var(--white); }
+  #g-cover { position: absolute; inset: 0; background: var(--navy); }
+  #g-line { position: absolute; left: 0; right: 0; top: 537px; height: 6px; background: var(--red); transform-origin: 50% 50%; }
+
+  /* hope */
+  .bar { position: absolute; height: 44px; background: #c3d1df; }
+  .bar b { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ink); }
+  .clock { position: absolute; width: 96px; height: 96px; border-radius: 50%; border: 6px solid var(--ink); }
+  .clock i { position: absolute; left: 39px; top: 12px; width: 6px; height: 32px; background: var(--red); transform-origin: 3px 32px; border-radius: 3px; }
+  .pill { display: inline-flex; align-items: center; gap: 14px; padding: 14px 26px; border-radius: 999px; font: 500 22px/1 "JetBrains Mono"; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  /* crowd */
+  .pdot { position: absolute; width: 36px; height: 36px; border-radius: 50%; background: var(--white); }
+  .card { position: absolute; border-radius: 18px; background: #fff; color: var(--ink); box-shadow: 0 30px 70px -20px rgba(10,20,40,.45); }
+
+  /* escrow */
+  .doc { padding: 36px 40px; }
+  .doc h3 { font: 700 40px/1 Inter; color: var(--ink); padding-bottom: 16px; border-bottom: 5px solid var(--red); margin-bottom: 22px; }
+  .doc p { font: 500 30px/1.62 Inter; color: #223; }
+  .doc p span { padding: 2px 4px; }
+  .vault { position: absolute; border-radius: 18px; background: #0e1626; box-shadow: 0 30px 70px -20px rgba(10,20,40,.6); padding: 34px 38px; color: var(--white); }
+  .vault h3 { font: 700 38px/1 Inter; }
+  .field { position: absolute; border-radius: 12px; background: rgba(255,255,255,.08); border: 2px dashed rgba(255,255,255,.18); }
+  .chip { position: absolute; display: inline-flex; align-items: center; gap: 14px; padding: 14px 22px; border-radius: 10px; background: #fff; color: var(--ink); font: 600 28px/1 Inter; box-shadow: 0 16px 40px rgba(0,0,0,.35); white-space: nowrap; }
+  .chip i { width: 22px; height: 30px; background: var(--red); border-radius: 3px; }
+  .btn { position: absolute; border-radius: 999px; background: var(--red); color: #fff; font: 800 28px/1 Inter; letter-spacing: .08em; display: flex; align-items: center; justify-content: center; gap: 14px; overflow: hidden; }
+  .cursor { position: absolute; width: 44px; height: 56px; z-index: 5; }
+  .ripple { position: absolute; width: 80px; height: 80px; border-radius: 50%; border: 4px solid #fff; }
+
+  /* sealed */
+  .entry { position: absolute; width: 380px; height: 330px; border-radius: 20px; background: #16203a; border: 2px solid #27345a; padding: 28px; }
+  .entry .who { display: flex; align-items: center; gap: 16px; }
+  .entry .av { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; font: 800 24px/1 Inter; color: #fff; }
+  .entry .nm { font: 700 28px/1.1 Inter; color: #fff; }
+  .entry .ct { font: 500 16px/1 "JetBrains Mono"; letter-spacing: .18em; color: #8b9bc0; margin-top: 8px; text-transform: uppercase; }
+  .entry .tx { margin-top: 24px; font: 500 27px/1.45 Inter; color: #d6def0; height: 160px; overflow: hidden; overflow-wrap: anywhere; }
+  .entry .hash { position: absolute; left: 28px; bottom: 30px; font: 500 18px/1 "JetBrains Mono"; color: #ff7a6e; letter-spacing: .06em; white-space: nowrap; }
+  .entry .seal { position: absolute; right: 22px; bottom: 22px; display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; background: var(--red); font: 700 15px/1 "JetBrains Mono"; letter-spacing: .14em; color: #fff; }
+  .entry .seal svg { width: 16px; height: 16px; }
+
+  /* caught */
+  .row { position: absolute; left: 90px; width: 680px; height: 88px; display: flex; align-items: center; gap: 22px; border-radius: 12px; padding: 0 20px; }
+  .row .nm { width: 230px; font: 600 28px/1 Inter; color: var(--ink); white-space: nowrap; }
+  .row .tr { position: relative; flex: 1; height: 16px; border-radius: 8px; background: #c8d5e2; overflow: hidden; }
+  .row .tr b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 8px; background: var(--ink); }
+  .row .sc { width: 90px; text-align: right; font: 400 58px/1 Anton; color: var(--ink); }
+  .row .flag { position: absolute; right: -168px; padding: 10px 14px; border-radius: 8px; background: var(--red); color: #fff; font: 700 17px/1 "JetBrains Mono"; letter-spacing: .14em; }
+  .code { font: 500 30px/1.7 "JetBrains Mono", monospace; white-space: pre; color: #e8edf7; }
+  .k { color: #8f9bff; } .s { color: #ff6a5c; } .c { color: #6f7f9f; }
+  .glitch { position: absolute; inset: 0; display: grid; place-items: center; }
+
+  /* chain */
+  .strip { position: absolute; left: -40px; right: -40px; height: 250px; background: #111c34; }
+  .holes { position: absolute; left: 0; right: 0; height: 16px; background: repeating-linear-gradient(90deg, transparent 0 22px, rgba(255,255,255,.22) 22px 46px, transparent 46px 60px); }
+  .cell { position: absolute; top: 40px; width: 230px; height: 170px; border-radius: 6px; overflow: hidden; background: #1b2847; }
+  .cell .px { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(7, 1fr); }
+  .cell .px i { display: block; }
+  .cell .ct { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+  .cell .ct b { font: 400 66px/1 Anton; color: #fff; }
+  .cell .ct span { font: 500 16px/1 "JetBrains Mono"; letter-spacing: .12em; color: rgba(255,255,255,.75); }
+
+  /* podium */
+  .col { position: absolute; bottom: 0; width: 320px; background: var(--navy); transform-origin: 50% 100%; display: flex; flex-direction: column; align-items: center; padding-top: 26px; }
+  .col .pl { font: 400 130px/1 Anton; color: rgba(255,255,255,.95); }
+  .amt { position: absolute; width: 360px; text-align: center; }
+  .amt b { display: block; font: 400 92px/1 Anton; color: #fff; }
+  .amt span { display: block; margin-top: 10px; font: 500 20px/1 "JetBrains Mono"; letter-spacing: .2em; color: rgba(255,255,255,.85); text-transform: uppercase; }
+
+  /* stake */
+  .coin { position: absolute; width: 170px; height: 170px; border-radius: 50%; background: var(--red); border: 8px solid #ff8478; display: grid; place-items: center; font: 400 50px/1 Anton; color: #fff; box-shadow: 0 20px 50px rgba(0,0,0,.5); }
+
+  /* rep */
+  .profile { position: absolute; width: 760px; height: 600px; border-radius: 24px; background: #fff; box-shadow: 0 40px 90px -25px rgba(10,20,40,.45); padding: 44px 48px; color: var(--ink); }
+  .profile .av { width: 110px; height: 110px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font: 400 54px/1 Anton; }
+  .stat { flex: 1; border-radius: 14px; background: #eef3f9; padding: 20px 22px; }
+  .stat b { display: block; font: 400 58px/1 Anton; color: var(--ink); }
+  .stat span { display: block; margin-top: 10px; font: 500 16px/1 "JetBrains Mono"; letter-spacing: .18em; color: var(--muted); }
+
+  /* agents */
+  .term { position: absolute; border-radius: 16px; background: #0e1626; box-shadow: 0 40px 90px -20px rgba(0,0,30,.55); padding: 44px 52px; }
+  .term .ln { font: 500 36px/1.95 "JetBrains Mono", monospace; white-space: pre; color: #e8edf7; }
+  .tag { display: inline-block; padding: 2px 14px; border-radius: 6px; }
+  .bot { position: absolute; width: 170px; height: 150px; border-radius: 34px; background: #fff; }
+  .bot i { position: absolute; top: 52px; width: 30px; height: 40px; border-radius: 15px; background: var(--blue); }
+  .bot b { position: absolute; left: 77px; top: -40px; width: 16px; height: 40px; background: #fff; border-radius: 8px; }
+  .bot b::after { content: ""; position: absolute; left: -9px; top: -24px; width: 34px; height: 34px; border-radius: 50%; background: var(--red); }
+
+  /* cta */
+  .cta-pill { position: absolute; display: flex; align-items: center; justify-content: space-between; gap: 30px; padding: 0 12px 0 42px; height: 104px; border-radius: 999px; background: #17223f; border: 3px solid #34477e; }
+  .cta-pill b { font: 800 40px/1 Inter; letter-spacing: .06em; color: #fff; }
+  .cta-pill i { width: 150px; height: 76px; border-radius: 999px; background: var(--red); display: grid; place-items: center; color: #fff; font: 700 46px/1 Inter; font-style: normal; }
+
+  /* reel (vertical) framing */
+  #room { position: absolute; inset: 0; overflow: hidden; background: #2a2440; }
+  #wall { position: absolute; inset: -60px; background:
+      radial-gradient(ellipse 60% 45% at 92% 38%, rgba(255,190,120,.85), transparent 70%),
+      radial-gradient(ellipse 55% 50% at 8% 40%, rgba(96,86,230,.9), transparent 72%),
+      linear-gradient(100deg, #3b3592 0%, #6b5cb4 32%, #a68fb8 58%, #d6a57c 86%, #c88a57 100%); }
+  #poster { position: absolute; left: 330px; top: -70px; width: 420px; height: 150px; background: #191213; border: 10px solid #0d0b0c; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+  #poster i { position: absolute; inset: 14px; background: linear-gradient(120deg, #7a1410, #b3221a 60%, #3a0d0b); }
+  #desk { position: absolute; left: -60px; right: -60px; top: 1440px; bottom: -60px; background: linear-gradient(#3a2a26, #1d1514); }
+  #rig { position: absolute; inset: 0; transform-origin: 50% 60%; will-change: transform; }
+  #lid { position: absolute; left: -10px; top: 548px; width: 1100px; height: 650px; border-radius: 26px 26px 6px 6px; background: #0b0b0d; border: 2px solid #2b2b31; box-shadow: 0 30px 60px rgba(0,0,0,.45); transform: perspective(2400px) rotateX(5deg); transform-origin: 50% 100%; }
+  #screen { position: absolute; left: 28px; top: 30px; width: 1040px; height: 585px; overflow: hidden; background: #000; }
+  #screen #stage { transform: scale(.541667); transform-origin: 0 0; }
+  #glare { position: absolute; inset: 0; background: linear-gradient(118deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,.03) 26%, transparent 42%), radial-gradient(ellipse at 50% 120%, rgba(0,0,0,.18), transparent 60%); pointer-events: none; }
+  #notch { position: absolute; left: 543px; top: 11px; width: 10px; height: 10px; border-radius: 50%; background: #1d1d22; }
+  #hinge { position: absolute; left: 0px; top: 1194px; width: 1080px; height: 16px; border-radius: 0 0 10px 10px; background: linear-gradient(#2d2d33, #8d8d93); }
+  #deckwrap { position: absolute; left: -30px; top: 1206px; width: 1140px; height: 760px; perspective: 1500px; perspective-origin: 50% 0; }
+  #deck { position: absolute; inset: 0; transform: rotateX(48deg); transform-origin: 50% 0; border-radius: 30px; background: linear-gradient(180deg, #b9b9bf 0%, #dadade 30%, #c6c6cc 100%); box-shadow: 0 -2px 0 #9a9aa0 inset; }
+  #keys { position: absolute; left: 70px; right: 70px; top: 54px; height: 340px; display: grid; grid-template-columns: repeat(14, 1fr); grid-auto-rows: 1fr; gap: 9px; padding: 10px; background: #a9a9af; border-radius: 12px; }
+  #keys i { background: linear-gradient(#2a2a30, #111114); border-radius: 7px; box-shadow: 0 2px 0 #050506; }
+  #pad { position: absolute; left: 300px; width: 540px; top: 430px; height: 300px; border-radius: 26px; background: linear-gradient(#c8c8cd, #d5d5da); box-shadow: inset 0 0 0 2px #b0b0b6; }
+  #spill { position: absolute; left: 0; right: 0; top: 0; height: 420px; pointer-events: none; mix-blend-mode: soft-light; }
+  #icons { position: absolute; left: 0; right: 0; top: 200px; display: flex; justify-content: center; gap: 48px; }
+  .tile { position: relative; width: 168px; height: 168px; border-radius: 40px; display: grid; place-items: center; box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+  .tile.old { background: #101a3d; }
+  .tile.old .head { position: absolute; left: 62px; top: 34px; width: 44px; height: 44px; border-radius: 50%; background: #8fb0ff; }
+  .tile.old .body { position: absolute; left: 42px; top: 86px; width: 84px; height: 50px; border-radius: 42px 42px 10px 10px; background: #8fb0ff; }
+  .tile.old::after { content: ""; position: absolute; left: 18px; right: 18px; top: 80px; height: 10px; background: var(--red2); transform: rotate(-42deg); border-radius: 5px; box-shadow: 0 0 0 4px #101a3d; z-index: 2; }
+  .tile.old::before { content: ""; position: absolute; left: 18px; right: 18px; top: 80px; height: 9px; background: var(--red2); transform: rotate(42deg); border-radius: 5px; box-shadow: 0 0 0 4px #101a3d; z-index: 1; }
+  .tile.new { background: var(--red); color: #fff; font: 400 110px/1 Anton; }
+  #cap { position: absolute; left: 0; right: 0; top: 1262px; text-align: center; }
+  #cap span { display: inline-block; padding: 16px 30px 18px; border-radius: 14px; background: rgba(0,0,0,.86); color: #fff; font: 600 52px/1.1 Inter; letter-spacing: -.01em; }
+  #shade { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 80% 70% at 50% 45%, transparent 60%, rgba(0,0,0,.45) 100%); }
+</style>
+<script src="timing.js"></script>
+</head>
+<body>
+<div id="room">
+  <div id="wall"></div>
+  <div id="rig">
+    <div id="poster"><i></i></div>
+    <div id="desk"></div>
+    <div id="deckwrap"><div id="deck"><div id="keys"></div><div id="pad"></div><div id="spill"></div></div></div>
+    <div id="hinge"></div>
+    <div id="lid"><div id="notch"></div><div id="screen">
+<div id="stage">
+  <!-- 1 gamble -->
+  <section class="scene red" id="sc-gamble">
+    <div class="abs" id="g-block" style="left:0;right:0;top:300px;text-align:center">
+      <div style="display:inline-block;text-align:left">
+        <div class="mono" id="g-mono" style="font-size:38px;color:var(--ink);margin-left:10px"></div>
+        <div class="anton" id="g-word" style="font-size:340px;color:var(--ink);margin-top:10px">GAMBLE.</div>
+      </div>
+    </div>
+    <div class="die" id="g-die" style="left:1560px;top:560px"></div>
+    <div id="g-cover"><div id="g-line"></div></div>
+  </section>
+
+  <!-- 2 hope -->
+  <section class="scene pale" id="sc-hope">
+    <div class="abs mono" id="h-pick" style="left:300px;top:290px;font-size:40px"></div>
+    <div class="clock" id="h-clock" style="left:1528px;top:250px"><i id="h-hand"></i></div>
+    <div class="abs mono" id="h-wait" style="left:300px;top:420px;font-size:40px"></div>
+    <div class="abs anton" id="h-timer" style="right:300px;top:388px;font-size:96px;color:var(--ink)">00:00:00</div>
+    <div class="bar" id="h-bar" style="left:300px;top:520px;width:1320px"><b id="h-fill"></b></div>
+    <div class="abs serif" id="h-hope" style="left:296px;top:610px;font-size:150px;color:var(--red)"></div>
+    <div class="abs" id="h-seen" style="left:300px;top:830px"><span class="pill" style="background:#c9d6e3;color:#4a5872;font-size:28px;padding:18px 32px"><i style="width:14px;height:14px;border-radius:50%;background:#8a97ad"></i>last seen 2 days ago</span></div>
+  </section>
+
+  <!-- 3 flip -->
+  <section class="scene navy" id="sc-flip">
+    <div class="abs cx mono" id="f-mono" style="top:300px;font-size:40px"></div>
+    <div class="abs cx" style="top:380px"><span class="anton wd" id="f-flipped" style="font-size:290px">FLIPPED</span><span class="anton wd" id="f-it" style="font-size:290px;margin-left:44px">IT<span class="reddot">.</span></span></div>
+    <div class="abs" id="f-under" style="left:410px;top:720px;width:1100px;height:16px;background:var(--red);transform-origin:0 50%"></div>
+  </section>
+
+  <!-- 4 crowd -->
+  <section class="scene blue" id="sc-crowd">
+    <div class="abs" id="c-grid" style="left:250px;top:250px;width:576px;height:576px"></div>
+    <div class="card abs" id="c-card" style="left:358px;top:448px;width:360px;height:180px;padding:28px 32px">
+      <div class="mono" style="font-size:18px;letter-spacing:.2em;color:var(--muted)">TASK · 50 USDC</div>
+      <div style="font:800 36px/1.15 Inter;margin-top:14px">Cold brew tagline</div>
+      <div style="font:500 22px/1 Inter;color:var(--muted);margin-top:12px">Kathmandu · 1 hour</div>
+    </div>
+    <div class="abs mono" id="c-post" style="left:1000px;top:250px;font-size:36px"></div>
+    <div class="abs" id="c-hundred" style="left:990px;top:330px">
+      <div class="anton" style="font-size:330px;line-height:1"><span id="c-num">0</span></div>
+      <div class="anton" style="font-size:118px;margin-top:6px"><span class="wd" id="c-people">PEOPLE</span> <span class="wd" id="c-compete">COMPETE<span class="reddot">.</span></span></div>
+    </div>
+    <div class="abs" id="c-best" style="left:1000px;top:380px">
+      <div class="mono" id="c-only" style="font-size:36px"></div>
+      <div class="anton" id="c-thebest" style="font-size:250px;margin-top:20px">THE BEST<span class="reddot">.</span></div>
+    </div>
+  </section>
+
+  <!-- 5 logo -->
+  <section class="scene red" id="sc-logo">
+    <div class="abs cx mono" id="l-mono" style="top:250px;font-size:40px;color:var(--ink)"></div>
+    <div class="abs cx anton" id="l-word" style="top:310px;font-size:420px;color:var(--ink)">WUKONG</div>
+    <div class="abs cx serif" id="l-sub" style="top:760px;font-size:84px;color:#fff">a competitive work marketplace</div>
+    <div class="abs cx mono" id="l-foot" style="top:900px;font-size:22px;color:rgba(255,255,255,.9)">ESCROW · CROWD · AI JUDGE · SOLANA</div>
+  </section>
+
+  <!-- 6 escrow -->
+  <section class="scene pale" id="sc-escrow">
+    <div class="abs cx mono" id="e-head" style="top:170px;font-size:36px"></div>
+    <div class="card abs doc" id="e-doc" style="left:200px;top:290px;width:700px;height:540px">
+      <h3>task brief</h3>
+      <p id="e-text"></p>
+    </div>
+    <div class="abs" id="e-arrow" style="left:940px;top:520px;font:700 70px/1 Inter;color:var(--red)">→</div>
+    <div class="vault" id="e-vault" style="left:1060px;top:290px;width:660px;height:540px">
+      <h3>Escrow vault</h3>
+      <i style="position:absolute;right:36px;top:40px;width:18px;height:18px;border-radius:50%;background:var(--red)"></i>
+      <div class="mono" id="e-pda" style="font-size:17px;letter-spacing:.16em;color:#8b9bc0;margin-top:14px">PROGRAM VAULT · 7XKX…Q2LM</div>
+      <div class="field" style="left:38px;top:140px;width:584px;height:84px"></div>
+      <div style="position:absolute;left:38px;top:262px;font:800 120px/1 Inter;letter-spacing:-.02em"><span id="e-amt">0.00</span><span style="font:500 26px/1 'JetBrains Mono';letter-spacing:.2em;margin-left:16px;color:#8b9bc0">USDC</span></div>
+      <div class="btn" id="e-btn" style="left:38px;top:420px;width:584px;height:80px"><span id="e-btnt">LOCK &amp; POST</span></div>
+    </div>
+    <div class="chip" id="e-chip"><i></i>50 USDC reward</div>
+    <div class="ripple" id="e-ripple"></div>
+    <svg class="cursor" id="e-cursor" viewBox="0 0 44 56"><path d="M4 3 L4 46 L15 35 L23 53 L31 49 L23 32 L39 32 Z" fill="#fff" stroke="#111" stroke-width="3.5" stroke-linejoin="round"/></svg>
+  </section>
+
+  <!-- 7 sealed -->
+  <section class="scene navy" id="sc-sealed">
+    <div class="abs cx mono" id="s-head" style="top:170px;font-size:38px"></div>
+    <div id="s-cards"></div>
+    <div class="abs cx anton" id="s-nobody" style="top:740px;font-size:170px"><span class="wd" id="s-w0">NOBODY</span> <span class="wd" id="s-w1">CAN</span> <span class="wd reddot" id="s-w2">COPY.</span></div>
+  </section>
+
+  <!-- 8 crazy -->
+  <section class="scene" id="sc-crazy" style="background:#050913">
+    <canvas id="field" width="1920" height="1080" style="position:absolute;inset:0"></canvas>
+    <div class="abs" style="inset:0;background:radial-gradient(ellipse at 50% 50%, rgba(5,9,19,.75) 0%, rgba(5,9,19,.2) 38%, transparent 60%)"></div>
+    <div class="abs cx mono" id="z-mono" style="top:380px;font-size:38px"></div>
+    <div class="abs cx anton" id="z-big" style="top:450px;font-size:200px"><span class="wd" id="z-w0">EVERY<span class="reddot">.</span></span> <span class="wd" id="z-w1">SINGLE<span class="reddot">.</span></span> <span class="wd" id="z-w2">ONE<span class="reddot">.</span></span></div>
+  </section>
+
+  <!-- 9 caught -->
+  <section class="scene navy" id="sc-caught">
+    <div class="abs pale" id="k-left" style="left:0;top:0;width:960px;height:1080px">
+      <div class="abs mono" style="left:110px;top:150px;font-size:24px;color:var(--muted)">AI JUDGE · LIVE SCORES</div>
+      <div id="k-rows"></div>
+    </div>
+    <div class="abs" id="k-div" style="left:957px;top:0;width:6px;height:1080px;background:var(--red)"></div>
+    <div class="abs code" id="k-code" style="left:1040px;top:170px"></div>
+    <div class="abs red" id="k-red" style="inset:0">
+      <div class="glitch"><div class="anton" id="k-g1" style="font-size:400px;color:var(--blue);opacity:.85">CAUGHT.</div></div>
+      <div class="glitch"><div class="anton" id="k-g2" style="font-size:400px;color:#fff;opacity:.85">CAUGHT.</div></div>
+      <div class="glitch"><div class="anton" id="k-g0" style="font-size:400px;color:var(--ink)">CAUGHT.</div></div>
+      <div class="abs cx mono" id="k-tags" style="top:800px;font-size:30px;color:#fff">DUPLICATE · PROMPT INJECTION · SPAM</div>
+    </div>
+  </section>
+
+  <!-- 10 chain -->
+  <section class="scene navy" id="sc-chain">
+    <div class="abs cx mono" id="n-l1" style="top:170px;font-size:38px"></div>
+    <div class="strip" id="n-strip" style="top:380px">
+      <div class="holes" style="top:12px"></div><div class="holes" style="bottom:12px"></div>
+      <div id="n-cells"></div>
+    </div>
+    <div class="abs cx mono" id="n-l2" style="top:720px;font-size:38px"></div>
+    <div class="abs cx" id="n-hash" style="top:800px;font:500 34px/1 'JetBrains Mono';letter-spacing:.08em;color:var(--red2);white-space:pre"></div>
+  </section>
+
+  <!-- 11 random -->
+  <section class="scene pale" id="sc-random">
+    <svg class="abs" id="r-ring" style="left:270px;top:250px" width="580" height="580" viewBox="0 0 580 580">
+      <circle cx="290" cy="290" r="240" fill="none" stroke="#c6d3e1" stroke-width="44"/>
+      <circle id="r-arc" cx="290" cy="290" r="240" fill="none" stroke="var(--red)" stroke-width="44" stroke-dasharray="0 1600" transform="rotate(-90 290 290)"/>
+      <rect x="281" y="18" width="18" height="60" fill="var(--red)"/>
+    </svg>
+    <div class="abs serif" id="r-ver" style="left:270px;width:580px;top:470px;text-align:center;font-size:96px;color:var(--ink)">verified</div>
+    <div class="abs mono" id="r-score" style="left:270px;width:580px;top:600px;text-align:center;font-size:24px;color:var(--muted)">SCORE 92 / 100</div>
+    <div class="abs mono" id="r-so" style="left:980px;top:300px;font-size:38px"></div>
+    <div class="abs anton" style="left:970px;top:360px;font-size:210px;color:var(--ink);line-height:1.02"><div class="wd" id="r-w1">NOTHING</div><br><div class="wd" id="r-w2" style="margin-top:-210px">IS RANDOM<span class="reddot">.</span></div></div>
+    <div class="die" id="r-die" style="left:1580px;top:150px;width:130px;height:130px;border-radius:28px"></div>
+    <div class="abs" id="r-x" style="left:1535px;top:207px;width:220px;height:16px;background:var(--red);transform-origin:50% 50%;box-shadow:0 0 0 5px #e3ecf5"></div>
+  </section>
+
+  <!-- 12 podium -->
+  <section class="scene red" id="sc-podium">
+    <div class="abs cx mono" id="p-head" style="top:120px;font-size:36px;color:#fff"></div>
+    <div class="abs cx serif" id="p-sub" style="top:170px;font-size:110px;color:#fff"></div>
+    <div class="col" id="p-c2" style="left:440px;height:300px"><div class="pl">2</div></div>
+    <div class="col" id="p-c1" style="left:800px;height:400px"><div class="pl">1</div></div>
+    <div class="col" id="p-c3" style="left:1160px;height:230px"><div class="pl">3</div></div>
+    <div class="amt" id="p-a2" style="left:420px;top:600px"><b id="p-n2">+0.00</b><span>Rina · Pokhara</span></div>
+    <div class="amt" id="p-a1" style="left:780px;top:500px"><b id="p-n1">+0.00</b><span>Sanjay · Kathmandu</span></div>
+    <div class="amt" id="p-a3" style="left:1140px;top:670px"><b id="p-n3">+0.00</b><span>Kwame · Accra</span></div>
+    <div class="abs" id="p-tx" style="left:120px;top:960px"><span class="pill" style="background:rgba(0,0,0,.22);color:#fff">settle · tx 5kq9…h2vd · confirmed</span></div>
+  </section>
+
+  <!-- 13 stake -->
+  <section class="scene navy" id="sc-stake">
+    <div class="coin" id="t-c0" style="left:300px;top:0">−1</div>
+    <div class="coin" id="t-c1" style="left:880px;top:0">−1</div>
+    <div class="coin" id="t-c2" style="left:1460px;top:0">−1</div>
+    <div class="abs cx anton" style="top:250px;font-size:240px;line-height:1.05"><span class="wd" id="t-w0">CHEATERS</span> <span class="wd" id="t-w1">LOSE</span><br><span class="wd" id="t-w2">THEIR</span> <span class="wd reddot" id="t-w3">STAKE.</span></div>
+  </section>
+
+  <!-- 14 rep -->
+  <section class="scene pale" id="sc-rep">
+    <div class="profile" id="q-card" style="left:180px;top:220px">
+      <div style="display:flex;align-items:center;gap:26px">
+        <div class="av">SK</div>
+        <div><div style="font:800 46px/1 Inter">Sanjay K.</div><div class="mono" style="font-size:17px;letter-spacing:.18em;color:var(--muted);margin-top:14px">KATHMANDU · REPUTATION PDA</div></div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:22px;margin-top:34px">
+        <div class="anton" id="q-rating" style="font-size:190px;line-height:.9">0</div>
+        <div class="mono" style="font-size:20px;color:var(--muted);padding-bottom:14px">RATING</div>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:34px">
+        <div class="stat"><b id="q-wins">0</b><span>WINS</span></div>
+        <div class="stat"><b id="q-earn">0.00</b><span>EARNED · USDC</span></div>
+        <div class="stat"><b id="q-ent">0</b><span>ENTRIES</span></div>
+      </div>
+    </div>
+    <div class="abs mono" id="q-mono" style="left:1040px;top:330px;font-size:36px"></div>
+    <div class="abs anton wd" id="q-big" style="left:1034px;top:396px;font-size:136px;color:var(--ink)">A REPUTATION</div>
+    <div class="abs serif" id="q-own" style="left:1040px;top:580px;font-size:130px;color:var(--red)"></div>
+    <div class="abs" id="q-pill" style="left:1040px;top:800px"><span class="pill" style="background:var(--ink);color:#fff">owner · the worker's wallet</span></div>
+  </section>
+
+  <!-- 15 agents -->
+  <section class="scene blue" id="sc-agents">
+    <div class="abs cx mono" id="a-head" style="top:160px;font-size:38px"></div>
+    <div class="bot" id="a-bot" style="left:250px;top:430px"><b></b><i style="left:44px"></i><i style="left:96px"></i></div>
+    <div class="term" id="a-term" style="left:520px;top:280px;width:1160px;height:450px">
+      <div class="ln" id="a-l0"></div><div class="ln" id="a-l1"></div><div class="ln" id="a-l2"></div><div class="ln" id="a-l3"></div>
+    </div>
+    <div class="abs cx mono" id="a-foot" style="top:810px;font-size:38px;text-transform:none"></div>
+  </section>
+
+  <!-- 16 cta -->
+  <section class="scene navy" id="sc-cta">
+    <div class="abs cx" id="o-word" style="top:200px;white-space:nowrap"><span id="o-dot" style="display:inline-block;width:70px;height:70px;border-radius:50%;background:var(--red);margin-right:34px;vertical-align:28px"></span><span id="o-name" style="display:inline-block;font:900 230px/1 Inter;letter-spacing:-.02em;color:#dfe8ff">WUKONG</span></div>
+    <div class="cta-pill" id="o-pill" style="left:620px;top:510px;width:680px"><b>POST A TASK</b><i>→</i></div>
+    <div class="abs cx mono" id="o-l1" style="top:700px;font-size:46px"></div>
+    <div class="abs cx mono" id="o-l2" style="top:780px;font-size:46px;color:var(--red2);font-weight:700"></div>
+    <div class="abs cx mono" id="o-foot" style="top:920px;font-size:20px;color:rgba(255,255,255,.55)">GITHUB.COM/GOJO-SENPA1/WUKONG · COLOSSEUM 2026 · NEPAL</div>
+  </section>
+
+  <div id="hud">
+    <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br bR"></i>
+    <div class="lab" style="left:62px;top:62px"><i class="dot"></i>WUKONG — BUILT ON SOLANA</div>
+    <div class="lab" id="hud-scene" style="right:62px;top:62px">SCENE 01 / 16</div>
+    <div class="lab" id="hud-sec" style="left:62px;bottom:62px">KINETIC TYPOGRAPHY</div>
+    <div class="lab" id="hud-tc" style="right:62px;bottom:62px">00:00:00:00</div>
+  </div>
+  <div id="fade" style="position:absolute;inset:0;background:#000;opacity:0;pointer-events:none"></div>
+</div>
+      </div><div id="glare"></div></div>
+  </div>
+  <div id="shade"></div>
+  <div id="icons"><div class="tile old"><i class="head"></i><i class="body"></i></div><div class="tile new">W</div></div>
+  <div id="cap"><span>Hiring just got flipped 😮‍💨</span></div>
+</div>
+
+<script>
+const MODE = new URLSearchParams(location.search).get("mode") === "reel" ? "reel" : "film";
+document.body.className = MODE;
+const $ = (id) => document.getElementById(id);
+if (MODE === "film") { document.body.prepend($("stage")); $("room").remove(); }
+
+const TM = window.TIMING;
+const DURATION = TM.duration;
+window.DURATION = DURATION;
+const W = (id, i) => TM.lines[id].words[i].t0;
+const WE = (id, i) => TM.lines[id].words[i].t1;
+const LS = (id) => TM.lines[id].start;
+const LE = (id) => TM.lines[id].end;
+// Each scene cuts in just before its first word and runs until the next cut.
+const SCN = {};
+TM.scenes.forEach((s, i) => (SCN[s.id] = [i === 0 ? 0 : s.start - 0.14, 0]));
+TM.scenes.forEach((s, i) => (SCN[s.id][1] = i + 1 < TM.scenes.length ? SCN[TM.scenes[i + 1].id][0] : DURATION));
+
+// ---------- easing, keyframes, transforms
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const Ease = {
+  lin: (t) => t,
+  out: (t) => 1 - Math.pow(1 - t, 3),
+  in: (t) => t * t * t,
+  inOut: (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
+  back: (t) => { const c1 = 1.7, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); },
+  expo: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
+  bounce: (t) => { const n = 7.5625, d = 2.75; if (t < 1 / d) return n * t * t; if (t < 2 / d) return n * (t -= 1.5 / d) * t + 0.75; if (t < 2.5 / d) return n * (t -= 2.25 / d) * t + 0.9375; return n * (t -= 2.625 / d) * t + 0.984375; },
+};
+function kf(t, keys) {
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let i = 0; i < keys.length - 1; i++) {
+    const [t0, v0] = keys[i], [t1, v1, e] = keys[i + 1];
+    if (t <= t1) return v0 + (v1 - v0) * Ease[e || "out"]((t - t0) / (t1 - t0));
+  }
+  return keys[keys.length - 1][1];
+}
+function set(el, t, p) {
+  if (typeof el === "string") el = $(el);
+  const v = (k, d) => (p[k] === undefined ? d : Array.isArray(p[k]) ? kf(t, p[k]) : p[k]);
+  const o = v("o", 1), x = v("x", 0), y = v("y", 0), s = v("s", 1), sx = v("sx", 1), sy = v("sy", 1), r = v("r", 0), rx = v("rx", 0), b = v("blur", 0);
+  el.style.opacity = o;
+  el.style.transform = `translate(${x}px, ${y}px) perspective(1400px) rotateX(${rx}deg) rotate(${r}deg) scale(${s * sx}, ${s * sy})`;
+  el.style.filter = b > 0.05 ? `blur(${b}px)` : "none";
+  el.style.visibility = o < 0.002 ? "hidden" : "visible";
+}
+// Common moves
+const rise = (a, dy = 60, d = 0.45) => ({ o: [[a, 0], [a + 0.18, 1]], y: [[a, dy], [a + d, 0, "back"]], blur: [[a, 10], [a + 0.22, 0]] });
+const slam = (a, from = 1.6) => ({ o: [[a - 0.02, 0], [a + 0.06, 1]], s: [[a - 0.02, from], [a + 0.26, 1, "back"]], blur: [[a - 0.02, 12], [a + 0.14, 0]] });
+const pop = (a, d = 0.35) => ({ o: [[a, 0], [a + 0.1, 1]], s: [[a, 0.4], [a + d, 1, "back"]] });
+const fromSide = (a, dx, d = 0.5) => ({ o: [[a, 0], [a + 0.15, 1]], x: [[a, dx], [a + d, 0, "expo"]], blur: [[a, 16], [a + 0.25, 0]], sx: [[a, 1.25], [a + 0.3, 1]] });
+const lerp = (t, a, b, from, to, e = "out") => from + (to - from) * Ease[e](clamp((t - a) / (b - a)));
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+
+// Typewriter: chars appear across [a,b]; the rest keeps its space so centered lines don't drift.
+function typeText(el, text, t, a, b, caretAfter = 0.5) {
+  const n = Math.round(text.length * clamp((t - a) / (b - a)));
+  const showCaret = t >= a && t < b + caretAfter && (t < b || Math.floor((t - b) * 4) % 2 === 0);
+  el.innerHTML = esc(text.slice(0, n)) + (showCaret ? '<i class="caret"></i>' : "") + `<span class="ghost">${esc(text.slice(n))}</span>`;
+}
+// Type the spoken words of a line as they are said.
+function typeWords(el, id, t, from = 0, to, upper = true) {
+  const ws = TM.lines[id].words.slice(from, to);
+  const full = ws.map((w) => (upper ? w.w.toUpperCase() : w.w)).join(" ");
+  let shown = 0, pos = 0;
+  ws.forEach((w, i) => {
+    const txt = upper ? w.w.toUpperCase() : w.w;
+    const d = clamp((w.t1 - w.t0) * 0.75, 0.1, 0.35);
+    const k = clamp((t - w.t0 + 0.03) / d);
+    if (k > 0) shown = pos + Math.round(txt.length * k);
+    pos += txt.length + 1;
+  });
+  const last = ws[ws.length - 1];
+  const done = shown >= full.length;
+  const showCaret = t >= ws[0].t0 && t < last.t1 + 0.6 && (!done || Math.floor((t - last.t1) * 4) % 2 === 0);
+  el.innerHTML = esc(full.slice(0, shown)) + (showCaret ? '<i class="caret"></i>' : "") + `<span class="ghost">${esc(full.slice(shown))}</span>`;
+}
+// Rich typewriter for code: segments [[text, className], ...]
+function typeRich(el, segs, t, a, b) {
+  const total = segs.reduce((n, s) => n + s[0].length, 0);
+  let n = Math.round(total * clamp((t - a) / (b - a)));
+  const typing = t >= a && t < b;
+  let html = "";
+  for (const [txt, cls] of segs) {
+    const k = Math.min(n, txt.length);
+    if (k > 0) html += cls ? `<span class="${cls}">${esc(txt.slice(0, k))}</span>` : esc(txt.slice(0, k));
+    n -= k;
+  }
+  el.innerHTML = html + (typing ? '<i class="caret"></i>' : "");
+}
+function letters(el) {
+  const html = [];
+  for (const node of [...el.childNodes]) {
+    if (node.nodeType === 3) for (const ch of node.textContent) html.push(ch === " " ? " " : `<span class="ch">${esc(ch)}</span>`);
+    else html.push(`<span class="ch">${node.outerHTML}</span>`);
+  }
+  el.innerHTML = html.join("");
+  return [...el.querySelectorAll(":scope > .ch")];
+}
+let seed = 11;
+const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const lockSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="10.5" width="16" height="11" rx="2.5"/><path d="M7.5 10.5V7.5a4.5 4.5 0 0 1 9 0v3" fill="none" stroke="currentColor" stroke-width="2.6"/></svg>';
+function diePips(el, size) {
+  const p = size * 0.18, c = size / 2 - p / 2, off = size * 0.22;
+  for (const [dx, dy] of [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]]) {
+    const i = document.createElement("i");
+    Object.assign(i.style, { width: p + "px", height: p + "px", left: c + dx * off + "px", top: c + dy * off + "px" });
+    el.appendChild(i);
+  }
+}
+
+// ---------- static setup
+const gLetters = letters($("g-word"));
+diePips($("g-die"), 190);
+diePips($("r-die"), 130);
+const lLetters = letters($("l-word"));
+// crowd grid
+const DOTS = [];
+for (let i = 0; i < 100; i++) {
+  const d = document.createElement("div");
+  d.className = "pdot";
+  const gx = (i % 10) * 60, gy = Math.floor(i / 10) * 60;
+  d.style.left = gx + "px"; d.style.top = gy + "px";
+  $("c-grid").appendChild(d);
+  DOTS.push({ el: d, gx, gy, dist: Math.hypot(gx - 270, gy - 270) });
+}
+const BEST = 44;
+// escrow brief
+const BRIEF = ["Cold brew tagline for a Kathmandu café.", "Two lines, English with Nepali flavour.", "Reward: 50 USDC · top 3 paid.", "Open for 1 hour. Entries sealed."];
+$("e-text").innerHTML = BRIEF.map((l, i) => `<span id="e-l${i}">${esc(l)}</span>`).join("<br>");
+// sealed entries
+const ENTRIES = [
+  ["SK", "#e4261c", "Sanjay K.", "Kathmandu", "Altitude in every sip. Cold brew, born in Nuwakot.", "9f2c 41ab … e41d"],
+  ["RT", "#2b3cff", "Rina T.", "Pokhara", "Slow-steeped for fast cities.", "03be 77c2 … 9a10"],
+  ["KA", "#0f9d6b", "Kwame A.", "Accra", "Your 3am deadline's best friend.", "c81f 2d06 … 47b3"],
+  ["LN", "#b4358f", "Linh N.", "Hanoi", "Mountains in a glass. Chill, Kathmandu.", "5e9a b310 … 0c7f"],
+];
+ENTRIES.forEach(([ini, col, nm, city, text, hash], i) => {
+  const d = document.createElement("div");
+  d.className = "entry";
+  d.id = "s-e" + i;
+  d.style.left = 140 + i * 420 + "px";
+  d.style.top = "300px";
+  d.innerHTML = `<div class="who"><div class="av" style="background:${col}">${ini}</div><div><div class="nm">${nm}</div><div class="ct">${city}</div></div></div>
+    <div class="tx" id="s-t${i}"></div><div class="hash" id="s-h${i}"></div><div class="seal" id="s-s${i}">${lockSvg}SEALED</div>`;
+  $("s-cards").appendChild(d);
+});
+// judge rows
+const ROWS = [
+  ["Sanjay K.", 92, null], ["Rina T.", 88, null], ["Kwame A.", 81, null],
+  ["copy_cat_99", 8, "DUPLICATE"], ["ignore_rules", 0, "INJECTION"], ["lorem_bot", 2, "SPAM"],
+];
+ROWS.forEach(([nm, sc, flag], i) => {
+  const r = document.createElement("div");
+  r.className = "row";
+  r.id = "k-r" + i;
+  r.style.top = 210 + i * 116 + "px";
+  r.innerHTML = `<div class="nm">${nm}</div><div class="tr"><b id="k-b${i}"></b></div><div class="sc" id="k-s${i}">0</div>` + (flag ? `<div class="flag" id="k-f${i}">${flag}</div>` : "");
+  $("k-rows").appendChild(r);
+});
+const CODE = [
+  [["judge", "k"], [".score(", ""], ["entry_07", "s"], [")", ""]],
+  [["  similarity 0.97 ", "c"], ["→ duplicate", ""]],
+  [["judge", "k"], [".score(", ""], ["entry_08", "s"], [")", ""]],
+  [["  \"ignore previous…\" ", "c"], ["→ injection", ""]],
+  [["judge", "k"], [".score(", ""], ["entry_09", "s"], [")", ""]],
+  [["  lorem ipsum ×40 ", "c"], ["→ spam", ""]],
+];
+$("k-code").innerHTML = CODE.map((_, i) => `<div id="k-c${i}"></div>`).join("");
+// chain cells
+const CELLS = [];
+const SCORES = [92, 88, 81, 8, 0, 2, 74, 69, 63, 57, 51, 46, 40, 35, 77, 66];
+for (let i = 0; i < 16; i++) {
+  const c = document.createElement("div");
+  c.className = "cell";
+  c.style.left = 160 + i * 250 + "px";
+  let px = "";
+  for (let k = 0; k < 70; k++) px += `<i style="background:hsl(225, 35%, ${18 + rnd() * 34}%)"></i>`;
+  const h = Math.floor(rnd() * 0xffff).toString(16).padStart(4, "0");
+  c.innerHTML = `<div class="px">${px}</div><div class="ct"><b>${SCORES[i]}</b><span>#${h}…</span></div>`;
+  $("n-cells").appendChild(c);
+  CELLS.push(c);
+}
+// keyboard keys (reel)
+if (MODE === "reel") {
+  let k = "";
+  for (let i = 0; i < 14 * 6; i++) k += "<i></i>";
+  $("keys").innerHTML = k;
+}
+// flow field particles for the "judge" scene
+const PARTS = [];
+for (let i = 0; i < 2600; i++) {
+  const r = 40 + Math.pow(rnd(), 0.7) * 1150;
+  const c = rnd();
+  PARTS.push({ r, th: rnd() * Math.PI * 2, w: 0.5 / (0.25 + r / 700), wob: rnd() * 6.28, col: c < 0.12 ? "228,38,28" : c < 0.38 ? "90,110,255" : "214,226,255", a: 0.25 + rnd() * 0.6, lw: 1 + rnd() * 2.6 });
+}
+const fctx = $("field").getContext("2d");
+function drawField(t, a, b) {
+  const u = t - a;
+  const warp = u + 0.55 * u * u; // accelerates through the scene
+  const speed = 1 + 1.1 * u;
+  fctx.fillStyle = "#050913";
+  fctx.fillRect(0, 0, 1920, 1080);
+  fctx.lineCap = "round";
+  const cx = 960, cy = 540;
+  for (const p of PARTS) {
+    const th = p.th + p.w * warp * 1.4;
+    const len = Math.min(1.4, 0.05 + p.w * 0.22 * speed);
+    const rr = p.r * (1 + 0.04 * Math.sin(p.wob + u * 2));
+    fctx.strokeStyle = `rgba(${p.col},${p.a * clamp(u / 0.4)})`;
+    fctx.lineWidth = p.lw;
+    fctx.beginPath();
+    fctx.arc(cx, cy, rr, th - len, th);
+    fctx.stroke();
+  }
+}
+// ---------- per-scene look
+const LOOK = {
+  gamble: ["KINETIC TYPOGRAPHY", "dark", "#e4261c"], hope: ["DATA / TIMER", "dark", "#e3ecf5"], flip: ["TRANSITION", "light", "#0c1424"],
+  crowd: ["DATA / CROWD", "light", "#2b3cff"], logo: ["BRAND / REVEAL", "dark", "#e4261c"], escrow: ["UI / PRODUCT MOTION", "dark", "#e3ecf5"],
+  sealed: ["UI / COMMIT · REVEAL", "light", "#0c1424"], crazy: ["GENERATIVE / FIELD", "light", "#0a1020"], caught: ["SPLIT / JUDGE LOG", "light", "#e3ecf5"],
+  chain: ["ON-CHAIN / LEDGER", "light", "#0c1424"], random: ["DATA / INFOGRAPHIC", "dark", "#e3ecf5"], podium: ["PAYOUT / SETTLE", "light", "#e4261c"],
+  stake: ["KINETIC TYPOGRAPHY", "light", "#0c1424"], rep: ["UI / PROFILE", "dark", "#e3ecf5"], agents: ["LIVE / x402", "light", "#2b3cff"], cta: ["OUTRO / CTA", "light", "#0c1424"],
+};
+const ORDER = TM.scenes.map((s) => s.id);
+const tc = (t) => { const f = Math.floor((t % 1) * 30), s = Math.floor(t); return `00:00:${String(s).padStart(2, "0")}:${String(f).padStart(2, "0")}`; };
+
+// camera kicks [time, amplitude, duration]
+const KICKS = [];
+function shake(t) {
+  let x = 0, y = 0;
+  for (const [t0, amp, dur] of KICKS) {
+    const d = t - t0;
+    if (d >= 0 && d < dur) { const k = amp * Math.pow(1 - d / dur, 2); x += Math.sin(d * 95) * k; y += Math.cos(d * 77) * k * 0.7; }
+  }
+  return [x, y];
+}
+
+// ---------- scenes
+const R = {};
+
+R.gamble = (t) => {
+  // navy → red line → red fill
+  set("g-line", t, { sx: [[0.0, 0], [0.32, 1, "expo"]], sy: [[0.34, 1], [0.6, 190, "in"]] });
+  $("g-cover").style.background = t < 0.6 ? "var(--navy)" : "transparent";
+  $("g-cover").style.display = t < 0.62 ? "block" : "none";
+  typeWords($("g-mono"), "hook", t, 0, 5);
+  const a = W("hook", 5) - 0.16;
+  gLetters.forEach((el, i) => {
+    const s = a + i * 0.05;
+    set(el, t, { o: [[s, 0], [s + 0.04, 1]], y: [[s, -760], [s + 0.36, 0, "bounce"]], r: [[s, (i % 2 ? 9 : -9)], [s + 0.36, 0]], blur: [[s, 10], [s + 0.2, 0]], sy: [[s, 1.25], [s + 0.2, 1]] });
+  });
+  const d = LE("hook") - 0.05;
+  set("g-die", t, { o: [[d, 0], [d + 0.05, 1]], x: [[d, 520], [d + 0.55, 0, "out"]], y: [[d, -620], [d + 0.55, 0, "bounce"]], r: [[d, 300], [d + 0.6, 14, "out"]] });
+};
+
+R.hope = (t) => {
+  typeWords($("h-pick"), "pick", t);
+  typeWords($("h-wait"), "wait", t);
+  const a = W("wait", 2), b = LE("hope") + 0.35;
+  const k = Ease.inOut(clamp((t - a) / (b - a)));
+  const hrs = 72 * k;
+  const hh = Math.floor(hrs), mm = Math.floor((hrs * 60) % 60), ss = Math.floor((hrs * 3600) % 60);
+  $("h-timer").textContent = `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+  $("h-fill").style.width = k * 100 + "%";
+  set("h-timer", t, { o: [[LS("wait") - 0.1, 0], [LS("wait") + 0.1, 1]] });
+  set("h-bar", t, { o: [[LS("wait") - 0.1, 0], [LS("wait") + 0.1, 1]], sx: [[LS("wait") - 0.1, 0.96], [LS("wait") + 0.3, 1]] });
+  set("h-clock", t, pop(SCN.hope[0] + 0.05));
+  $("h-hand").style.transform = `rotate(${(t - SCN.hope[0]) * 140 + k * 1440}deg)`;
+  const hw = TM.lines.hope.words;
+  $("h-hope").innerHTML = hw.map((w, i) => `<span class="wd" id="h-hw${i}">${w.w.toLowerCase()}</span>`).join(" ");
+  hw.forEach((w, i) => set("h-hw" + i, t, rise(w.t0 - 0.03, 50, 0.4)));
+  set("h-seen", t, pop(LE("hope") + 0.12));
+};
+
+R.flip = (t) => {
+  typeWords($("f-mono"), "flip", t, 0, 2);
+  const a = W("flip", 2) - 0.05;
+  set("f-flipped", t, { o: [[a, 0], [a + 0.05, 1]], r: [[a, 180], [a + 0.5, 0, "back"]], s: [[a, 0.7], [a + 0.5, 1, "back"]], blur: [[a, 6], [a + 0.3, 0]] });
+  set("f-it", t, slam(W("flip", 3)));
+  set("f-under", t, { sx: [[W("flip", 3) + 0.15, 0], [W("flip", 3) + 0.5, 1, "expo"]] });
+};
+
+R.crowd = (t) => {
+  typeWords($("c-post"), "post", t);
+  const ca = W("post", 1), burst = W("hundred", 0) - 0.05;
+  set("c-card", t, { o: [[ca - 0.05, 0], [ca + 0.1, 1], [burst, 1], [burst + 0.12, 0]], s: [[ca - 0.05, 0.6], [ca + 0.35, 1, "back"], [burst, 1], [burst + 0.15, 0.1, "in"]] });
+  const best = LS("best") + 0.25;
+  DOTS.forEach((d, i) => {
+    const s = burst + d.dist / 3000;
+    const isBest = i === BEST;
+    const dim = t > best && !isBest;
+    d.el.style.background = isBest && t > best ? "var(--red)" : dim ? "#6b78ff" : "var(--white)";
+    d.el.style.boxShadow = isBest && t > best ? `0 0 0 ${lerp(t, best, best + 0.6, 0, 26)}px rgba(228,38,28,${lerp(t, best, best + 0.8, 0.5, 0)})` : "none";
+    set(d.el, t, {
+      o: [[s, 0], [s + 0.06, 1]],
+      x: [[s, 270 - d.gx], [s + 0.45, 0, "back"]],
+      y: [[s, 270 - d.gy], [s + 0.45, 0, "back"]],
+      s: isBest ? [[s, 0.2], [s + 0.4, 1, "back"], [best, 1], [best + 0.35, 1.9, "back"]] : [[s, 0.2], [s + 0.4, 1, "back"], [best, 1], [best + 0.3, 0.8]],
+    });
+  });
+  $("c-num").textContent = Math.round(lerp(t, W("hundred", 0), W("hundred", 2), 1, 100));
+  const out = LS("best") - 0.05;
+  set("c-hundred", t, { o: [[W("hundred", 0) - 0.05, 0], [W("hundred", 0) + 0.05, 1], [out, 1], [out + 0.15, 0]], y: [[out, 0], [out + 0.2, -80, "in"]], blur: [[out, 0], [out + 0.2, 12]] });
+  set("c-people", t, slam(W("hundred", 2)));
+  set("c-compete", t, slam(W("hundred", 3)));
+  set("c-best", t, { o: [[out + 0.05, 0], [out + 0.15, 1]] });
+  typeWords($("c-only"), "best", t, 0, 3);
+  set("c-thebest", t, slam(W("best", 3)));
+  set("c-grid", t, { s: [[best, 1], [SCN.crowd[1], 1.05, "lin"]] });
+};
+
+R.logo = (t) => {
+  typeWords($("l-mono"), "this", t, 0, 2);
+  const a = W("this", 2) - 0.1;
+  const rot = [-7, 5, -4, 6, -5, 4];
+  lLetters.forEach((el, i) => {
+    const s = a + i * 0.06;
+    set(el, t, { o: [[s, 0], [s + 0.05, 1]], y: [[s, -900], [s + 0.5, 0, "bounce"]], r: [[s, rot[i] * 4], [s + 0.5, rot[i] * 0.25]], blur: [[s, 12], [s + 0.2, 0]] });
+  });
+  set("l-sub", t, rise(LE("this") + 0.05, 40));
+  set("l-foot", t, rise(LE("this") + 0.3, 20));
+};
+
+R.escrow = (t) => {
+  const A = SCN.escrow[0];
+  typeText($("e-head"), "THE REWARD LOCKS BEFORE ANYONE STARTS.", t, LS("lock"), LE("lock") - 0.2);
+  set("e-doc", t, { ...fromSide(A, -500), r: -1.5 });
+  set("e-vault", t, { ...fromSide(A + 0.08, 600), r: 1 });
+  set("e-arrow", t, { o: [[A + 0.3, 0], [A + 0.45, 1]], x: [[A + 0.3, -30], [A + 0.6, 0]] });
+  // selection sweep through the brief
+  const s0 = LS("lock") + 0.05, s1 = W("lock", 2);
+  BRIEF.forEach((_, i) => {
+    const k = clamp(((t - s0) / (s1 - s0)) * BRIEF.length - i);
+    const el = $("e-l" + i);
+    el.style.background = k > 0 ? `linear-gradient(90deg, var(--hl) ${k * 100}%, transparent ${k * 100}%)` : "none";
+  });
+  // drag the reward chip into the vault
+  const g0 = W("lock", 2), g1 = W("lock", 4) + 0.15;
+  const chipFrom = [260, 640], chipTo = [1120, 452];
+  const cx = lerp(t, g0, g1, chipFrom[0], chipTo[0], "inOut"), cy = lerp(t, g0, g1, chipFrom[1], chipTo[1], "inOut") - Math.sin(clamp((t - g0) / (g1 - g0)) * Math.PI) * 60;
+  set("e-chip", t, { o: [[g0 - 0.1, 0], [g0, 1]], x: cx, y: cy, s: [[g0 - 0.1, 0.8], [g0 + 0.1, 1.06], [g1, 1.06], [g1 + 0.12, 1]], r: [[g0, 0], [g0 + 0.2, -4], [g1, -4], [g1 + 0.15, 0]] });
+  // cursor: in → grab → drop → button → click
+  const btnAt = [1380, 735], click = W("lock", 7) + 0.05;
+  let px, py;
+  if (t < g0) { px = lerp(t, A + 0.4, g0, 700, chipFrom[0] + 120, "inOut"); py = lerp(t, A + 0.4, g0, 980, chipFrom[1] + 40, "inOut"); }
+  else if (t < g1) { px = cx + 120; py = cy + 40; }
+  else { px = lerp(t, g1 + 0.1, click - 0.05, chipTo[0] + 120, btnAt[0], "inOut"); py = lerp(t, g1 + 0.1, click - 0.05, chipTo[1] + 40, btnAt[1], "inOut"); }
+  set("e-cursor", t, { o: [[A + 0.4, 0], [A + 0.5, 1]], x: px, y: py, s: [[click - 0.05, 1], [click, 0.85], [click + 0.12, 1]] });
+  set("e-ripple", t, { o: [[click, 0.9], [click + 0.45, 0]], s: [[click, 0.3], [click + 0.45, 2.2]], x: btnAt[0] - 40, y: btnAt[1] - 40 });
+  $("e-amt").textContent = lerp(t, W("lock", 4), W("lock", 7), 0, 50, "inOut").toFixed(2);
+  set("e-pda", t, { o: [[W("lock", 6) - 0.1, 0.25], [W("lock", 6) + 0.2, 1]] });
+  const locked = t >= click;
+  $("e-btn").style.background = locked ? "#11a36a" : "var(--red)";
+  $("e-btnt").innerHTML = locked ? `<span style="display:inline-flex;align-items:center;gap:12px"><span style="width:30px;height:30px;display:inline-block">${lockSvg}</span>LOCKED · OPEN FOR ENTRIES</span>` : "LOCK &amp; POST";
+  set("e-btn", t, { s: [[click - 0.02, 1], [click + 0.05, 0.96], [click + 0.3, 1, "back"]] });
+};
+
+R.sealed = (t) => {
+  typeWords($("s-head"), "sealed", t, 0, 4);
+  const A = SCN.sealed[0];
+  const sealAt = W("sealed", 3) + 0.05;
+  ENTRIES.forEach((e, i) => {
+    const a = A + 0.02 + i * 0.07;
+    set("s-e" + i, t, { o: [[a, 0], [a + 0.12, 1]], y: [[a, 260], [a + 0.5, 0, "back"]], r: [[a, (i - 1.5) * 4], [a + 0.5, 0]] });
+    const s = sealAt + i * 0.08;
+    const k = clamp((t - s) / 0.35);
+    const txt = e[4];
+    const n = Math.floor(txt.length * k);
+    $("s-t" + i).textContent = "█".repeat(Math.ceil(n * 0.62)) + txt.slice(n);
+    $("s-t" + i).style.color = k > 0 ? "#3b4a73" : "";
+    typeText($("s-h" + i), "sha256 " + e[5], t, s + 0.2, s + 0.6, 0);
+    set("s-s" + i, t, pop(s + 0.25));
+  });
+  set("s-w0", t, slam(W("sealed", 4)));
+  set("s-w1", t, slam(W("sealed", 5)));
+  set("s-w2", t, slam(W("sealed", 6)));
+};
+
+R.crazy = (t) => {
+  const [a, b] = SCN.crazy;
+  drawField(t, a, b);
+  typeWords($("z-mono"), "judge", t, 0, 5);
+  set("z-w0", t, slam(W("judge", 5), 2));
+  set("z-w1", t, slam(W("judge", 6), 2));
+  set("z-w2", t, slam(W("judge", 7), 2));
+  set("z-big", t, { s: [[W("judge", 5), 1], [b, 1.06, "lin"]] });
+};
+
+R.caught = (t) => {
+  const [A, B] = SCN.caught;
+  set("k-left", t, fromSide(A, -700, 0.45));
+  set("k-code", t, { o: [[A + 0.1, 0], [A + 0.25, 1]] });
+  set("k-div", t, { sy: [[A, 0], [A + 0.4, 1, "expo"]] });
+  const hits = [W("cheats", 0), W("cheats", 1), W("cheats", 3)];
+  ROWS.forEach(([nm, sc, flag], i) => {
+    const row = $("k-r" + i);
+    set(row, t, rise(A + 0.1 + i * 0.05, 30, 0.35));
+    let fill, score;
+    if (!flag) {
+      const s = A + 0.2 + i * 0.12;
+      fill = lerp(t, s, s + 0.6, 0, sc);
+      score = fill;
+    } else {
+      const h = hits[i - 3];
+      fill = t < h - 0.35 ? 0 : t < h ? lerp(t, h - 0.35, h, 0, 70) : lerp(t, h, h + 0.25, 70, sc, "in");
+      score = t < h ? fill : sc;
+      const flagged = t >= h;
+      row.style.background = flagged ? "rgba(228,38,28,.12)" : "transparent";
+      $("k-b" + i).style.background = flagged ? "var(--red)" : "var(--ink)";
+      $("k-s" + i).style.color = flagged ? "var(--red)" : "var(--ink)";
+      set("k-f" + i, t, { o: [[h, 0], [h + 0.05, 1]], s: [[h, 1.8], [h + 0.25, 1, "back"]], r: [[h, -10], [h + 0.25, -3]] });
+    }
+    $("k-b" + i).style.width = fill + "%";
+    $("k-s" + i).textContent = String(Math.round(score)).padStart(2, "0");
+  });
+  // judge log types in sync with each call-out
+  const starts = [A + 0.15, hits[0] + 0.05, hits[0] + 0.45, hits[1] + 0.2, hits[2] - 0.35, hits[2] + 0.05];
+  CODE.forEach((segs, i) => typeRich($("k-c" + i), segs, t, starts[i], starts[i] + 0.4));
+  // all of them: CAUGHT.
+  const c = W("caught", 3) - 0.04;
+  $("k-red").style.display = t >= c ? "block" : "none";
+  if (t >= c) {
+    const u = t - c;
+    const jit = u < 0.4 ? 1 - u / 0.4 : (Math.floor(u * 10) % 7 === 0 ? 0.35 : 0);
+    const j = (k) => Math.sin(u * 83 + k) * 26 * jit;
+    set("k-g0", t, { s: [[c, 1.5], [c + 0.22, 1, "back"]], x: j(1) * 0.3 });
+    set("k-g1", t, { o: jit > 0 ? 1 : 0, x: -14 - j(2), y: j(3) * 0.4, s: [[c, 1.5], [c + 0.22, 1, "back"]] });
+    set("k-g2", t, { o: jit > 0 ? 1 : 0, x: 14 + j(4), y: -j(5) * 0.4, s: [[c, 1.5], [c + 0.22, 1, "back"]] });
+    const sl = Math.floor(u * 30) % 3;
+    $("k-g1").style.clipPath = jit > 0 ? `inset(${20 + sl * 18}% 0 ${40 - sl * 10}% 0)` : "none";
+    $("k-g2").style.clipPath = jit > 0 ? `inset(${55 - sl * 12}% 0 ${10 + sl * 8}% 0)` : "none";
+    set("k-tags", t, rise(c + 0.3, 30));
+  }
+};
+
+R.chain = (t) => {
+  const [A, B] = SCN.chain;
+  typeWords($("n-l1"), "chain", t, 0, 4);
+  typeWords($("n-l2"), "chain", t, 4, 10);
+  set("n-strip", t, { o: [[A, 0], [A + 0.15, 1]], sy: [[A, 0.2], [A + 0.4, 1, "back"]] });
+  const shift = -(t - A) * 110;
+  CELLS.forEach((c, i) => {
+    c.style.transform = `translateX(${shift}px)`;
+    const w = A + 0.25 + i * 0.3;
+    const written = t >= w;
+    c.querySelector(".px").style.opacity = written ? 0 : 1;
+    c.querySelector(".ct").style.opacity = written ? 1 : 0;
+    c.style.background = written ? (SCORES[i] < 20 ? "var(--red)" : "var(--blue)") : "#1b2847";
+    c.style.boxShadow = written && t < w + 0.25 ? "0 0 0 5px #fff" : "none";
+    set(c.querySelector(".ct"), t, { s: [[w, 1.4], [w + 0.25, 1, "back"]], o: written ? 1 : 0 });
+  });
+  typeText($("n-hash"), "sha256  4be1 9c07 a3f1 77d2 0e5b 61c8 d2f4 …", t, W("chain", 6), LE("chain") + 0.2);
+};
+
+R.random = (t) => {
+  const A = SCN.random[0];
+  set("r-ring", t, pop(A, 0.4));
+  const arc = lerp(t, A + 0.15, LE("random"), 0, 0.92, "inOut") * 2 * Math.PI * 240;
+  $("r-arc").setAttribute("stroke-dasharray", `${arc} 1600`);
+  set("r-ver", t, rise(A + 0.2, 30));
+  set("r-score", t, rise(A + 0.35, 20));
+  typeWords($("r-so"), "random", t, 0, 1);
+  set("r-w1", t, slam(W("random", 1)));
+  set("r-w2", t, slam(W("random", 2)));
+  const d = A + 0.1;
+  set("r-die", t, { o: [[d, 0], [d + 0.05, 1]], y: [[d, -300], [d + 0.5, 0, "bounce"]], r: [[d, -200], [d + 0.55, 12]] });
+  set("r-x", t, { o: [[LE("random") - 0.1, 0], [LE("random") - 0.05, 1]], sx: [[LE("random") - 0.1, 0], [LE("random") + 0.15, 1, "expo"]], r: -38 });
+};
+
+R.podium = (t) => {
+  const A = SCN.podium[0];
+  typeWords($("p-head"), "top3", t, 0, 6);
+  const sub = TM.lines.top3.words.slice(6);
+  $("p-sub").innerHTML = sub.map((w, i) => `<span class="wd" id="p-sw${i}">${w.w}</span>`).join(" ");
+  sub.forEach((w, i) => set("p-sw" + i, t, rise(w.t0 - 0.03, 40)));
+  const order = [["p-c3", A + 0.1], ["p-c2", A + 0.25], ["p-c1", A + 0.4]];
+  for (const [id, s] of order) set(id, t, { sy: [[s, 0], [s + 0.55, 1, "back"]] });
+  const pay = W("top3", 6);
+  const amts = { 1: 22.5, 2: 13.5, 3: 9 };
+  for (const k of [1, 2, 3]) {
+    const s = pay + (k - 1) * 0.08;
+    $("p-n" + k).textContent = "+" + lerp(t, s, s + 0.7, 0, amts[k]).toFixed(2);
+    set("p-a" + k, t, { o: [[s - 0.05, 0], [s + 0.05, 1]], y: [[s - 0.05, 40], [s + 0.4, 0, "back"]] });
+  }
+  set("p-tx", t, rise(LE("top3") - 0.1, 20));
+};
+
+R.stake = (t) => {
+  ["t-w0", "t-w1", "t-w2", "t-w3"].forEach((id, i) => set(id, t, slam(W("stake", i), 1.8)));
+  const f = W("stake", 3) - 0.1;
+  [0, 1, 2].forEach((i) => {
+    const s = f + i * 0.09;
+    set("t-c" + i, t, { o: [[s, 0], [s + 0.05, 1]], y: [[s, -260], [s + 1.3, 1250, "in"]], r: [[s, 0], [s + 1.3, (i - 1) * 140 + 60, "lin"]] });
+  });
+};
+
+R.rep = (t) => {
+  const A = SCN.rep[0];
+  set("q-card", t, { ...fromSide(A, -500), r: -1.5 });
+  const b0 = W("rep", 1), b1 = W("rep", 5) + 0.3;
+  $("q-rating").textContent = Math.round(lerp(t, b0, b1, 0, 127));
+  $("q-wins").textContent = Math.round(lerp(t, b0, b1, 0, 3));
+  $("q-earn").textContent = lerp(t, b0, b1, 0, 58.4).toFixed(2);
+  $("q-ent").textContent = Math.round(lerp(t, b0, b1, 0, 7));
+  typeWords($("q-mono"), "rep", t, 0, 4);
+  set("q-big", t, slam(W("rep", 5)));
+  const ow = TM.lines.rep.words.slice(6);
+  $("q-own").innerHTML = ow.map((w, i) => `<span class="wd" id="q-ow${i}">${w.w}</span>`).join(" ");
+  ow.forEach((w, i) => set("q-ow" + i, t, rise(w.t0 - 0.03, 40)));
+  set("q-pill", t, pop(W("rep", 8) + 0.2));
+};
+
+R.agents = (t) => {
+  const A = SCN.agents[0];
+  typeWords($("a-head"), "agents", t, 0, 6);
+  set("a-term", t, { ...rise(A + 0.05, 80, 0.5) });
+  set("a-bot", t, { ...pop(A + 0.15, 0.45), y: Math.sin((t - A) * 5) * 10 });
+  typeRich($("a-l0"), [["POST ", "k"], ["/api/x402/tasks", ""]], t, W("agents", 2), W("agents", 2) + 0.45);
+  typeRich($("a-l1"), [["← ", "c"], [" 402 Payment Required ", "tag s402"]], t, W("agents", 4), W("agents", 4) + 0.45);
+  typeRich($("a-l2"), [["X-PAYMENT ", "k"], ["exact · 25.00 USDC", "s"]], t, W("agents", 6), W("agents", 6) + 0.5);
+  typeRich($("a-l3"), [["← ", "c"], [" 201 task escrowed ✓ ", "tag s201"]], t, W("agents", 8), W("agents", 8) + 0.45);
+  for (const el of document.querySelectorAll(".s402")) Object.assign(el.style, { background: "var(--red)", color: "#fff" });
+  for (const el of document.querySelectorAll(".s201")) Object.assign(el.style, { background: "#11a36a", color: "#fff" });
+  const foot = "PAYING OVER x402";
+  typeText($("a-foot"), foot, t, W("agents", 6), W("agents", 8) + 0.3);
+};
+
+R.cta = (t) => {
+  const A = SCN.cta[0];
+  const n = W("name", 0) - 0.05;
+  set("o-dot", t, pop(n - 0.1, 0.4));
+  set("o-name", t, { o: [[n, 0], [n + 0.08, 1]], y: [[n, 70], [n + 0.45, 0, "back"]], blur: [[n, 12], [n + 0.2, 0]], sx: [[n, 1.15], [n + 0.35, 1]] });
+  set("o-pill", t, { ...pop(W("tag", 0) - 0.05, 0.45) });
+  typeWords($("o-l1"), "tag", t, 3, 6);
+  typeWords($("o-l2"), "tag", t, 6, 9);
+  set("o-foot", t, { o: [[LE("tag") + 0.2, 0], [LE("tag") + 0.6, 1]] });
+};
+
+// ---------- cues for the sound design (read by render.mjs → audio.py)
+const CUES = [];
+const cue = (t, kind, gain = 1) => CUES.push({ t: +t.toFixed(3), kind, gain });
+(function buildCues() {
+  cue(0.0, "riser", 0.5);
+  cue(0.32, "hit", 0.8);
+  gLetters.forEach((_, i) => cue(W("hook", 5) - 0.16 + i * 0.05 + 0.2, "tick", 0.9));
+  cue(W("hook", 5) + 0.05, "hit", 1);
+  cue(LE("hook") + 0.3, "thud", 0.7);
+  cue(SCN.hope[0], "whoosh", 0.7);
+  cue(LE("hope") + 0.12, "pop", 0.6);
+  cue(SCN.flip[0], "whoosh", 0.9);
+  cue(W("flip", 2) + 0.35, "hit", 1.1);
+  cue(W("flip", 3), "drop", 1);
+  cue(W("post", 1), "pop", 0.7);
+  cue(W("hundred", 0) - 0.05, "swell", 0.9);
+  cue(W("hundred", 2), "hit", 0.7);
+  cue(W("hundred", 3), "hit", 0.7);
+  cue(LS("best") + 0.25, "ding", 0.8);
+  cue(W("best", 3), "hit", 0.8);
+  lLetters.forEach((_, i) => cue(W("this", 2) - 0.1 + i * 0.06 + 0.22, "thud", 0.7));
+  cue(SCN.escrow[0], "whoosh", 0.8);
+  cue(W("lock", 2), "click", 0.8);
+  cue(W("lock", 4) + 0.15, "pop", 0.8);
+  cue(W("lock", 7) + 0.05, "click", 1);
+  cue(W("lock", 7) + 0.1, "lock", 1);
+  cue(SCN.sealed[0], "whoosh", 0.8);
+  [0, 1, 2, 3].forEach((i) => cue(W("sealed", 3) + 0.05 + i * 0.08 + 0.25, "lock", 0.55));
+  cue(W("sealed", 4), "hit", 0.7); cue(W("sealed", 5), "hit", 0.6); cue(W("sealed", 6), "hit", 0.9);
+  cue(SCN.crazy[0], "riser", 1.2);
+  cue(W("judge", 5), "hit", 0.8); cue(W("judge", 6), "hit", 0.8); cue(W("judge", 7), "hit", 1);
+  cue(SCN.caught[0], "drop", 1);
+  [W("cheats", 0), W("cheats", 1), W("cheats", 3)].forEach((h) => { cue(h, "buzz", 0.9); cue(h, "hit", 0.7); });
+  cue(W("caught", 3) - 0.04, "glitch", 1.1);
+  cue(W("caught", 3) - 0.04, "hit", 1.2);
+  cue(SCN.chain[0], "whoosh", 0.8);
+  CELLS.forEach((_, i) => { const tt = SCN.chain[0] + 0.25 + i * 0.3; if (tt < SCN.chain[1]) cue(tt, "tick", 0.7); });
+  cue(SCN.random[0] + 0.1, "thud", 0.6);
+  cue(W("random", 1), "hit", 0.8); cue(W("random", 2), "hit", 0.9);
+  cue(LE("random") - 0.1, "swish", 0.8);
+  cue(SCN.podium[0], "whoosh", 0.8);
+  [0.1, 0.25, 0.4].forEach((d) => cue(SCN.podium[0] + d + 0.3, "thud", 0.7));
+  [0, 0.08, 0.16].forEach((d) => cue(W("top3", 6) + d, "coin", 0.8));
+  ["stake"].forEach(() => [0, 1, 2, 3].forEach((i) => cue(W("stake", i), "hit", i === 3 ? 1.1 : 0.6)));
+  cue(SCN.rep[0], "whoosh", 0.8);
+  cue(W("rep", 5), "hit", 0.8);
+  cue(W("rep", 8) + 0.2, "ding", 0.7);
+  cue(SCN.agents[0], "whoosh", 0.8);
+  [W("agents", 2), W("agents", 4), W("agents", 6), W("agents", 8)].forEach((s) => cue(s, "type", 1));
+  cue(W("agents", 4), "buzz", 0.5);
+  cue(W("agents", 8) + 0.4, "ding", 0.8);
+  cue(SCN.cta[0], "drop", 1);
+  cue(W("name", 0), "hit", 1.1);
+  cue(W("tag", 0) - 0.05, "pop", 0.8);
+  cue(W("tag", 8), "hit", 1);
+  // typing ticks for every typed mono word
+  for (const [id, l] of Object.entries(TM.lines)) for (const w of l.words) cue(w.t0 + 0.02, "type", 0.35);
+  CUES.sort((a, b) => a.t - b.t);
+  // camera kicks follow the big hits
+  for (const c of CUES) if (c.kind === "hit" || c.kind === "drop" || c.kind === "glitch") KICKS.push([c.t, 7 * c.gain, 0.28]);
+})();
+window.CUES = CUES;
+window.SCENES = SCN;
+
+// ---------- render
+function renderAt(t) {
+  let cur = ORDER[0];
+  for (const id of ORDER) {
+    const [a, b] = SCN[id];
+    const on = t >= a && t < b;
+    $("sc-" + id).style.display = on ? "block" : "none";
+    if (on) cur = id;
+  }
+  const [a, b] = SCN[cur];
+  R[cur](t);
+  // every cut lands with a quick settle, then a slow push in
+  const u = t - a;
+  const settle = cur === "gamble" ? 0 : Math.max(0, 1 - u / 0.22);
+  const push = 1 + 0.025 * clamp(u / (b - a));
+  const [sx, sy] = shake(t);
+  const sc = $("sc-" + cur);
+  sc.style.transform = `translate(${sx}px, ${sy}px) scale(${push + 0.05 * Ease.in(settle)})`;
+  sc.style.filter = settle > 0.05 ? `blur(${6 * settle}px)` : "none";
+
+  const [label, hud, bg] = LOOK[cur];
+  const root = document.documentElement.style;
+  root.setProperty("--hud", hud === "dark" ? "rgba(14,16,24,.58)" : "rgba(255,255,255,.62)");
+  root.setProperty("--hudDot", cur === "gamble" || cur === "logo" || cur === "podium" ? "var(--ink)" : "var(--red)");
+  root.setProperty("--caret", cur === "gamble" || cur === "logo" || cur === "podium" ? "var(--ink)" : "var(--red)");
+  $("hud").style.opacity = cur === "gamble" && t < 0.6 ? 0 : 1;
+  $("hud-scene").textContent = `SCENE ${String(ORDER.indexOf(cur) + 1).padStart(2, "0")} / ${ORDER.length}`;
+  $("hud-sec").textContent = label;
+  $("hud-tc").innerHTML = `<span style="color:var(--hudDot)">●</span>○○○ ${tc(t)}`;
+  $("fade").style.opacity = clamp((t - (DURATION - 0.45)) / 0.45);
+
+  if (MODE === "reel") {
+    // handheld phone: slow drift plus a little tremor
+    const hx = Math.sin(t * 0.7) * 7 + Math.sin(t * 2.3 + 1) * 2.2, hy = Math.cos(t * 0.55) * 6 + Math.sin(t * 2.9) * 1.8;
+    const hr = Math.sin(t * 0.45) * 0.35 + Math.sin(t * 1.9) * 0.08;
+    $("rig").style.transform = `translate(${hx}px, ${hy}px) rotate(${hr}deg) scale(${1.0 + 0.012 * Math.sin(t * 0.3)})`;
+    $("spill").style.background = `radial-gradient(ellipse 55% 85% at 50% 0%, ${bg}, transparent 75%)`;
+  }
+}
+window.renderAt = renderAt;
+
+Promise.all([
+  document.fonts.load('100px Anton'), document.fonts.load('italic 100px "Instrument Serif"'),
+  document.fonts.load('500 20px "JetBrains Mono"'), document.fonts.load('700 20px "JetBrains Mono"'),
+  document.fonts.load('600 20px Inter'), document.fonts.load('900 20px Inter'),
+]).then(() => document.fonts.ready).then(() => { renderAt(0); window.__ready = true; });
+</script>
+</body>
+</html>
