@@ -6,7 +6,7 @@ import { Providers } from "@/components/Providers";
 import { PrivyWrapper } from "@/components/PrivyWrapper";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
-import { BurstLayer, Cursor } from "@/components/fx/Overlay";
+import { BurstLayer, Cursor, SummonEgg } from "@/components/fx/Overlay";
 import { ScrollProgress } from "@/components/fx/motion";
 
 const display = Anton({ subsets: ["latin"], variable: "--font-anton", weight: "400" });
@@ -33,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Footer />
             <BurstLayer />
             <Cursor />
+            <SummonEgg />
             <div className="grain" aria-hidden />
           </Providers>
         </PrivyWrapper>

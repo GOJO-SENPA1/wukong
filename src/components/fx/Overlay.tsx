@@ -163,3 +163,25 @@ export function Cursor() {
     </>
   );
 }
+
+/** Type "wukong" anywhere (outside a text field) and the crowd bursts out of the screen. */
+export function SummonEgg() {
+  useEffect(() => {
+    let buf = "";
+    const on = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t?.closest("input, textarea, select, [contenteditable=true]") || e.key.length !== 1) return;
+      buf = (buf + e.key.toLowerCase()).slice(-6);
+      if (buf !== "wukong") return;
+      buf = "";
+      const w = window.innerWidth,
+        h = window.innerHeight;
+      [0.15, 0.35, 0.5, 0.65, 0.85].forEach((fx, i) =>
+        setTimeout(() => burst({ x: w * fx, y: h * 0.95 }, { icons: ["monkey", "monkey", "coin", "trophy"], count: 22 }), i * 140),
+      );
+    };
+    window.addEventListener("keydown", on);
+    return () => window.removeEventListener("keydown", on);
+  }, []);
+  return null;
+}
