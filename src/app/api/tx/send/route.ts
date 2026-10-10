@@ -18,13 +18,13 @@ export async function POST(req: Request) {
     const body = Body.parse(await req.json());
     const sig = await relay(body.tx);
     if (body.task && body.kind) {
-      store.addTx(body.task, { sig, kind: body.kind as TxRecord["kind"], label: body.label ?? body.kind, at: Date.now() });
+      await store.addTx(body.task, { sig, kind: body.kind as TxRecord["kind"], label: body.label ?? body.kind, at: Date.now() });
     }
     if (body.task && body.kind === "create") {
       // Snapshot who posted this task, so tasks that share a brief don't share an author.
       const task = await fetchTask(program(), new PublicKey(body.task));
-      const brief = task && store.brief(task.briefHash);
-      if (brief) store.setTaskMeta(body.task, { origin: "web", creatorName: brief.creatorName, template: brief.template });
+      const brief = task && (await store.brief(task.briefHash));
+      if (brief) await store.setTaskMeta(body.task, { origin: "web", creatorName: brief.creatorName, template: brief.template });
     }
     return ok({ sig });
   } catch (err) {

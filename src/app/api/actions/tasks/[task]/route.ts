@@ -22,7 +22,7 @@ export async function GET(req: Request, ctx: Ctx) {
   const task = await loadTask(key);
   if (!task) return actionError("Task not found", 404);
   const origin = originOf(req);
-  const brief = store.brief(task.briefHash)?.brief ?? "";
+  const brief = (await store.brief(task.briefHash))?.brief ?? "";
   const reward = `${fmtUsdc(task.reward)} USDC`;
   const payout = task.payoutMode === "topThree" ? "top 3 paid 50/30/20" : "winner takes all";
   const stake = task.entryStake > 0 ? ` Entry stake ${fmtUsdc(task.entryStake)} USDC, refunded unless spam.` : "";
@@ -82,7 +82,7 @@ export async function POST(req: Request, ctx: Ctx) {
 
     // Store the work off-chain first; the transaction commits its hash.
     const hash = sha256Hex(content);
-    store.putSubmission({ hash, content, worker: worker.toBase58(), task: key, createdAt: Date.now() });
+    await store.putSubmission({ hash, content, worker: worker.toBase58(), task: key, createdAt: Date.now() });
 
     const ix = await buildSubmitForTask(program(), worker, task, hash);
     const { blockhash, lastValidBlockHeight } = await connection().getLatestBlockhash("confirmed");

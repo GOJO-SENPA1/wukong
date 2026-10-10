@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   try {
     const body = Body.parse(await req.json());
     const hash = sha256Hex(body.brief);
-    store.putBrief({ hash, ...body, createdAt: Date.now(), origin: "web" });
+    await store.putBrief({ hash, ...body, createdAt: Date.now(), origin: "web" });
     return ok({ hash });
   } catch (err) {
     return fail(err);

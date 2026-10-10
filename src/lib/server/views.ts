@@ -18,7 +18,7 @@ import {
 } from "../wukong";
 import { demoMode, connection, deployment, program } from "./env";
 import { judgeEngine } from "./judge";
-import { store, type BriefRecord, type ReportRecord, type TxRecord } from "./store";
+import { store, type BriefRecord, type ReportRecord, type TaskMeta, type TxRecord } from "./store";
 
 export interface TaskCard extends TaskView {
   creatorName?: string;
@@ -28,9 +28,17 @@ export interface TaskCard extends TaskView {
   categoryLabel: string;
 }
 
-function card(t: TaskView): TaskCard {
-  const meta = store.taskMeta(t.pubkey) ?? store.brief(t.briefHash);
-  const names = store.names();
+/** Join tasks with their off-chain metadata (three store round trips, however many tasks). */
+async function cards(tasks: TaskView[], names?: Record<string, string>): Promise<TaskCard[]> {
+  const [metas, briefs, allNames] = await Promise.all([
+    store.taskMetas(tasks.map((t) => t.pubkey)),
+    store.briefs(tasks.map((t) => t.briefHash)),
+    names ?? store.names(),
+  ]);
+  return tasks.map((t, i) => card(t, metas[i] ?? briefs[i], allNames));
+}
+
+function card(t: TaskView, meta: TaskMeta | BriefRecord | undefined, names: Record<string, string>): TaskCard {
   return {
     ...t,
     creatorName: meta?.creatorName ?? names[t.creator],
@@ -45,7 +53,7 @@ export async function stateView() {
   const dep = deployment();
   const prog = program();
   const [config, tasks] = await Promise.all([fetchConfig(prog), fetchTasks(prog)]);
-  const cards = tasks.map(card);
+  const list = await cards(tasks);
   return {
     deployment: {
       cluster: dep.cluster,
@@ -57,13 +65,13 @@ export async function stateView() {
     judge: judgeEngine(),
     demoMode: demoMode(),
     config,
-    tasks: cards,
+    tasks: list,
     stats: {
-      tasks: cards.length,
-      open: cards.filter((t) => t.status === "open").length,
+      tasks: list.length,
+      open: list.filter((t) => t.status === "open").length,
       escrowed: config?.totalEscrowed ?? 0,
       paid: config?.totalPaid ?? 0,
-      submissions: cards.reduce((a, t) => a + t.submissionCount, 0),
+      submissions: list.reduce((a, t) => a + t.submissionCount, 0),
     },
   };
 }
@@ -81,8 +89,13 @@ export async function taskView(taskKey: string) {
   const task = await fetchTask(prog, taskPk);
   if (!task) return null;
   const subs = await fetchSubmissions(prog, taskPk);
-  const names = store.names();
-  const brief = store.brief(task.briefHash);
+  const [names, brief, recs, reports, txs] = await Promise.all([
+    store.names(),
+    store.brief(task.briefHash),
+    store.submissions(subs.map((s) => s.contentHash)),
+    store.reports(subs.map((s) => s.pubkey)),
+    store.txs(taskKey),
+  ]);
 
   let vaultBalance = 0;
   try {
@@ -93,23 +106,23 @@ export async function taskView(taskKey: string) {
 
   // Entries stay sealed while the task is open so nobody can copy them.
   const sealed = task.status === "open";
-  const submissions: SubmissionDetail[] = subs.map((s) => {
-    const rec = store.submission(s.contentHash);
+  const submissions: SubmissionDetail[] = subs.map((s, i) => {
+    const rec = recs[i];
     return {
       ...s,
       content: sealed ? undefined : rec?.content,
       contentVerified: !!rec,
       workerName: rec?.workerName ?? names[s.worker],
-      report: store.report(s.pubkey),
+      report: reports[i],
     };
   });
 
   return {
-    task: card(task),
+    task: (await cards([task], names))[0],
     brief: brief ? { text: brief.brief, verified: true } : null,
     vaultBalance,
     submissions,
-    txs: store.txs(taskKey).sort((a: TxRecord, b: TxRecord) => a.at - b.at),
+    txs: txs.sort((a: TxRecord, b: TxRecord) => a.at - b.at),
     names,
   };
 }
@@ -132,15 +145,16 @@ export async function workerView(worker: string) {
   } catch {
     usdc = 0;
   }
+  const [names, reports] = await Promise.all([store.names(), store.reports(subs.map((s) => s.pubkey))]);
   return {
     worker,
-    name: store.names()[worker],
+    name: names[worker],
     usdc,
     reputation: rep,
     reputationAccount: pda.reputation(pk).toBase58(),
-    history: subs.map((s) => {
+    history: subs.map((s, i) => {
       const t = byKey.get(s.task);
-      const report = store.report(s.pubkey);
+      const report = reports[i];
       return {
         ...s,
         taskTitle: t?.title ?? "Unknown task",
@@ -153,7 +167,6 @@ export async function workerView(worker: string) {
 }
 
 export async function leaderboardView(): Promise<(ReputationView & { name?: string })[]> {
-  const reps = await fetchReputations(program());
-  const names = store.names();
+  const [reps, names] = await Promise.all([fetchReputations(program()), store.names()]);
   return reps.map((r) => ({ ...r, name: names[r.worker] }));
 }

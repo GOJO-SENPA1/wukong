@@ -5,7 +5,7 @@
 import { TEMPLATES, type TaskTemplate } from "../src/lib/demo";
 import { sha256Hex } from "../src/lib/hash";
 import { buildCreateTask, keypairSigner, sendIxs } from "../src/lib/wukong";
-import { connection, deployment, loadOrCreateKey, mint, program } from "../src/lib/server/env";
+import { connection, deployment, loadOrDeriveKey, mint, program } from "../src/lib/server/env";
 import { fund } from "../src/lib/server/faucet";
 import { store } from "../src/lib/server/store";
 import { summonCrowd } from "../src/lib/server/crowd";
@@ -15,12 +15,12 @@ const withHero = process.argv.includes("--hero");
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
 async function postTask(t: TaskTemplate): Promise<string> {
-  const creator = loadOrCreateKey(`creators/${slug(t.creatorName)}`);
+  const creator = loadOrDeriveKey(`creators/${slug(t.creatorName)}`);
   const local = deployment().cluster === "localnet";
   await fund(creator.publicKey.toBase58(), { sol: local ? 2 : 0.05, usdc: t.rewardUsdc * 3, minSol: local ? 0.5 : 0.02 });
-  store.setName(creator.publicKey.toBase58(), t.creatorName);
+  await store.setName(creator.publicKey.toBase58(), t.creatorName);
   const hash = sha256Hex(t.brief);
-  if (!store.brief(hash)) store.putBrief({
+  if (!(await store.brief(hash))) await store.putBrief({
     hash,
     title: t.title,
     category: t.category,
@@ -43,8 +43,8 @@ async function postTask(t: TaskTemplate): Promise<string> {
     entryStake: t.entryStakeUsdc * 1_000_000,
   });
   const sig = await sendIxs(connection(), keypairSigner(creator), ixs);
-  store.setTaskMeta(task.toBase58(), { origin: "seed", creatorName: t.creatorName, template: t.id });
-  store.addTx(task.toBase58(), { sig, kind: "create", label: `Task posted, ${t.rewardUsdc} USDC locked`, at: Date.now() });
+  await store.setTaskMeta(task.toBase58(), { origin: "seed", creatorName: t.creatorName, template: t.id });
+  await store.addTx(task.toBase58(), { sig, kind: "create", label: `Task posted, ${t.rewardUsdc} USDC locked`, at: Date.now() });
   console.log(`  📌 ${t.title} → ${task.toBase58()}`);
   return task.toBase58();
 }

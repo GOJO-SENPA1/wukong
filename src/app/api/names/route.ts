@@ -7,7 +7,7 @@ const Body = z.object({ names: z.record(z.string().min(32).max(44), z.string().m
 export async function POST(req: Request) {
   try {
     const { names } = Body.parse(await req.json());
-    for (const [k, v] of Object.entries(names)) store.setName(k, v);
+    for (const [k, v] of Object.entries(names)) await store.setName(k, v);
     return ok({ ok: true });
   } catch (err) {
     return fail(err);

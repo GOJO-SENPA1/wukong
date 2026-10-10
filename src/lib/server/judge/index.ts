@@ -19,9 +19,8 @@ import {
   type SubmissionView,
   type TaskView,
 } from "../../wukong";
-import fs from "node:fs";
-import path from "node:path";
-import { DATA_DIR, demoMode, connection, loadKey, program } from "../env";
+import { demoMode, connection, loadKey, program } from "../env";
+import { kv } from "../kv";
 import { store } from "../store";
 import { claudeAvailable, JUDGE_MODEL, scoreWithClaude } from "./claude";
 import { integritySignals, type PriorEntry, type Signal } from "./detect";
@@ -89,30 +88,10 @@ interface Prepared {
 
 const LOCK_TTL_MS = 10 * 60 * 1000;
 
-/**
- * Cross-process lock (the keeper and the web server both run the judge):
- * an exclusive lock file per task, considered stale after LOCK_TTL_MS.
- */
-function acquireLock(taskKey: string): (() => void) | null {
-  const dir = path.join(DATA_DIR, "locks");
-  fs.mkdirSync(dir, { recursive: true });
-  const file = path.join(dir, `${taskKey}.lock`);
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      fs.writeFileSync(file, `${process.pid} ${Date.now()}`, { flag: "wx" });
-      return () => fs.rmSync(file, { force: true });
-    } catch {
-      const age = Date.now() - (fs.statSync(file, { throwIfNoEntry: false })?.mtimeMs ?? 0);
-      if (age < LOCK_TTL_MS) return null;
-      fs.rmSync(file, { force: true }); // stale: a crashed judge left it behind
-    }
-  }
-  return null;
-}
-
 async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
   if (running.has(taskKey)) throw new Error("The judge is already working on this task");
-  const release = acquireLock(taskKey);
+  // Cross-process: the keeper, cron and web requests can all reach the judge.
+  const release = await kv().lock(`judge:${taskKey}`, LOCK_TTL_MS);
   if (!release) throw new Error("The judge is already working on this task (another process)");
   running.add(taskKey);
   try {
@@ -145,11 +124,11 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
       const sig = await sendIxs(conn, signer, [
         await buildCloseSubmissions(prog, judgeKey.publicKey, taskPk),
       ]);
-      store.addTx(taskKey, { sig, kind: "close", label: "Submissions closed", at: Date.now() });
+      await store.addTx(taskKey, { sig, kind: "close", label: "Submissions closed", at: Date.now() });
       emit({ type: "tx", kind: "close", sig, label: "Submissions closed on-chain" });
     }
 
-    const brief = store.brief(task.briefHash);
+    const brief = await store.brief(task.briefHash);
     const briefText = brief?.brief ?? "";
     if (!brief || sha256Hex(briefText) !== task.briefHash) {
       emit({ type: "log", message: "Warning: brief text missing or does not match its on-chain hash" });
@@ -162,8 +141,9 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
     const subs = await fetchSubmissions(prog, taskPk);
     const earlier: PriorEntry[] = [];
     const prepared: Prepared[] = [];
-    for (const sub of subs) {
-      const rec = store.submission(sub.contentHash);
+    const recs = await store.submissions(subs.map((s) => s.contentHash));
+    for (const [i, sub] of subs.entries()) {
+      const rec = recs[i];
       const ok = !!rec && sha256Hex(rec.content) === sub.contentHash;
       emit({
         type: "verify",
@@ -194,8 +174,8 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
       const report = await scoreOne(task!, briefText, p, engine);
       const reportHash = sha256Hex(canonicalJson(report));
       // Never replace a report whose hash is already on-chain.
-      if (store.report(p.sub.pubkey)?.txSig) return;
-      store.putReport({ submission: p.sub.pubkey, hash: reportHash, report });
+      if ((await store.report(p.sub.pubkey))?.txSig) return;
+      await store.putReport({ submission: p.sub.pubkey, hash: reportHash, report });
       emit({
         type: "scored",
         submission: p.sub.pubkey,
@@ -208,8 +188,8 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
       txChain = txChain.then(async () => {
         const ix = await buildScore(prog, judgeKey.publicKey, taskPk, p.sub, report.onchainScore, reportHash);
         const sig = await sendIxs(conn, signer, [ix]);
-        store.putReport({ submission: p.sub.pubkey, hash: reportHash, report, txSig: sig });
-        store.addTx(taskKey, {
+        await store.putReport({ submission: p.sub.pubkey, hash: reportHash, report, txSig: sig });
+        await store.addTx(taskKey, {
           sig,
           kind: "score",
           label: `Score #${p.sub.index + 1}: ${(report.onchainScore / 100).toFixed(1)}`,
@@ -237,7 +217,7 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
     } else {
       const config = (await fetchConfig(prog))!;
       const sig = await sendIxs(conn, signer, await buildSettle(prog, judgeKey.publicKey, task, config));
-      store.addTx(taskKey, { sig, kind: "settle", label: "Escrow released", at: Date.now() });
+      await store.addTx(taskKey, { sig, kind: "settle", label: "Escrow released", at: Date.now() });
       const settled = (await fetchTask(prog, taskPk))!;
       const paid = (await fetchSubmissions(prog, taskPk)).filter((s) => s.rank > 0);
       emit({
@@ -254,7 +234,7 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
     emit({ type: "done" });
   } finally {
     running.delete(taskKey);
-    release();
+    await release();
   }
 }
 
@@ -274,7 +254,7 @@ async function settleStakes(task: TaskView, emit: (e: JudgeEvent) => void) {
       const [ixs] = await buildClaimStakes(prog, judgeKey.publicKey, task, config, [s]);
       const sig = await sendIxs(connection(), keypairSigner(judgeKey), ixs);
       const ok = stakeRefunded(s);
-      store.addTx(task.pubkey, { sig, kind: "settle", label: `Stake #${s.index + 1} ${ok ? "refunded" : "slashed"}`, at: Date.now() });
+      await store.addTx(task.pubkey, { sig, kind: "settle", label: `Stake #${s.index + 1} ${ok ? "refunded" : "slashed"}`, at: Date.now() });
       emit({ type: "stake", submission: s.pubkey, index: s.index, worker: s.worker, amount: s.stake, refunded: ok, sig });
     } catch (err) {
       emit({ type: "log", message: `Stake for #${s.index + 1} not settled yet: ${explainError(err)}` });

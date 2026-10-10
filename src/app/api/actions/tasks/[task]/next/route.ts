@@ -39,7 +39,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ task: string }
   if (!(await verifyEntry(parsed.data.signature, key, parsed.data.account))) {
     return actionError("Could not find a confirmed entry transaction for this wallet");
   }
-  store.addTx(key, { sig: parsed.data.signature, kind: "submit", label: "Entry via Blink", at: Date.now() });
+  await store.addTx(key, { sig: parsed.data.signature, kind: "submit", label: "Entry via Blink", at: Date.now() });
   return actionJson({
     type: "completed",
     icon: `${originOf(req)}/api/actions/tasks/${key}/image`,
