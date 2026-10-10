@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, Copy, Droplets, KeyRound, LogIn, Send } from "lucide-react";
@@ -68,9 +69,9 @@ export default function WalletPage() {
         </h1>
         <p className="max-w-md leading-relaxed text-muted">{account.enabled ? "Sign in to see your balance, deposit and withdraw." : "Pick a demo account at the top right."}</p>
         {account.enabled && !account.authenticated && (
-          <button className="btn btn-red h-12 px-6" onClick={account.login}>
+          <Link href="/signin?next=/wallet" className="btn btn-red h-12 px-6">
             <LogIn size={17} /> Sign in
-          </button>
+          </Link>
         )}
       </Container>
     );

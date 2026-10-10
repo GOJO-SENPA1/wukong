@@ -163,7 +163,7 @@ export function Split() {
         "Your full reward back if nothing clears the quality bar.",
         "Track every live task, who entered and every judge's report.",
       ],
-      cta: r === "company" ? { href: "/dashboard", label: "Open my tasks" } : { href: "/tasks/new", label: "Post your first task" },
+      cta: r === "company" ? { href: "/dashboard", label: "Open my tasks" } : { href: "/business", label: "Register your organisation" },
       card: "card-gold",
       glow: "bg-red/20",
       check: "bg-red/15 text-red-2",
@@ -180,7 +180,7 @@ export function Split() {
         "Paid in USDC to a wallet you own, seconds after judging.",
         "Written feedback on every entry, win or lose.",
       ],
-      cta: r === "worker" ? { href: "/dashboard", label: "Open my work" } : { href: "/tasks", label: "Browse open tasks" },
+      cta: r === "worker" ? { href: "/dashboard", label: "Open my work" } : { href: "/signin", label: "Join as a freelancer" },
       card: "card",
       glow: "bg-blue/20",
       check: "bg-blue/15 text-blue-2",
@@ -541,8 +541,12 @@ const FAQ = [
     a: "An AI judge applies the category's public rubric to every entry. Integrity checks run first: copies, hidden instructions and spam are capped. Each score and a hash of its report go on-chain, so anyone can verify them.",
   },
   {
+    q: "How do I get an organisation account?",
+    a: "Email help@wukonghq.xyz with your organisation's name, website and the email you'll sign in with. We approve organisations by hand, usually within a working day, so every task comes from a real company. Freelancers just sign up.",
+  },
+  {
     q: "Can freelancers post tasks, or organisations enter them?",
-    a: "No. Each account picks a side when it signs up. Organisations post tasks and follow who entered and how they scored. Freelancers enter tasks and get paid. Keeping the sides apart stops anyone from judging their own work.",
+    a: "No. Organisations post tasks and follow who entered and how they scored. Freelancers enter tasks and get paid. Keeping the sides apart stops anyone from judging their own work.",
   },
   {
     q: "How do freelancers cash out?",
@@ -625,8 +629,12 @@ export function FinalCta() {
         <Reveal delay={0.3} className="mt-12 flex flex-wrap justify-center gap-3">
           {r !== "worker" && (
             <Magnetic strength={0.2}>
-              <Link href="/tasks/new" className="btn btn-red h-13 px-7 text-[15px]" onMouseEnter={(e) => burst(e.currentTarget, { count: 8 })}>
-                Post a task <ArrowRight size={18} />
+              <Link
+                href={r === "company" ? "/tasks/new" : "/business"}
+                className="btn btn-red h-13 px-7 text-[15px]"
+                onMouseEnter={(e) => burst(e.currentTarget, { count: 8 })}
+              >
+                {r === "company" ? "Post a task" : "Hire the crowd"} <ArrowRight size={18} />
               </Link>
             </Magnetic>
           )}

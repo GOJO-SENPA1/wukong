@@ -364,9 +364,9 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
                     </a>
                   )}
                   {needsSignIn && (
-                    <button className="btn btn-red h-12 w-full" onClick={account.login}>
+                    <Link href={`/signin?next=${encodeURIComponent(`/tasks/${taskKey}`)}`} className="btn btn-red h-12 w-full">
                       Sign in to enter
-                    </button>
+                    </Link>
                   )}
                   {role === "company" && !isCreator && (
                     <p className="well p-3 text-center text-[13px] leading-relaxed text-muted">You&apos;re viewing as an organisation. Only freelancer accounts can enter tasks.</p>

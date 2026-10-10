@@ -14,6 +14,7 @@ import { Kicker, Skeleton, Spinner, cx } from "@/components/ui";
 import { CATEGORIES, categoryById } from "@/lib/categories";
 import { TEMPLATES } from "@/lib/demo";
 import { postJSON, runAction } from "@/lib/client/api";
+import { HELP_EMAIL, orgRegistrationMailto } from "@/lib/contact";
 import { categoryIcon } from "@/lib/fx/sprites";
 
 type Step = "idle" | "brief" | "sign" | "done";
@@ -105,7 +106,8 @@ export default function NewTaskPage() {
         </div>
       </div>
     );
-  if (role !== "company") return <PostGate signedIn={role !== null} personasOn={personasOn} onDemo={() => setPersona("company")} onSignIn={account.enabled && !account.authenticated ? account.login : undefined} />;
+  if (role !== "company")
+    return <PostGate signedIn={role !== null} personasOn={personasOn} onDemo={() => setPersona("company")} canSignIn={account.enabled && !account.authenticated} />;
 
   const busy = step !== "idle";
   const valid =
@@ -467,7 +469,7 @@ function Progress({ active, done, label }: { active: boolean; done: boolean; lab
 }
 
 /** Freelancer accounts can't post tasks; say so, and offer the way in. */
-function PostGate({ signedIn, personasOn, onDemo, onSignIn }: { signedIn: boolean; personasOn: boolean; onDemo: () => void; onSignIn?: () => void }) {
+function PostGate({ signedIn, personasOn, onDemo, canSignIn }: { signedIn: boolean; personasOn: boolean; onDemo: () => void; canSignIn: boolean }) {
   return (
     <div className="relative flex min-h-[60vh] flex-col items-center justify-center gap-5 text-center">
       <div className="aura left-[calc(50%-9rem)] top-1/4 h-72 w-72 bg-gold/15" aria-hidden />
@@ -485,14 +487,19 @@ function PostGate({ signedIn, personasOn, onDemo, onSignIn }: { signedIn: boolea
       </h1>
       <p className="max-w-md leading-relaxed text-muted">
         {signedIn
-          ? "Your account is a freelancer account: you find tasks, enter them and get paid. Posting tasks is for organisation accounts."
-          : "Posting a task needs an organisation account: you lock the reward, the crowd competes, the best work gets paid."}
+          ? "Your account is a freelancer account: you find tasks, enter them and get paid. Posting tasks is for approved organisations."
+          : `Posting a task needs an organisation account. They're set up by our team: email ${HELP_EMAIL} to register yours.`}
       </p>
       <div className="flex flex-wrap justify-center gap-3">
-        {onSignIn && (
-          <button className="btn btn-red h-12 px-6" onClick={onSignIn}>
-            Sign in
-          </button>
+        {canSignIn && (
+          <>
+            <Link href="/business?next=/tasks/new" className="btn btn-red h-12 px-6">
+              Organisation sign in
+            </Link>
+            <a href={orgRegistrationMailto()} className="btn btn-line h-12 px-6">
+              Register your organisation
+            </a>
+          </>
         )}
         {personasOn && (
           <button className="btn btn-line h-12 px-6" onClick={onDemo}>

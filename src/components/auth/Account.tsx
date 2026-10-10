@@ -6,12 +6,15 @@
 // simply off and the app runs on demo personas and wallet adapters.
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { usePrivy, useIdentityToken } from "@privy-io/react-auth";
+import { useIdentityToken, useLogin, usePrivy } from "@privy-io/react-auth";
 import { useExportWallet, useSignTransaction, useWallets } from "@privy-io/react-auth/solana";
 import { Transaction, PublicKey, type VersionedTransaction } from "@solana/web3.js";
 import type { ClientSigner } from "@/lib/client/api";
 
 export type Role = "worker" | "company";
+export type LoginMethod = "email" | "google" | "wallet";
+
+export { HELP_EMAIL } from "@/lib/contact";
 
 export interface MeProfile {
   handle: string | null;
@@ -33,6 +36,8 @@ export interface Me {
   wallet: string | null;
   onboarded: boolean;
   profile: MeProfile | null;
+  /** An organisation invitation waiting for this email, until onboarding claims it */
+  invite: { company: string } | null;
 }
 
 export interface AccountState {
@@ -46,7 +51,11 @@ export interface AccountState {
   signer: ClientSigner | null;
   /** The account wallet is Privy's embedded wallet (so its key can be exported) */
   embedded: boolean;
-  login: () => void;
+  /** Open sign-in, offering only these methods (all of them by default) */
+  login: (methods?: LoginMethod[]) => void;
+  /** Why signing in or loading the account last failed, in plain words */
+  error: string | null;
+  clearError: () => void;
   logout: () => Promise<void>;
   /** Authorization headers for API calls */
   tokens: () => Promise<Record<string, string>>;
@@ -64,6 +73,8 @@ const OFF: AccountState = {
   signer: null,
   embedded: false,
   login: () => {},
+  error: null,
+  clearError: () => {},
   logout: noop,
   tokens: async () => ({}),
   refresh: noop,
@@ -75,13 +86,44 @@ export const useAccount = () => useContext(Ctx);
 
 export const ACCOUNTS_ON = !!process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 
+/** Privy's error codes, as something a person can act on. Closing the modal isn't an error. */
+const LOGIN_ERRORS: Record<string, string> = {
+  allowlist_rejected: "This account isn't allowed to sign in yet.",
+  disallowed_login_method: "That sign-in method isn't switched on yet. Try another one.",
+  oauth_user_denied: "Google sign-in was cancelled.",
+  oauth_account_suspended: "That Google account can't be used here.",
+  oauth_unexpected: "Google sign-in didn't complete. Try again, or use your email.",
+  invalid_credentials: "That code didn't match. Try again.",
+  captcha_failure: "The security check failed. Try again.",
+  captcha_timeout: "The security check timed out. Try again.",
+  too_many_requests: "Too many attempts. Wait a minute and try again.",
+  client_request_timeout: "Sign-in timed out. Check your connection and try again.",
+  embedded_wallet_create_error: "We couldn't create your wallet. Try again.",
+  buffer_not_defined: "Your browser couldn't load the wallet. Refresh the page and try again.",
+  generic_connect_wallet_error: "Your wallet didn't connect. Unlock it and try again.",
+  unknown_connect_wallet_error: "Your wallet didn't connect. Unlock it and try again.",
+  no_solana_accounts: "That wallet has no Solana account. Switch it to Solana and try again.",
+  unsupported_wallet_type: "That wallet isn't supported. Try Phantom, Solflare or Backpack.",
+  session_storage_unavailable: "Your browser is blocking site storage (private mode?). Allow it and try again.",
+  disallowed_plus_email: "Email addresses with a + aren't accepted.",
+};
+export function loginErrorMessage(code: string): string {
+  return LOGIN_ERRORS[code] ?? `Sign-in didn't complete (${code}). Try again.`;
+}
+
 export function AccountProvider({ children, cluster }: { children: ReactNode; cluster?: string }) {
   if (!ACCOUNTS_ON) return <Ctx.Provider value={OFF}>{children}</Ctx.Provider>;
   return <PrivyAccount cluster={cluster}>{children}</PrivyAccount>;
 }
 
 function PrivyAccount({ children, cluster }: { children: ReactNode; cluster?: string }) {
-  const { ready, authenticated, user, login, logout, getAccessToken } = usePrivy();
+  const { ready, authenticated, user, logout, getAccessToken } = usePrivy();
+  const [error, setError] = useState<string | null>(null);
+  const { login } = useLogin({
+    onError: (code) => {
+      if (code !== "exited_auth_flow") setError(loginErrorMessage(code));
+    },
+  });
   const { identityToken } = useIdentityToken();
   const { wallets } = useWallets();
   const { signTransaction } = useSignTransaction();
@@ -98,7 +140,17 @@ function PrivyAccount({ children, cluster }: { children: ReactNode; cluster?: st
     if (!authenticated) return setMe(null);
     try {
       const res = await fetch("/api/me", { headers: await tokens(), cache: "no-store" });
-      if (res.ok) setMe((await res.json()) as Me);
+      const body = await res.json().catch(() => ({}));
+      if (res.ok && body.enabled !== false) {
+        setMe(body as Me);
+        setError(null);
+      } else if (res.ok || res.status === 503) {
+        setError("Accounts aren't available on the server right now. Please try again later.");
+      } else if (res.status === 401) {
+        setError("We couldn't confirm your sign-in. Sign out, then sign in again.");
+      } else if (res.status !== 429) {
+        setError(body.error ?? "We couldn't load your account. Try again in a moment.");
+      }
     } catch {
       /* offline: keep what we had */
     }
@@ -143,10 +195,16 @@ function PrivyAccount({ children, cluster }: { children: ReactNode; cluster?: st
     role: me?.onboarded ? (me.profile?.role ?? null) : null,
     signer,
     embedded: !!embeddedAddress && wallet?.address === embeddedAddress,
-    login,
+    login: (methods) => {
+      setError(null);
+      login(methods?.length ? { loginMethods: methods } : undefined);
+    },
+    error,
+    clearError: () => setError(null),
     logout: async () => {
       await logout();
       setMe(null);
+      setError(null);
     },
     tokens,
     refresh,

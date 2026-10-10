@@ -120,8 +120,9 @@ Use the pooled `DATABASE_URL` from the app and `DIRECT_URL` for migrations. A ty
 | Design | Route |
 |---|---|
 | Landing | `/` |
-| Sign in | `/signin` (Privy modal or a custom page) |
-| Onboarding | `/welcome` (role → profile → wallet), shown until `onboarded_at` is set |
+| Freelancer sign in / sign up | `/signin` (email, Google or a Solana wallet) |
+| Organisation sign in | `/business` (email or Google; organisations are approved by hand, see below) |
+| Onboarding | `/welcome` (profile → wallet), shown until `onboarded_at` is set |
 | Explore | `/tasks` |
 | Task + entry | `/tasks/[task]` (worker view while open; results view once closed) |
 | Post a task | `/tasks/new` |
@@ -130,6 +131,22 @@ Use the pooled `DATABASE_URL` from the app and `DIRECT_URL` for migrations. A ty
 | Wallet | `/wallet` |
 | Public profile | `/@[handle]` (rewrite to `/u/[handle]`), plus `/workers/[wallet]` redirecting to it |
 | Leaderboard | `/leaderboard` |
+
+### Organisation accounts (by invitation)
+
+Freelancers sign themselves up. Organisations can't: they email **help@wukonghq.xyz**, and once you've checked them, you approve the email they'll sign in with:
+
+```bash
+DATABASE_URL="<production DATABASE_URL>" npm run company:invite -- ops@acme.com "Acme Ltd"
+npm run company:invite -- --list                  # everyone approved, and who has set up
+npm run company:invite -- --revoke ops@acme.com   # withdraw an approval nobody has used yet
+```
+
+Or add a row to the `CompanyInvite` table in Supabase's table editor (email in lowercase, the organisation's name). The person then signs in at `/business` with that email (an email code or the Google account for that address) and sets up the organisation; its name comes from the approval. The server enforces this: an account becomes an organisation only through an unused approval for its verified email, and each approval works once. Wallet-only logins have no email, so they're always freelancers. Someone who already set up a freelancer account with that email stays a freelancer; approve a different email for the organisation.
+
+### Checking sign-in on a deployment
+
+Open `/api/health/auth`. It answers yes/no (never values) for: the Privy app id and secret are set, Privy accepts them, the database is reachable, the schema is up to date, and result emails are configured. Anything `false` is the thing to fix in Vercel's environment variables. Privy also has to list the site's domain under **Allowed domains**, or sign-in fails before it reaches this app.
 
 ### Product details the design assumes
 
@@ -147,6 +164,7 @@ Use the pooled `DATABASE_URL` from the app and `DIRECT_URL` for migrations. A ty
 ### Done means
 
 - [ ] Sign up with Google and with email on wukonghq.xyz; a Solana wallet appears; onboarding saves a profile with a unique handle.
+- [ ] Approve an organisation email, sign in with it at `/business`, post a task; an unapproved email gets the "email us to register" screen.
 - [ ] Post a task, enter it from another account, judge, payout: the full flow with real accounts, demo mode off.
 - [ ] Every page matches its preview at desktop and phone width.
 - [ ] `npm run typecheck`, `npm test` and `npm run ci:chain` pass; no secrets in the repo.

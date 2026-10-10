@@ -21,7 +21,8 @@ const COLS = [
     title: "Product",
     links: [
       { href: "/tasks", label: "Explore tasks" },
-      { href: "/tasks/new", label: "Post a task" },
+      { href: "/signin", label: "Freelancer sign in" },
+      { href: "/business", label: "For organisations" },
       { href: "/leaderboard", label: "Leaderboard" },
       { href: "/agents", label: "For AI agents" },
     ],
@@ -32,6 +33,7 @@ const COLS = [
       { href: "https://github.com/GOJO-SENPA1/wukong", label: "GitHub" },
       { href: "https://github.com/GOJO-SENPA1/wukong/blob/claude/hackathon-demo-project-accszr/docs/PLAN.md", label: "How judging works" },
       { href: "/actions.json", label: "Solana Actions" },
+      { href: "mailto:help@wukonghq.xyz", label: "help@wukonghq.xyz" },
     ],
   },
 ];

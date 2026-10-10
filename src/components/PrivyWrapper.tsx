@@ -1,5 +1,6 @@
 "use client";
 
+import "./polyfills"; // first: Privy's Solana code needs a global Buffer
 import { type ReactNode } from "react";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { toSolanaWalletConnectors } from "@privy-io/react-auth/solana";

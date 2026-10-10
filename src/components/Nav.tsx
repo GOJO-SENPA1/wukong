@@ -44,7 +44,7 @@ function isActive(path: string, href: string) {
 
 export function Nav() {
   const path = usePathname();
-  const { state, role, identityReady } = useApp();
+  const { role, identityReady, personasOn, state } = useApp();
   const account = useAccount();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -52,7 +52,8 @@ export function Nav() {
   useMotionValueEvent(scrollY, "change", (y) => setScrolled(y > 8));
   useEffect(() => setOpen(false), [path]);
   const links = linksFor(identityReady ? role : null);
-  const signedOut = account.enabled && !account.authenticated && state.demoMode === false;
+  // With accounts on, a signed-out visitor always gets the way in (on a demo deployment, beside the demo accounts).
+  const signedOut = account.enabled && !account.authenticated;
 
   return (
     <>
@@ -105,11 +106,18 @@ export function Nav() {
             <div className={cx("flex items-center gap-2 transition-opacity duration-500", identityReady ? "opacity-100" : "pointer-events-none opacity-0")}>
               {signedOut ? (
                 <>
-                  <button className="btn btn-line hidden h-9 !px-4 sm:inline-flex" onClick={account.login}>
-                    <LogIn size={15} /> Sign in
-                  </button>
+                  {personasOn && <AccountMenu />}
+                  <Link
+                    href="/business"
+                    className={cx(
+                      "hidden rounded-full px-3 py-1.5 text-[13.5px] font-medium transition-colors sm:inline",
+                      path.startsWith("/business") ? "text-fg" : "text-muted hover:text-fg",
+                    )}
+                  >
+                    For organisations
+                  </Link>
                   <Link href="/signin" className="btn btn-red h-9 !px-4">
-                    Get started
+                    <LogIn size={15} /> Sign in
                   </Link>
                 </>
               ) : (
@@ -138,7 +146,7 @@ export function Nav() {
           </div>
         </div>
       </header>
-      <MobileMenu open={open} onClose={() => setOpen(false)} path={path} links={links} role={identityReady ? role : null} />
+      <MobileMenu open={open} onClose={() => setOpen(false)} path={path} links={links} role={identityReady ? role : null} signedOut={signedOut} />
     </>
   );
 }
@@ -149,12 +157,14 @@ function MobileMenu({
   path,
   links,
   role,
+  signedOut,
 }: {
   open: boolean;
   onClose: () => void;
   path: string;
   links: NavLink[];
   role: "worker" | "company" | null;
+  signedOut: boolean;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -167,7 +177,17 @@ function MobileMenu({
       window.removeEventListener("keydown", esc);
     };
   }, [open, onClose]);
-  const all = [{ href: "/", label: "Home" }, ...links, ...(role === "company" ? [{ href: "/tasks/new", label: "Post a task" }] : [])];
+  const all = [
+    { href: "/", label: "Home" },
+    ...links,
+    ...(role === "company" ? [{ href: "/tasks/new", label: "Post a task" }] : []),
+    ...(signedOut
+      ? [
+          { href: "/signin", label: "Sign in" },
+          { href: "/business", label: "For organisations" },
+        ]
+      : []),
+  ];
   return (
     <AnimatePresence>
       {open && (
@@ -314,15 +334,22 @@ function AccountMenu() {
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={() => {
-                    setOpen(false);
-                    account.login();
-                  }}
-                  className="flex w-full items-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold text-fg transition-colors hover:bg-fg/[0.05]"
-                >
-                  <LogIn size={16} className="text-red" /> Sign in with email, Google or a wallet
-                </button>
+                <div className="grid grid-cols-2 gap-1">
+                  <Link
+                    href="/signin"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold text-fg transition-colors hover:bg-fg/[0.05]"
+                  >
+                    <LogIn size={15} className="text-red" /> Freelancers
+                  </Link>
+                  <Link
+                    href="/business"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold text-fg transition-colors hover:bg-fg/[0.05]"
+                  >
+                    Organisations
+                  </Link>
+                </div>
               ))}
             {personasOn && (
               <>

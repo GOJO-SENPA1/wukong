@@ -67,3 +67,16 @@ model Notification {
   @@unique([userId, kind, task])
   @@index([userId, createdAt])
 }
+
+// Organisations join by invitation (they email help@wukonghq.xyz). A row here lets
+// the person who signs in with that email (an email login or Google) finish
+// onboarding as this organisation; everyone else onboards as a freelancer.
+// Add rows with `npm run company:invite -- <email> "<Organisation>"` or in the
+// Supabase table editor (email in lowercase).
+model CompanyInvite {
+  email     String    @id // lowercase
+  company   String
+  createdAt DateTime  @default(now())
+  claimedBy String?   @unique // the Privy user id that used it
+  claimedAt DateTime?
+}

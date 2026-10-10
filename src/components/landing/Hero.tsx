@@ -22,7 +22,9 @@ export function Hero() {
   const primary =
     r === "worker"
       ? { href: "/tasks", label: "Find work", Icon: Search }
-      : { href: "/tasks/new", label: r === "company" ? "Post a task" : "Hire the crowd", Icon: ArrowRight };
+      : r === "company"
+        ? { href: "/tasks/new", label: "Post a task", Icon: ArrowRight }
+        : { href: "/business", label: "Hire the crowd", Icon: ArrowRight };
   const secondary =
     r === "worker" ? { href: "/dashboard", label: "My work" } : r === "company" ? { href: "/dashboard", label: "My tasks" } : { href: "/tasks", label: "Find work" };
 

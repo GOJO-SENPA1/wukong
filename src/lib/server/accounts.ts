@@ -4,7 +4,7 @@
 // id or wallet. Roles are fixed at onboarding: a "worker" does tasks, a
 // "company" posts them.
 
-import type { Profile } from "@prisma/client";
+import type { CompanyInvite, Profile } from "@prisma/client";
 import { z } from "zod";
 import { verifyAuth, type AuthUser } from "./auth";
 import { hasDatabase, privyConfig } from "./config";
@@ -12,6 +12,7 @@ import { db } from "./db";
 import { demoMode } from "./env";
 import { store } from "./store";
 import { HttpError } from "./guard";
+import { HELP_EMAIL } from "@/lib/contact";
 
 export type Role = "worker" | "company";
 
@@ -67,11 +68,7 @@ export async function requireAccount(req: Request): Promise<Account> {
   const auth = await authFromRequest(req);
   if (!auth) throw new HttpError(401, "Sign in first");
   const prisma = db();
-  await prisma.user.upsert({
-    where: { id: auth.privyId },
-    create: { id: auth.privyId, email: auth.email ?? null },
-    update: auth.email ? { email: auth.email } : {},
-  });
+  await ensureUser(auth);
   let profile = await prisma.profile.findUnique({ where: { userId: auth.privyId } });
   if (!profile && auth.wallet) {
     // The wallet column is unique: a wallet already claimed by another user stays theirs.
@@ -89,6 +86,23 @@ export async function requireAccount(req: Request): Promise<Account> {
   return { auth, profile };
 }
 
+/** The user row for a verified login, keeping its email current. */
+export async function ensureUser(auth: AuthUser): Promise<void> {
+  const prisma = db();
+  try {
+    await prisma.user.upsert({
+      where: { id: auth.privyId },
+      create: { id: auth.privyId, email: auth.email ?? null },
+      update: auth.email ? { email: auth.email } : {},
+    });
+  } catch (err) {
+    // The email already belongs to another Privy user (say, an email login and a Google login
+    // for the same address). It stays with them; this user is still let in, just without it.
+    if ((err as { code?: string }).code !== "P2002") throw err;
+    await prisma.user.upsert({ where: { id: auth.privyId }, create: { id: auth.privyId }, update: {} });
+  }
+}
+
 export const OnboardSchema = z.object({
   handle: z.string().max(21),
   displayName: z.string().trim().min(1).max(40),
@@ -103,35 +117,65 @@ export const OnboardSchema = z.object({
 export type OnboardInput = z.infer<typeof OnboardSchema>;
 
 /**
- * Save the profile. The handle and role can be chosen once (at onboarding);
- * afterwards only the descriptive fields and email preference change.
+ * The organisation invitation for this login's verified email (email login or
+ * Google), if there is one and nobody else has used it. Wallet-only logins have
+ * no email, so they can't be organisations.
+ */
+export async function companyInviteFor(auth: AuthUser): Promise<CompanyInvite | null> {
+  if (!auth.email) return null;
+  const invite = await db().companyInvite.findUnique({ where: { email: auth.email.toLowerCase() } });
+  return invite && (!invite.claimedBy || invite.claimedBy === auth.privyId) ? invite : null;
+}
+
+/**
+ * Save the profile. The handle and role are set once, at onboarding: everyone is
+ * a freelancer unless an organisation invitation matches their email, and then
+ * the organisation's name comes from the invitation. Afterwards only the
+ * descriptive fields and the email preference change.
  */
 export async function saveProfile(account: Account, input: OnboardInput): Promise<Profile> {
   const prisma = db();
   if (!account.profile) throw new HttpError(409, "Your wallet isn't ready yet. Try again in a moment.");
   const onboarded = !!account.profile.onboardedAt;
   const handle = normalizeHandle(input.handle);
+  let invite: CompanyInvite | null = null;
   if (!onboarded) {
     const problem = handleProblem(handle);
     if (problem) throw new HttpError(400, problem);
     const owner = await prisma.profile.findUnique({ where: { handle } });
     if (owner && owner.id !== account.profile.id) throw new HttpError(409, "That handle is taken");
+    if (input.role === "company") {
+      invite = await companyInviteFor(account.auth);
+      if (!invite) throw new HttpError(403, `Organisation accounts are by invitation. Email ${HELP_EMAIL} to register yours.`);
+    }
   }
-  if (input.role === "company" && !onboarded && !input.company) throw new HttpError(400, "Add your organisation's name");
+  const role = onboarded ? (account.profile.role as Role) : input.role;
   const data = {
     displayName: input.displayName,
-    company: input.company || null,
+    company: role === "company" ? (invite?.company ?? account.profile.company) : null,
     city: input.city || null,
     bio: input.bio || null,
     skills: [...new Set(input.skills)],
     languages: [...new Set(input.languages)],
     emailOnWin: input.emailOnWin,
-    ...(onboarded ? {} : { handle, role: input.role, onboardedAt: new Date() }),
+    ...(onboarded ? {} : { handle, role, onboardedAt: new Date() }),
   };
+  const profileId = account.profile.id;
   let saved: Profile;
   try {
-    saved = await prisma.profile.update({ where: { id: account.profile.id }, data });
+    saved = await prisma.$transaction(async (tx) => {
+      if (invite) {
+        // Claim the invitation in the same transaction, so two accounts can't both use it.
+        const claimed = await tx.companyInvite.updateMany({
+          where: { email: invite.email, OR: [{ claimedBy: null }, { claimedBy: account.auth.privyId }] },
+          data: { claimedBy: account.auth.privyId, claimedAt: new Date() },
+        });
+        if (claimed.count !== 1) throw new HttpError(409, "That invitation has already been used");
+      }
+      return tx.profile.update({ where: { id: profileId }, data });
+    });
   } catch (err) {
+    if (err instanceof HttpError) throw err;
     if ((err as { code?: string }).code === "P2002") throw new HttpError(409, "That handle is taken");
     throw err;
   }

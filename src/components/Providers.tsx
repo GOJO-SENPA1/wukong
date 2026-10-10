@@ -15,7 +15,7 @@ import { ConnectionProvider, WalletProvider, useWallet } from "@solana/wallet-ad
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { PERSONAS, type PersonaId } from "@/lib/demo";
 import { getJSON, postJSON, setAuthHeaderSource, type ClientSigner } from "@/lib/client/api";
-import { AccountProvider, useAccount, type Role } from "./auth/Account";
+import { ACCOUNTS_ON, AccountProvider, useAccount, type Role } from "./auth/Account";
 import type { TaskCard } from "@/lib/server/views";
 import type { ConfigView } from "@/lib/wukong";
 
@@ -264,7 +264,8 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
+      {/* With accounts on, Privy owns wallet connections; the adapter reconnecting too would fight it. */}
+      <WalletProvider wallets={wallets} autoConnect={!ACCOUNTS_ON}>
         <WalletModalProvider>
           <AccountProvider cluster={state.deployment?.cluster}>
             <Inner state={state} refresh={refresh}>

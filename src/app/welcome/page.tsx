@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, ArrowRight, Check, Copy, LogIn, X } from "lucide-react";
-import { useAccount, type Role } from "@/components/auth/Account";
+import { ArrowRight, Building2, Check, Copy, LogIn, X } from "lucide-react";
+import { HELP_EMAIL, useAccount, type Role } from "@/components/auth/Account";
 import { useApp } from "@/components/Providers";
 import { Kinetic } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
@@ -16,6 +16,11 @@ import { safeNext } from "@/lib/client/nav";
 const EASE = [0.16, 1, 0.3, 1] as const;
 const SKILLS = ["Copywriting", "Translation", "Nepali", "Hindi", "TypeScript", "Python", "Data labeling", "Research", "Design", "Social media"];
 
+/**
+ * Onboarding after the first sign-in: pick a handle and fill in the public profile.
+ * Everyone is a freelancer, unless an organisation invitation matches their email:
+ * then they set up that organisation (its name comes from the invitation).
+ */
 export default function WelcomePage() {
   return (
     <Suspense>
@@ -30,10 +35,8 @@ function Welcome() {
   const router = useRouter();
   const next = useSearchParams().get("next");
   const [step, setStep] = useState(0);
-  const [role, setRole] = useState<Role | null>(null);
   const [handle, setHandle] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [company, setCompany] = useState("");
   const [city, setCity] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [skillDraft, setSkillDraft] = useState("");
@@ -43,15 +46,27 @@ function Welcome() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const doneBtn = useRef<HTMLDivElement>(null);
+  const me = account.me;
+  const invite = me?.invite ?? null;
+  const role: Role = invite ? "company" : "worker";
+  const wallet = me?.wallet ?? null;
 
   // Already set up: straight on to where they were going.
   useEffect(() => {
-    if (account.me?.onboarded && step < 2) router.replace(safeNext(next));
-  }, [account.me?.onboarded, step, next, router]);
+    if (me?.onboarded && step === 0) router.replace(safeNext(next));
+  }, [me?.onboarded, step, next, router]);
 
   useEffect(() => {
-    if (account.me?.email && !displayName) setDisplayName(account.me.email.split("@")[0].slice(0, 40));
-  }, [account.me?.email]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (me?.email && !displayName) setDisplayName(me.email.split("@")[0].slice(0, 40));
+  }, [me?.email]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A new account's wallet is created a moment after sign-in: keep checking until it's there.
+  const { refresh } = account;
+  useEffect(() => {
+    if (!account.authenticated || !me || wallet) return;
+    const id = setInterval(refresh, 2000);
+    return () => clearInterval(id);
+  }, [account.authenticated, me, wallet, refresh]);
 
   // Live handle check, debounced.
   const h = handle.trim().replace(/^@/, "").toLowerCase();
@@ -83,15 +98,28 @@ function Welcome() {
         <h1 className="display text-[clamp(2.6rem,6vw,4.2rem)]">
           Sign in to <em className="text-gold-2">get started</em>
         </h1>
-        <button className="btn btn-red h-12 px-6" onClick={account.login}>
-          <LogIn size={17} /> Sign in
-        </button>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link href="/signin" className="btn btn-red h-12 px-6">
+            <LogIn size={17} /> Freelancer sign in
+          </Link>
+          <Link href="/business" className="btn btn-line h-12 px-6">
+            Organisation sign in
+          </Link>
+        </div>
+      </Container>
+    );
+  }
+  if (!me) {
+    return (
+      <Container className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center text-muted">
+        {account.error ? <p className="max-w-md text-red-2">{account.error}</p> : <Spinner />}
+        {!account.error && "Loading your account…"}
       </Container>
     );
   }
 
   const handleOk = check?.handle === h && check.available;
-  const canSave = !!role && handleOk && displayName.trim().length > 0 && (role !== "company" || company.trim().length > 0);
+  const canSave = !!wallet && handleOk && displayName.trim().length > 0;
 
   async function save() {
     if (!canSave) return;
@@ -105,16 +133,15 @@ function Welcome() {
           handle: h,
           displayName: displayName.trim(),
           role,
-          company: role === "company" ? company.trim() : undefined,
           city: city.trim() || undefined,
-          skills,
+          skills: role === "worker" ? skills : [],
           languages: [],
           emailOnWin,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Couldn't save your profile");
-      setStep(2); // before refreshing, so the "already set up" redirect doesn't skip the last step
+      setStep(1); // before refreshing, so the "already set up" redirect doesn't skip the last step
       await account.refresh();
       setTimeout(() => burst(doneBtn.current, { icons: ["coin", "monkey", "trophy"], count: 28 }), 300);
     } catch (e) {
@@ -129,12 +156,11 @@ function Welcome() {
     if (v && !skills.includes(v) && skills.length < 12) setSkills([...skills, v]);
     setSkillDraft("");
   };
-  const wallet = account.me?.wallet;
 
   return (
     <Container className="max-w-3xl">
-      <div className="flex items-center gap-2" aria-label={`Step ${step + 1} of 3`}>
-        {["Role", "Profile", "Wallet"].map((label, i) => (
+      <div className="flex items-center gap-2" aria-label={`Step ${step + 1} of 2`}>
+        {["Profile", "Wallet"].map((label, i) => (
           <div key={label} className="flex flex-1 flex-col gap-2">
             <div className="h-px overflow-hidden bg-fg/10">
               <motion.div className="h-full bg-gradient-to-r from-red to-gold" animate={{ width: step >= i ? "100%" : "0%" }} transition={{ duration: 0.6, ease: EASE }} />
@@ -148,51 +174,27 @@ function Welcome() {
 
       <AnimatePresence mode="wait">
         {step === 0 && (
-          <Step key="role">
-            <Kinetic text={"How will you use\n*Wukong?*"} accent="italic text-gold-2" className="display text-[clamp(2.6rem,6vw,4.5rem)]" />
-            <p className="mt-4 leading-relaxed text-muted">This sets what your account can do. It can&apos;t be changed later, so pick the one that fits.</p>
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {(
-                [
-                  { id: "worker", icon: "monkey", title: "I want to work", body: "Find tasks, submit your best work, get paid in USDC when you win. Build a reputation you own." },
-                  { id: "company", icon: "cash", title: "I want to hire", body: "Post tasks with a locked reward, see who entered, read the judge's reports and pay the best." },
-                ] as const
-              ).map((o) => (
-                <motion.button
-                  key={o.id}
-                  whileHover={{ y: -4 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setRole(o.id)}
-                  className={cx(
-                    "relative rounded-[22px] border bg-surface p-6 text-left transition-[border-color,background-color,box-shadow] duration-300",
-                    role === o.id ? "border-gold/60 bg-gold/[0.04] shadow-[0_0_0_4px_rgb(216_179_108/0.08)]" : "border-line hover:border-line-2",
-                  )}
-                  aria-pressed={role === o.id}
-                >
-                  <PixelIcon name={o.icon} px={2.6} motion={role === o.id ? "bob" : "hover"} className="-ml-2 -mt-2" />
-                  <div className="mt-3 text-[20px] font-semibold">{o.title}</div>
-                  <p className="mt-1.5 text-[14px] leading-relaxed text-muted">{o.body}</p>
-                  {role === o.id && (
-                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute right-5 top-5 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-b from-gold-2 to-gold text-bg">
-                      <Check size={15} strokeWidth={3} />
-                    </motion.span>
-                  )}
-                </motion.button>
-              ))}
-            </div>
-            <div className="mt-8 flex justify-end">
-              <button className="btn btn-red h-12 px-6" disabled={!role} onClick={() => setStep(1)}>
-                Continue <ArrowRight size={17} />
-              </button>
-            </div>
-          </Step>
-        )}
-
-        {step === 1 && (
           <Step key="profile">
-            <Kinetic text={role === "company" ? "Your *organisation*" : "Your public *profile*"} accent="italic text-gold-2" className="display text-[clamp(2.6rem,6vw,4.5rem)]" />
-            <p className="mt-4 leading-relaxed text-muted">Shown on your profile, the leaderboard and every task you {role === "company" ? "post" : "enter"}. Your email stays private.</p>
+            <Kinetic
+              text={role === "company" ? "Set up your *organisation*" : "Your freelancer *profile*"}
+              accent="italic text-gold-2"
+              className="display text-[clamp(2.6rem,6vw,4.5rem)]"
+            />
+            <p className="mt-4 leading-relaxed text-muted">
+              Shown on your profile, the leaderboard and every task you {role === "company" ? "post" : "enter"}. Your email stays private.
+            </p>
             <div className="card mt-8 flex flex-col gap-5 p-6 sm:p-8">
+              {invite && (
+                <div className="well flex items-start gap-3 p-4">
+                  <Building2 size={18} className="mt-0.5 shrink-0 text-gold" />
+                  <div>
+                    <div className="text-[15px] font-semibold">{invite.company}</div>
+                    <div className="mt-0.5 text-[13px] leading-relaxed text-muted">
+                      Approved as an organisation for {me.email}. Need a different name? Email {HELP_EMAIL}.
+                    </div>
+                  </div>
+                </div>
+              )}
               <label className="flex flex-col gap-2">
                 <span className="text-[14px] font-semibold">Handle</span>
                 <span className="relative">
@@ -202,7 +204,7 @@ function Welcome() {
                     value={handle}
                     maxLength={21}
                     onChange={(e) => setHandle(e.target.value.replace(/\s/g, ""))}
-                    placeholder="sita_k"
+                    placeholder={role === "company" ? "himalayan_java" : "sita_k"}
                     autoCapitalize="none"
                     autoCorrect="off"
                     spellCheck={false}
@@ -224,24 +226,11 @@ function Welcome() {
                   <span className="text-[14px] font-semibold">{role === "company" ? "Your name" : "Display name"}</span>
                   <input className="input" value={displayName} maxLength={40} onChange={(e) => setDisplayName(e.target.value)} placeholder="Sita Karki" />
                 </label>
-                {role === "company" ? (
-                  <label className="flex flex-col gap-2">
-                    <span className="text-[14px] font-semibold">Organisation</span>
-                    <input className="input" value={company} maxLength={60} onChange={(e) => setCompany(e.target.value)} placeholder="Himalayan Java" />
-                  </label>
-                ) : (
-                  <label className="flex flex-col gap-2">
-                    <span className="text-[14px] font-semibold">City</span>
-                    <input className="input" value={city} maxLength={60} onChange={(e) => setCity(e.target.value)} placeholder="Pokhara" />
-                  </label>
-                )}
-              </div>
-              {role === "company" && (
                 <label className="flex flex-col gap-2">
                   <span className="text-[14px] font-semibold">City</span>
-                  <input className="input" value={city} maxLength={60} onChange={(e) => setCity(e.target.value)} placeholder="Kathmandu" />
+                  <input className="input" value={city} maxLength={60} onChange={(e) => setCity(e.target.value)} placeholder={role === "company" ? "Kathmandu" : "Pokhara"} />
                 </label>
-              )}
+              </div>
               {role === "worker" && (
                 <div className="flex flex-col gap-2">
                   <span className="text-[14px] font-semibold">Skills</span>
@@ -287,18 +276,32 @@ function Welcome() {
                 <input type="checkbox" className="h-4 w-4 accent-gold" checked={emailOnWin} onChange={(e) => setEmailOnWin(e.target.checked)} />
                 Email me when {role === "company" ? "my tasks are judged and paid out" : "my entries are judged and paid"}
               </label>
+              {!wallet && (
+                <p className="flex items-center gap-2.5 text-[13px] text-muted">
+                  <Spinner className="text-gold" /> Setting up your Solana wallet…
+                </p>
+              )}
               <AnimatePresence>
                 {error && (
-                  <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-xl bg-red/10 p-3 text-[14px] text-red-2">
+                  <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-xl bg-red/10 p-3 text-[14px] text-red-2" role="alert">
                     {error}
                   </motion.p>
                 )}
               </AnimatePresence>
             </div>
-            <div className="mt-8 flex justify-between">
-              <button className="btn btn-line h-12 px-5" onClick={() => setStep(0)}>
-                <ArrowLeft size={17} /> Back
-              </button>
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+              <span className="text-[13px] text-faint">
+                {role === "company" ? "Organisation account" : "Freelancer account"}
+                {!invite && (
+                  <>
+                    {" "}
+                    · Hiring?{" "}
+                    <Link href="/business" className="text-muted underline decoration-line-2 underline-offset-4 hover:text-fg">
+                      Register your organisation
+                    </Link>
+                  </>
+                )}
+              </span>
               <button className="btn btn-red h-12 px-6" disabled={!canSave || busy} onClick={save}>
                 {busy ? <Spinner /> : null} Save and continue <ArrowRight size={17} />
               </button>
@@ -306,10 +309,10 @@ function Welcome() {
           </Step>
         )}
 
-        {step === 2 && (
+        {step === 1 && (
           <Step key="wallet">
             <Kinetic text={"You're *in.*"} accent="italic text-foil" className="display text-[clamp(3rem,7vw,5.5rem)]" />
-            <p className="mt-4 text-muted">Your Solana wallet is ready. Rewards and refunds land here.</p>
+            <p className="mt-4 text-muted">Your Solana wallet is ready. {role === "company" ? "Rewards are paid from here, and refunds land here." : "Rewards and refunds land here."}</p>
             <div className="card-gold relative mt-8 overflow-hidden p-6 sm:p-8">
               <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-gold/15 blur-3xl" aria-hidden />
               <div className="relative flex items-start justify-between gap-4">

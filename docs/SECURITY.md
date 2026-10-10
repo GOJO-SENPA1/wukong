@@ -35,7 +35,7 @@ Two adversarial audits covered the whole stack: the web app and its APIs, and th
 | Low | RLS covered only named tables; the build could skip it silently. | Every table in `public` gets RLS, grants are revoked for the anon and authenticated roles (including future tables), and the build fails if `DATABASE_URL` is set without `DIRECT_URL`. Verified locally: the anon role is denied. |
 | Low | Docker image could include `.env*`; the container ran as root. | `.dockerignore` excludes them; the container runs as `node`. |
 
-**Roles are enforced on the server, not just in the UI.** Only organisation accounts can build or store a task. Only freelancer accounts can build or store an entry, and only for their own wallet. The judge treats an entry with no stored work as missing. Blinks refuse organisation wallets.
+**Roles are enforced on the server, not just in the UI.** Organisations exist only by invitation: an account becomes one only through an unused `CompanyInvite` for its Privy-verified email (claimed in the same transaction that saves the profile), and its name comes from the invitation. Only organisation accounts can build or store a task. Only freelancer accounts can build or store an entry, and only for their own wallet. The judge treats an entry with no stored work as missing. Blinks refuse organisation wallets.
 
 ## Fixed: on-chain program
 

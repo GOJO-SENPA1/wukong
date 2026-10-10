@@ -58,9 +58,14 @@ export default function DashboardPage() {
               Finish setting up <ArrowRight size={17} />
             </Link>
           ) : (
-            <button className="btn btn-red h-12 px-6" onClick={account.login}>
-              <LogIn size={17} /> Sign in
-            </button>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link href="/signin?next=/dashboard" className="btn btn-red h-12 px-6">
+                <LogIn size={17} /> Freelancer sign in
+              </Link>
+              <Link href="/business?next=/dashboard" className="btn btn-line h-12 px-6">
+                Organisation sign in
+              </Link>
+            </div>
           ))}
       </Container>
     );

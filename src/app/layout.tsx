@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { BurstLayer, SummonEgg } from "@/components/fx/Overlay";
 import { ScrollProgress } from "@/components/fx/motion";
 import { OnboardingGate } from "@/components/auth/OnboardingGate";
+import { AuthNotice } from "@/components/auth/AuthNotice";
 
 const display = Anton({ subsets: ["latin"], variable: "--font-anton", weight: "400" });
 const sans = Instrument_Sans({ subsets: ["latin"], variable: "--font-instrument-sans" });
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <BurstLayer />
             <SummonEgg />
             <OnboardingGate />
+            <AuthNotice />
             <div className="grain" aria-hidden />
           </Providers>
         </PrivyWrapper>
