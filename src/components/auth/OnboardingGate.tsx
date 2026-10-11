@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAccount } from "./Account";
 
-const OPEN = ["/welcome", "/signin", "/business"];
+const OPEN = ["/welcome", "/signin", "/business", "/status"];
 
 /** Signed in but not set up yet: send them to onboarding (once, from any page). */
 export function OnboardingGate() {
