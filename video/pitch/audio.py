@@ -2,8 +2,9 @@
 
   python audio.py        reads vo/vo.wav, writes ../out/pitch-mix.wav
 """
-import re
 import json
+import re
+import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -13,7 +14,14 @@ from scipy.signal import butter, sosfilt
 HERE = Path(__file__).parent
 SR = 48000
 
-sr, vo = wavfile.read(HERE / "vo" / "vo.wav")
+# Clean the voice first: cut rumble, a little less boxiness, a little more presence, gentle compression.
+subprocess.run([
+    "ffmpeg", "-y", "-loglevel", "error", "-i", str(HERE / "vo" / "vo.wav"),
+    "-af", "highpass=f=80,equalizer=f=280:t=q:w=1.2:g=-2,equalizer=f=3200:t=q:w=1.4:g=2.5,equalizer=f=9000:t=q:w=1:g=1,"
+           "acompressor=threshold=-21dB:ratio=2.5:attack=6:release=120:makeup=2",
+    "-ar", str(SR), str(HERE / "vo" / "vo-clean.wav"),
+], check=True)
+sr, vo = wavfile.read(HERE / "vo" / "vo-clean.wav")
 vo = vo.astype(np.float32) / 32768.0
 n = len(vo)
 t = np.arange(n) / SR
@@ -59,8 +67,8 @@ win = int(0.05 * SR)
 env = np.sqrt(np.convolve(vo ** 2, np.ones(win) / win, mode="same"))
 speaking = (env > 0.01).astype(np.float32)
 smooth = np.convolve(speaking, np.ones(int(0.4 * SR)) / int(0.4 * SR), mode="same")
-duck = 1 - 0.55 * np.clip(smooth, 0, 1)
-mix = vo * 1.0 + bed * duck * 0.55
+duck = 1 - 0.7 * np.clip(smooth, 0, 1)
+mix = vo * 1.0 + bed * duck * 0.4
 mix *= 0.9 / np.abs(mix).max()
 out = HERE.parent / "out"
 out.mkdir(exist_ok=True)

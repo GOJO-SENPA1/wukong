@@ -3,81 +3,81 @@ window.CLIPS = [
  {
   "line": "s1",
   "dir": "clips/s1-0",
-  "start": 19.472,
-  "dur": 8.424,
-  "frames": 253,
-  "speed": 1.37
+  "start": 20.81,
+  "dur": 9.45,
+  "frames": 284,
+  "speed": 1.22
  },
  {
   "line": "d1",
   "dir": "clips/d1-0",
-  "start": 27.896,
-  "dur": 8.743,
-  "frames": 263,
-  "speed": 1.77
+  "start": 30.26,
+  "dur": 9.41,
+  "frames": 283,
+  "speed": 1.65
  },
  {
   "line": "d2",
   "dir": "clips/d2-0",
-  "start": 36.639,
-  "dur": 4.64,
-  "frames": 139,
-  "speed": 2.16
+  "start": 39.67,
+  "dur": 5.49,
+  "frames": 165,
+  "speed": 1.82
  },
  {
   "line": "d3",
   "dir": "clips/d3-0",
-  "start": 41.279,
-  "dur": 6.764,
-  "frames": 203,
-  "speed": 2.66
+  "start": 45.16,
+  "dur": 7.59,
+  "frames": 228,
+  "speed": 2.37
  },
  {
   "line": "d4",
   "dir": "clips/d4-0",
-  "start": 48.043,
-  "dur": 5.39,
-  "frames": 162,
-  "speed": 1.48
+  "start": 52.75,
+  "dur": 6.166,
+  "frames": 185,
+  "speed": 1.3
  },
  {
   "line": "d4",
   "dir": "clips/d4-1",
-  "start": 53.433,
-  "dur": 4.41,
-  "frames": 132,
-  "speed": 7.71
+  "start": 58.916,
+  "dur": 5.045,
+  "frames": 151,
+  "speed": 6.74
  },
  {
   "line": "d5",
   "dir": "clips/d5-0",
-  "start": 57.843,
-  "dur": 5.869,
-  "frames": 176,
-  "speed": 1.7
+  "start": 63.96,
+  "dur": 6.68,
+  "frames": 200,
+  "speed": 1.5
  },
  {
   "line": "d6",
   "dir": "clips/d6-0",
-  "start": 63.712,
-  "dur": 4.06,
-  "frames": 122,
-  "speed": 2.09
+  "start": 70.64,
+  "dur": 4.47,
+  "frames": 134,
+  "speed": 1.9
  },
  {
   "line": "d7",
   "dir": "clips/d7-0",
-  "start": 67.772,
-  "dur": 5.08,
-  "frames": 152,
-  "speed": 1.57
+  "start": 75.11,
+  "dur": 5.43,
+  "frames": 163,
+  "speed": 1.47
  },
  {
   "line": "d9",
   "dir": "clips/d9-0",
-  "start": 81.189,
-  "dur": 5.963,
-  "frames": 179,
-  "speed": 1.76
+  "start": 89.38,
+  "dur": 6.44,
+  "frames": 194,
+  "speed": 1.63
  }
 ];

@@ -89,7 +89,7 @@ Next:
 
 ## Nepal angle
 
-Built in Kathmandu. Our first vertical is work in South Asian languages (Nepali, Hindi, Bengali): localisation, copy and evaluation data for Solana teams and AI-data buyers. The judge already scores Nepali and catches Hindi submitted as Nepali.
+Built in Biratnagar, Nepal. Our first vertical is work in South Asian languages (Nepali, Hindi, Bengali): localisation, copy and evaluation data for Solana teams and AI-data buyers. The judge already scores Nepali and catches Hindi submitted as Nepali.
 
 Nepal's central bank doesn't permit crypto. So we are structuring the company outside Nepal and adding a licensed fiat payout partner, so Nepali workers can be paid legally. [Real tasks or users you ran: …]
 

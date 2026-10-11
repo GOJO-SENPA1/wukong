@@ -1,11 +1,15 @@
-"""Voiceover for the pitch video: speaks pitch/script.json with Piper and lays it on a timeline.
+"""Voiceover for the pitch video: speaks pitch/script.json and lays it on a timeline.
 
 Reuses the film's helpers (../voice.py). Writes:
   timing.js   window.TIMING: scene and line times, read by pitch.html (committed)
   vo/vo.wav   the voiceover at 48 kHz
   ../../docs/media/wukong-pitch.srt   subtitles
 
-  python voice.py --model en-us-ryan-high.onnx [--piper path/to/piper]
+  python voice.py --engine kokoro --model kokoro-v1.0.onnx --voices voices-v1.0.bin [--voice af_heart] [--speed 0.96]
+  python voice.py --model en-us-ryan-high.onnx [--piper path/to/piper]      (the film's Piper voice)
+
+Kokoro (pip install kokoro-onnx; model files from github.com/thewh1teagle/kokoro-onnx releases)
+sounds far more natural than Piper, so it's the default for the pitch.
 """
 import argparse
 import json
@@ -28,11 +32,36 @@ def srt_time(t):
     return f"{h:02}:{m:02}:{s:02},{ms:03}"
 
 
+def kokoro_synth(args):
+    from math import gcd
+
+    from kokoro_onnx import Kokoro
+    from scipy.signal import resample_poly
+
+    k = Kokoro(args.model, args.voices)
+
+    def say(text):
+        a, sr = k.create(text, voice=args.voice, speed=args.speed, lang="en-us")
+        a = np.asarray(a, dtype=np.float32)
+        g = gcd(SR, sr)
+        return resample_poly(a, SR // g, sr // g).astype(np.float32)
+
+    return say
+
+
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--engine", choices=["kokoro", "piper"], default="kokoro")
     ap.add_argument("--model", required=True)
+    ap.add_argument("--voices", help="Kokoro voices file")
+    ap.add_argument("--voice", default="af_heart")
+    ap.add_argument("--speed", type=float, default=0.96)
     ap.add_argument("--piper", default="piper")
     args = ap.parse_args()
+    if args.engine == "kokoro":
+        speak = kokoro_synth(args)
+    else:
+        speak = lambda text, scale: synth(args.piper, args.model, text, scale)  # noqa: E731
 
     script = json.loads((HERE / "script.json").read_text())
     v = script["voice"]
@@ -41,7 +70,8 @@ def main():
     for scene in script["scenes"]:
         s_start = t
         for line in scene["lines"]:
-            a = trim(synth(args.piper, args.model, line.get("say", line["text"]), v["lengthScale"]))
+            text = line.get("say", line["text"])
+            a = trim(speak(text) if args.engine == "kokoro" else speak(text, v["lengthScale"]))
             words = word_times(line["text"], a)
             lines[line["id"]] = {
                 "scene": scene["id"], "text": line["text"],

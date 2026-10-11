@@ -128,6 +128,7 @@
   #cl-team { left: 0; right: 0; top: 230px; text-align: center; }
   #cl-team .k { font-family: var(--mono); font-size: 20px; letter-spacing: .24em; text-transform: uppercase; color: var(--gold); }
   #cl-team .names { font-size: 44px; margin-top: 18px; }
+  #cl-team .names.place { font-size: 84px; margin-top: 10px; }
   #cl-mark { left: 0; right: 0; top: 390px; text-align: center; font-family: var(--mark); font-size: 200px; line-height: 1; }
   #cl-tag { left: 0; right: 0; top: 640px; text-align: center; font-size: 76px; }
   #cl-links { left: 0; right: 0; top: 790px; text-align: center; font-family: var(--mono); font-size: 26px; color: var(--muted); letter-spacing: .04em; }
@@ -222,7 +223,7 @@
 
   <!-- CLOSE -->
   <section id="sc-close" class="abs scene">
-    <div id="cl-team" class="abs"><div class="k">Built in Kathmandu</div><div class="names" id="cl-names"></div></div>
+    <div id="cl-team" class="abs"><div class="k">Built in</div><div class="names" id="cl-names"></div></div>
     <div id="cl-mark" class="abs">WUKONG</div>
     <div id="cl-tag" class="abs serif"></div>
     <div id="cl-links" class="abs">wukonghq.xyz · github.com/GOJO-SENPA1/wukong</div>
@@ -249,7 +250,7 @@ const ease = (x) => 1 - Math.pow(1 - clamp(x), 3);
 const inOut = (x) => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
 const prog = (t, a, d) => clamp((t - a) / d);
 function setO(el, o, dy = 0, dx = 0, s = 1) { el.style.opacity = o; el.style.transform = `translate(${dx}px, ${dy}px) scale(${s})`; }
-const LABELS = { problem: "01 · The problem", solution: "02 · Wukong", demo: "03 · Live demo", proof: "04 · Proof", business: "05 · Business", status: "06 · Status", close: "07 · Team" };
+const LABELS = { problem: "01 · The problem", solution: "02 · Wukong", demo: "03 · Live demo", proof: "04 · Proof", business: "05 · Business", status: "06 · Status", close: "07 · Wukong" };
 
 // Words of a line, revealed as they're spoken. `fmt` styles single words.
 function words(id, fmt = (w) => w) {
@@ -275,7 +276,9 @@ $("pl4").innerHTML = words("p4", (w) => (/hand/.test(w) || w === "by" ? `<em cla
 $("dots").innerHTML = Array.from({ length: 24 }, () => "<b></b>").join("");
 $("sol-line").innerHTML = words("s1", (w) => (/automatically/.test(w) ? `<em>${w}</em>` : w));
 $("cl-tag").innerHTML = words("c2", (w) => (/best/.test(w) ? `<em>${w}</em>` : w)).replace(/^<span class="w"[^>]*>Wukong\. <\/span>/, "");
-$("cl-names").textContent = (window.TEAM && window.TEAM.length) ? window.TEAM.join("  ·  ") : "The Wukong team";
+const hasTeam = window.TEAM && window.TEAM.length;
+$("cl-names").textContent = hasTeam ? "Biratnagar, Nepal  ·  " + window.TEAM.join("  ·  ") : "Biratnagar, Nepal";
+if (!hasTeam) $("cl-names").classList.add("serif", "place");
 const TRACK = { d1: 0, d2: 1, d3: 2, d4: 3, d5: 4, d6: 5, d7: 6, d8: 7, d9: 7 };
 const URLS = { s1: "wukonghq.xyz", d1: "localhost:3000/tasks/new", d2: "localhost:3000/tasks/…", d3: "localhost:3000/tasks/…", d4: "localhost:3000/tasks/…", d5: "localhost:3000/tasks/…", d6: "localhost:3000/tasks/…", d7: "localhost:3000/tasks/…", d9: "localhost:3000/tasks/… · posted by an AI agent" };
 
