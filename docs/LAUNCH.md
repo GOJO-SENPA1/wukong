@@ -98,7 +98,7 @@ The app now runs on a dark theme, which replaces the light navy-and-paper palett
 - Replace the burner personas and wallet-adapter in `src/components/Providers.tsx` with `PrivyProvider`:
   - login methods: email, Google, Solana external wallets
   - Solana embedded wallets created on login
-- Keep personas only behind `demoMode`.
+- Burner personas exist only on deployments without sign-in (no `NEXT_PUBLIC_PRIVY_APP_ID`), funded in demo mode. Wherever accounts are on, the account is the only identity and `/api/names` refuses to label wallets.
 - **Signing:** the server already builds every transaction (`/api/tx/build` → base64). The client signs it with the user's Privy Solana wallet (embedded or external) and relays it through `/api/tx/send`. Implement Privy as a `ClientSigner` (`src/lib/client/api.ts`), so the arena code stays unchanged.
 - **Server routes:** verify the Privy access token on every authenticated API route with Privy's server SDK and `PRIVY_APP_SECRET`. Map the Privy user to a row in `users`. The wallet that signs must be that user's wallet.
 

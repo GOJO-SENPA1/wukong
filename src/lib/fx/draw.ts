@@ -67,8 +67,8 @@ export function drawIcon(g: CanvasRenderingContext2D, name: SpriteName, x: numbe
 }
 
 /** Size a canvas for crisp drawing on high-DPI screens; returns the context scaled to CSS pixels. */
-export function fitCanvas(c: HTMLCanvasElement, w: number, h: number): CanvasRenderingContext2D {
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
+export function fitCanvas(c: HTMLCanvasElement, w: number, h: number, maxDpr = 2): CanvasRenderingContext2D {
+  const dpr = Math.min(maxDpr, window.devicePixelRatio || 1);
   c.width = Math.round(w * dpr);
   c.height = Math.round(h * dpr);
   const g = c.getContext("2d")!;

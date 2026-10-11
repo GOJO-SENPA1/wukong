@@ -14,7 +14,7 @@ export function Logo({ size = 26, className }: { size?: number; className?: stri
       </span>
       <span className="wordmark flex items-center leading-none text-fg" style={{ fontSize: size }} aria-hidden>
         WUK
-        <PixelIcon name="coin" px={px} motion="hover" className="-mx-[0.12em] -my-[0.3em]" />
+        <PixelIcon name="coin" px={px} motion="hover" className="-mx-[0.1em] -my-[0.3em] translate-y-[0.06em]" />
         NG
       </span>
     </span>

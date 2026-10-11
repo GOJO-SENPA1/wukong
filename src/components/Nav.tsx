@@ -44,7 +44,7 @@ function isActive(path: string, href: string) {
 
 export function Nav() {
   const path = usePathname();
-  const { role, identityReady, personasOn, state } = useApp();
+  const { role, identityReady, state } = useApp();
   const account = useAccount();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -52,7 +52,7 @@ export function Nav() {
   useMotionValueEvent(scrollY, "change", (y) => setScrolled(y > 8));
   useEffect(() => setOpen(false), [path]);
   const links = linksFor(identityReady ? role : null);
-  // With accounts on, a signed-out visitor always gets the way in (on a demo deployment, beside the demo accounts).
+  // With accounts on, a signed-out visitor always gets the way in (and no demo personas: those are for deployments without sign-in).
   const signedOut = account.enabled && !account.authenticated;
 
   return (
@@ -106,7 +106,6 @@ export function Nav() {
             <div className={cx("flex items-center gap-2 transition-opacity duration-500", identityReady ? "opacity-100" : "pointer-events-none opacity-0")}>
               {signedOut ? (
                 <>
-                  {personasOn && <AccountMenu />}
                   <Link
                     href="/business"
                     className={cx(

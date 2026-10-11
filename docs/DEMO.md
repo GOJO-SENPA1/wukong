@@ -8,7 +8,7 @@ Everything here runs against a local validator with `npm run demo`, or devnet af
 
 - [ ] `export ANTHROPIC_API_KEY=...` then `npm run judge:dryrun cold-brew-tagline` → scores print, no errors. (No key or no network: the offline judge runs automatically; the nav badge says *Offline judge*.)
 - [ ] `npm run demo` running, `http://localhost:3000` open, browser zoom 110–125%.
-- [ ] Persona menu: *Himalayan Java* selected. Faucet finished (no spinner on the persona button).
+- [ ] Persona menu: *Himalayan Java* selected. Faucet finished (no spinner on the persona button). Personas only appear on a deployment without sign-in (no `NEXT_PUBLIC_PRIVY_APP_ID`), such as `npm run demo`; the live site with accounts has none.
 - [ ] Second tab: Solana Explorer, so you can click straight from a tx link.
 - [ ] Terminal with `npm run agent -- --auto` typed, not run.
 - [ ] Backup: screen recording of a full run (`docs/img/` has stills) in case the venue Wi-Fi dies. Localnet needs no internet except for Claude.

@@ -112,7 +112,8 @@ function burnerSigner(kp: Keypair): ClientSigner {
 function Inner({ children, state, refresh }: { children: ReactNode; state: AppState; refresh: () => Promise<void> }) {
   const wallet = useWallet();
   const account = useAccount();
-  const personasOn = !account.enabled || state.demoMode === true;
+  // Burner personas are for demos without sign-in. Where real accounts exist, they're the only identity.
+  const personasOn = !account.enabled;
   const [keys, setKeys] = useState<Record<string, Keypair>>({});
   const [persona, setPersonaState] = useState<ActiveId>("company");
   const [funding, setFunding] = useState(false);
@@ -149,7 +150,7 @@ function Inner({ children, state, refresh }: { children: ReactNode; state: AppSt
 
   // Fund personas (gas + demo USDC for the company) once per deployment, only where demo personas are on offer.
   const mint = state.deployment?.mint;
-  const fundPersonas = state.demoMode === true || (!account.enabled && state.demoMode !== false);
+  const fundPersonas = personasOn && state.demoMode !== false;
   useEffect(() => {
     if (!fundPersonas || !mint || !Object.keys(keys).length || fundedFor.current === mint) return;
     fundedFor.current = mint;
