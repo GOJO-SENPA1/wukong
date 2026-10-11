@@ -137,3 +137,12 @@ describe("consensus", () => {
     await assert.rejects(judgeWithModel(input, refused.ask, { samples: 3, maxSamples: 3 }), JudgeRefusal);
   });
 });
+
+describe("main-criterion gate", () => {
+  it("caps an entry that fails its main criterion at 50, however polished the rest", () => {
+    const keys = ["accuracy", "fluency", "localization", "constraints"];
+    const out = (first: number) => ({ criteria: keys.map((key, i) => ({ key, score: i === 0 ? first : 95, comment: "" })), flags: [], summary: "", strengths: [], improvements: [], model: "m" });
+    assert.equal(finalizeScore(1, out(30), []).final, 50);
+    assert.ok(finalizeScore(1, out(40), []).final > 50);
+  });
+});

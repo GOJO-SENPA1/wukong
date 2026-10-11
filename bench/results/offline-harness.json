@@ -3,7 +3,7 @@
   "model": "wukong-heuristic-v1",
   "mode": "harness",
   "runs": 1,
-  "at": "2026-10-11T08:40:55.243Z",
+  "at": "2026-10-11T10:15:21.264Z",
   "metrics": {
     "entries": 98,
     "scored": 98,
@@ -13,7 +13,7 @@
       "pairwiseAccuracy": 79.1,
       "clearPairAccuracy": 85,
       "winnerAccuracy": 60,
-      "inGoldBand": 55.1,
+      "inGoldBand": 56.1,
       "pairs": 339
     },
     "integrity": {
@@ -34,9 +34,9 @@
       "constraint_violation": {
         "expected": 9,
         "caught": 9,
-        "falseAlarms": 1,
+        "falseAlarms": 0,
         "recall": 100,
-        "precision": 90
+        "precision": 100
       },
       "wrong_language": {
         "expected": 4,
@@ -156,11 +156,11 @@
       "expect": [
         "constraint_violation"
       ],
-      "final": 58.4,
+      "final": 50,
       "flags": [
         "constraint_violation"
       ],
-      "inBand": false
+      "inBand": true
     },
     {
       "task": "tagline",

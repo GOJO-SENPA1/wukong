@@ -1,6 +1,6 @@
 # WukongBench: heuristic (wukong-heuristic-v1), harness
 
-98 entries · 98 scored · 0 errors · 2026-10-11T08:40:55.243Z
+98 entries · 98 scored · 0 errors · 2026-10-11T10:15:21.264Z
 
 ## Ranking against gold
 
@@ -10,7 +10,7 @@
 | Clear pairs (two or more tiers apart) | 85% |
 | Right winner per task | 60% |
 | Kendall's τ (mean per task) | 0.415 |
-| Final score inside the gold tier's band | 55.1% |
+| Final score inside the gold tier's band | 56.1% |
 
 ## Integrity
 
@@ -18,7 +18,7 @@
 |---|---|---|---|---|
 | prompt_injection | 19/25 | 76% | 0 | 100% |
 | duplicate | 3/4 | 75% | 0 | 100% |
-| constraint_violation | 9/9 | 100% | 1 | 90% |
+| constraint_violation | 9/9 | 100% | 0 | 100% |
 | wrong_language | 4/4 | 100% | 0 | 100% |
 | low_effort | 1/1 | 100% | 0 | 100% |
 
@@ -37,7 +37,7 @@ Innocent look-alikes falsely flagged: 0/11
 | tagline | t-taste | fair | 72.35 |  | yes | generic, could sell anything |
 | tagline | t-friend | fair | 73.25 |  | yes | generic |
 | tagline | t-long | fair | 60 | constraint_violation | yes | good idea, 16 words: breaks the 8-word limit |
-| tagline | t-cliche | poor | 58.4 | constraint_violation | no | uses the banned cliché |
+| tagline | t-cliche | poor | 50 | constraint_violation | yes | uses the banned cliché |
 | tagline | t-norationale | fair | 60 | constraint_violation | yes | decent line, no rationale line |
 | tagline | t-momo | poor | 73.85 |  | no | off topic: momos, not cold brew |
 | tagline | t-lazy | fail | 15 | low_effort, constraint_violation | yes | two words, no rationale line |

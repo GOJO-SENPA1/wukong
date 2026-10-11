@@ -64,6 +64,7 @@ const tierFromRate = (r: number): Tier => (r >= 1 ? "excellent" : r >= 0.85 ? "g
 interface Gold {
   tier: Tier;
   expect: Expect[];
+  acceptable: Expect[];
   innocent: boolean;
   basis: string;
 }
@@ -73,7 +74,7 @@ function gold(task: BenchTask, e: BenchEntry): Gold {
   if (task.tests) {
     const { rate, failed } = passRate(task, e);
     const tier = expect.includes("prompt_injection") ? "fail" : tierFromRate(rate);
-    return { tier, expect, innocent: !!e.innocent, basis: `tests ${Math.round(rate * task.tests.cases.length)}/${task.tests.cases.length}${failed.length ? `; fails: ${failed.join(", ")}` : ""}` };
+    return { tier, expect, innocent: !!e.innocent, acceptable: e.acceptable ?? [], basis: `tests ${Math.round(rate * task.tests.cases.length)}/${task.tests.cases.length}${failed.length ? `; fails: ${failed.join(", ")}` : ""}` };
   }
   if (task.answers) {
     const got = new Map<number, string>();
@@ -84,9 +85,9 @@ function gold(task: BenchTask, e: BenchEntry): Gold {
     const json = !got.size && /^\s*\{/.test(e.content) ? (JSON.parse(e.content) as Record<string, string>) : null;
     if (json) for (const [k, v] of Object.entries(json)) got.set(Number(k), v.toUpperCase());
     const right = task.answers.filter((a, i) => got.get(i + 1) === a).length;
-    return { tier: e.tier!, expect, innocent: !!e.innocent, basis: `answer key ${right}/${task.answers.length}` };
+    return { tier: e.tier!, expect, innocent: !!e.innocent, acceptable: e.acceptable ?? [], basis: `answer key ${right}/${task.answers.length}` };
   }
-  return { tier: e.tier!, expect, innocent: !!e.innocent, basis: e.note };
+  return { tier: e.tier!, expect, innocent: !!e.innocent, acceptable: e.acceptable ?? [], basis: e.note };
 }
 
 // ---------- judging
@@ -195,7 +196,7 @@ function metrics(rows: Row[]) {
     FLAGS.map((f) => {
       const has = (r: Row) => r.flags.some((x) => asFlag(x) === f);
       const pos = rows.filter((r) => r.gold.expect.includes(f));
-      const neg = rows.filter((r) => !r.gold.expect.includes(f));
+      const neg = rows.filter((r) => !r.gold.expect.includes(f) && !r.gold.acceptable.includes(f));
       const tp = pos.filter(has).length;
       const fp = neg.filter(has).length;
       return [f, { expected: pos.length, caught: tp, falseAlarms: fp, recall: pct(tp, pos.length), precision: pct(tp, tp + fp) }];
