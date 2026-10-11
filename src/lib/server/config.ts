@@ -17,10 +17,25 @@ export interface PrivyConfig {
   appSecret: string;
 }
 
+/**
+ * A credential as pasted into a dashboard, minus what copying tends to add:
+ * surrounding whitespace, invisible characters (zero-width spaces, byte-order
+ * marks) and wrapping quotes, straight or curly. Keys and secrets never
+ * contain any of these, and Privy's client throws on anything that isn't plain text.
+ */
+export function cleanCredential(value: string | undefined): string | undefined {
+  const v = value
+    ?.replace(/[\u200b-\u200d\u2060\ufeff\u00a0]/g, "")
+    .trim()
+    .replace(/^['"`\u2018\u2019\u201c\u201d]+|['"`\u2018\u2019\u201c\u201d]+$/g, "")
+    .trim();
+  return v || undefined;
+}
+
 /** Privy server credentials, or null when auth isn't configured (demo mode). */
 export function privyConfig(): PrivyConfig | null {
-  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-  const appSecret = process.env.PRIVY_APP_SECRET;
+  const appId = cleanCredential(process.env.NEXT_PUBLIC_PRIVY_APP_ID);
+  const appSecret = cleanCredential(process.env.PRIVY_APP_SECRET);
   return appId && appSecret ? { appId, appSecret } : null;
 }
 

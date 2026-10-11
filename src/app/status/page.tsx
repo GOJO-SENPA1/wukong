@@ -5,6 +5,7 @@ import { CheckCircle2, CircleSlash, RotateCcw, XCircle } from "lucide-react";
 import { Container, Kicker, Spinner, cx } from "@/components/ui";
 
 type Checks = Record<string, boolean | null>;
+type Reasons = Record<string, string>;
 interface Version {
   version: string;
   branch: string | null;
@@ -13,10 +14,34 @@ interface Version {
 }
 
 /** What each check means and, when it fails, what to change (all in Vercel → Settings → Environment Variables, then redeploy). */
-const CHECKS: { key: string; label: string; fix: string; optional?: boolean }[] = [
+const CHECKS: { key: string; label: string; fix: string; optional?: boolean; unset?: string }[] = [
+  ...(
+    [
+      ["codeConfig", "configuration"],
+      ["codeStore", "store and Solana libraries"],
+      ["codeGuard", "request guards"],
+      ["codeDatabase", "database client (Prisma)"],
+      ["codeSignIn", "sign-in (Privy)"],
+      ["codeAccounts", "accounts"],
+    ] as const
+  ).map(([key, part]) => ({
+    key,
+    label: `Server code loads: ${part}`,
+    fix:
+      key === "codeDatabase"
+        ? "The database client isn't in this deployment. In Vercel, check Build Command is npm run build (it runs prisma generate), then redeploy without the build cache."
+        : "This part of the server fails to load on Vercel. Send a screenshot of this line.",
+    unset: "Not checked.",
+  })),
   { key: "privyAppId", label: "Privy app id is set", fix: "Add NEXT_PUBLIC_PRIVY_APP_ID (Privy dashboard → App settings), then redeploy." },
   { key: "privySecret", label: "Privy app secret is set", fix: "Add PRIVY_APP_SECRET (Privy dashboard → App settings), then redeploy." },
-  { key: "privyKeysAccepted", label: "Privy accepts the id and secret", fix: "Privy rejected the pair: copy both again from the same Privy app, update them, then redeploy." },
+  { key: "privyKeysAccepted", label: "Privy accepts the id and secret", fix: "Copy both again from the same Privy app (type them in if copying adds odd characters), update them, then redeploy." },
+  {
+    key: "privyVerificationKey",
+    label: "Privy verification key is valid",
+    fix: "PRIVY_VERIFICATION_KEY isn't a usable key: paste the whole key from Privy, including the BEGIN and END lines, or delete the variable. Then redeploy.",
+    unset: "Not set. That's fine: sign-ins are checked with the key Privy publishes.",
+  },
   { key: "database", label: "Accounts database is set", fix: "Add DATABASE_URL (Supabase → Connect → Transaction pooler, port 6543), then redeploy." },
   { key: "databaseReachable", label: "Database answers", fix: "Check DATABASE_URL: the Transaction pooler string (port 6543) with the current database password." },
   { key: "schemaUpToDate", label: "Database tables are up to date", fix: "Run the upgrade SQL in Supabase's SQL editor (see docs/LAUNCH.md), then redeploy." },
@@ -29,14 +54,18 @@ const CHECKS: { key: string; label: string; fix: string; optional?: boolean }[] 
 export default function StatusPage() {
   const [version, setVersion] = useState<Version | null | "error">(null);
   const [checks, setChecks] = useState<Checks | null>(null);
+  const [reasons, setReasons] = useState<Reasons>({});
   const [problem, setProblem] = useState<string | null>(null);
+  const [detail, setDetail] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
 
   const run = useCallback(async () => {
     setRunning(true);
     setProblem(null);
+    setDetail(null);
     setChecks(null);
+    setReasons({});
     setVersion(null);
     const started = Date.now();
     const tick = setInterval(() => setElapsed(Math.round((Date.now() - started) / 1000)), 500);
@@ -46,10 +75,26 @@ export default function StatusPage() {
       .catch(() => setVersion("error"));
     try {
       const res = await fetch("/api/health/auth", { cache: "no-store", signal: AbortSignal.timeout(30_000) });
-      const body = await res.json().catch(() => null);
-      if (body?.checks) setChecks(body.checks as Checks);
-      else if (res.status === 429) setProblem("Checked too often. Wait a minute, then run it again.");
-      else setProblem(`The check didn't return a report (HTTP ${res.status}). The server may be failing before it reaches the app's code.`);
+      const text = await res.text();
+      let body: { checks?: Checks; reasons?: Reasons; failedWhile?: string; error?: string } | null = null;
+      try {
+        body = JSON.parse(text);
+      } catch {
+        /* not a report */
+      }
+      if (body?.checks) {
+        setChecks(body.checks);
+        setReasons(body.reasons ?? {});
+      } else if (res.status === 429) setProblem("Checked too often. Wait a minute, then run it again.");
+      else if (body?.failedWhile) {
+        setProblem(`The server failed while ${body.failedWhile}.`);
+        setDetail(body.error ?? null);
+      } else {
+        setProblem(`The check didn't return a report (HTTP ${res.status}). The server failed before it reached the app's code.`);
+        // The platform's own error code and request id (Vercel sets these), else the start of whatever came back.
+        const platform = [res.headers.get("x-vercel-error"), res.headers.get("x-vercel-id")].filter(Boolean).join(" · ");
+        setDetail(platform || text.replace(/\s+/g, " ").trim().slice(0, 200) || "The response was empty.");
+      }
     } catch (err) {
       setProblem(
         (err as Error).name === "TimeoutError"
@@ -101,7 +146,12 @@ export default function StatusPage() {
         </button>
       </div>
 
-      {problem && <p className="rounded-xl bg-red/10 p-4 text-[14.5px] leading-relaxed text-red-2">{problem}</p>}
+      {problem && (
+        <div className="rounded-xl bg-red/10 p-4 text-[14.5px] leading-relaxed text-red-2">
+          {problem}
+          {detail && <div className="mt-2 break-words font-mono text-[12.5px] text-muted">{detail}</div>}
+        </div>
+      )}
 
       {checks && (
         <>
@@ -123,7 +173,10 @@ export default function StatusPage() {
                   <div>
                     <div className="text-[15px] font-medium">{c.label}</div>
                     {v === false && <div className="mt-1 text-[13.5px] leading-relaxed text-muted">{c.fix}</div>}
-                    {v === null && <div className="mt-1 text-[13px] text-faint">Not checked (depends on an earlier item).</div>}
+                    {v === false && reasons[c.key] && (
+                      <div className="mt-1.5 break-words font-mono text-[12.5px] leading-relaxed text-faint">{reasons[c.key]}</div>
+                    )}
+                    {v === null && <div className="mt-1 text-[13px] text-faint">{c.unset ?? "Not checked (depends on an earlier item)."}</div>}
                   </div>
                 </li>
               );

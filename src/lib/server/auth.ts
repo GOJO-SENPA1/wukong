@@ -1,15 +1,57 @@
+import { createPublicKey } from "node:crypto";
 import { PrivyClient, type User } from "@privy-io/server-auth";
-import { privyConfig } from "./config";
+import { cleanCredential, privyConfig } from "./config";
+import { describeError } from "./diagnose";
 import { HttpError } from "./guard";
 
 let client: PrivyClient | null = null;
+const MISCONFIGURED = "Sign-in isn't set up correctly on our side. Try again later.";
 
+/**
+ * The Privy client, or null when auth isn't configured. Throws a 503 when the
+ * credentials can't be used at all: Privy's client throws on any character in
+ * the id or secret that isn't plain text (a stray curly quote, say).
+ */
 function privy(): PrivyClient | null {
   if (client) return client;
   const cfg = privyConfig();
   if (!cfg) return null;
-  client = new PrivyClient(cfg.appId, cfg.appSecret);
+  try {
+    client = new PrivyClient(cfg.appId, cfg.appSecret);
+  } catch (err) {
+    console.error("privy client:", describeError(err));
+    throw new HttpError(503, MISCONFIGURED);
+  }
   return client;
+}
+
+/** Where a credential has a character Privy can't send, if anywhere. */
+function oddCharacter(cfg: { appId: string; appSecret: string }): string | null {
+  if (/[^\x21-\x7e]/.test(cfg.appId)) return "NEXT_PUBLIC_PRIVY_APP_ID";
+  if (/[^\x21-\x7e]/.test(cfg.appSecret)) return "PRIVY_APP_SECRET";
+  return null;
+}
+
+let keyChecked = false;
+let key: string | undefined;
+
+/**
+ * PRIVY_VERIFICATION_KEY as a usable PEM, or undefined when it's unset or broken
+ * (then the key is fetched from Privy, so a bad paste can't lock everyone out).
+ * Dashboards often turn the key's line breaks into literal "\n"; undo that.
+ */
+function verificationKey(): string | undefined {
+  if (keyChecked) return key;
+  keyChecked = true;
+  const raw = cleanCredential(process.env.PRIVY_VERIFICATION_KEY?.replace(/\\n/g, "\n"));
+  if (!raw) return undefined;
+  try {
+    createPublicKey(raw);
+    key = raw;
+  } catch {
+    console.error("privy: PRIVY_VERIFICATION_KEY isn't a valid public key; fetching the key from Privy instead");
+  }
+  return key;
 }
 
 export interface AuthUser {
@@ -73,7 +115,7 @@ export async function verifyAuth(authToken: string | undefined, idToken?: string
   if (!p) return null;
   let claims: Awaited<ReturnType<PrivyClient["verifyAuthToken"]>>;
   try {
-    claims = await within(p.verifyAuthToken(authToken, process.env.PRIVY_VERIFICATION_KEY || undefined));
+    claims = await within(p.verifyAuthToken(authToken, verificationKey()));
   } catch (err) {
     if (err instanceof HttpError) throw err;
     return null; // expired, forged or for another app
@@ -101,14 +143,34 @@ export async function verifyAuth(authToken: string | undefined, idToken?: string
   return { privyId: claims.userId, email: verifiedEmail(user), name: user.google?.name ?? undefined, wallet: solanaWallet(user) };
 }
 
-/** Whether the configured Privy app id and secret are accepted by Privy (null: not configured). */
-export async function privyCredentialsWork(): Promise<boolean | null> {
-  const p = privy();
-  if (!p) return null;
+export interface Diagnosis {
+  /** null: not configured, so not checked */
+  ok: boolean | null;
+  reason?: string;
+}
+
+/** Whether Privy accepts the configured app id and secret, and if not, why (for the status page). */
+export async function privyDiagnosis(): Promise<Diagnosis> {
+  const cfg = privyConfig();
+  if (!cfg) return { ok: null };
+  const odd = oddCharacter(cfg);
+  if (odd) return { ok: false, reason: `${odd} contains a character that isn't plain text (often a curly quote or an invisible character from copying). Paste it again by hand.` };
   try {
+    const p = privy();
+    if (!p) return { ok: null };
     await within(p.getAppSettings());
-    return true;
-  } catch {
-    return false;
+    return { ok: true };
+  } catch (err) {
+    const status = (err as { status?: number }).status;
+    if (status === 401 || status === 403 || status === 404) {
+      return { ok: false, reason: `Privy refused this app id and secret (HTTP ${status}). Copy both from the same app in Privy's dashboard.` };
+    }
+    return { ok: false, reason: err instanceof HttpError ? err.message : describeError(err) };
   }
+}
+
+/** Whether PRIVY_VERIFICATION_KEY, if set, is a usable key (null: not set; tokens are checked with Privy's key). */
+export function verificationKeyUsable(): boolean | null {
+  if (!cleanCredential(process.env.PRIVY_VERIFICATION_KEY)) return null;
+  return verificationKey() !== undefined;
 }

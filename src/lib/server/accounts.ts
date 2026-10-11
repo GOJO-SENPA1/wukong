@@ -4,7 +4,7 @@
 // id or wallet. Roles are fixed at onboarding: a "worker" does tasks, a
 // "company" posts them.
 
-import { Prisma, type CompanyInvite, type Profile } from "@prisma/client";
+import type { CompanyInvite, Prisma, Profile } from "@prisma/client";
 import { z } from "zod";
 import { verifyAuth, type AuthUser } from "./auth";
 import { hasDatabase, privyConfig } from "./config";
@@ -311,15 +311,21 @@ export async function profilesByWallets(wallets: string[]) {
 // Prisma errors that mean the database couldn't be reached or didn't answer in time.
 const DB_UNAVAILABLE = new Set(["P1001", "P1002", "P1008", "P1017", "P2024"]);
 
-/** Turn an HttpError (or anything) into a JSON response that says what went wrong, never how. */
+/**
+ * Turn an HttpError (or anything) into a JSON response that says what went wrong, never how.
+ * Prisma's errors are recognised by name and code, not instanceof: when the Prisma client
+ * wasn't generated, its error classes don't exist and instanceof would itself throw.
+ */
 export function accountError(err: unknown): Response {
   if (err instanceof HttpError) return Response.json({ error: err.message }, { status: err.status });
   if (err instanceof z.ZodError) return Response.json({ error: "Invalid request" }, { status: 400 });
   console.error("accounts:", err);
-  const dbDown =
-    err instanceof Prisma.PrismaClientInitializationError ||
-    (err instanceof Prisma.PrismaClientKnownRequestError && DB_UNAVAILABLE.has(err.code));
+  const e = err as { name?: string; code?: unknown; message?: string };
+  const dbDown = e?.name === "PrismaClientInitializationError" || (typeof e?.code === "string" && DB_UNAVAILABLE.has(e.code));
   if (dbDown) return Response.json({ error: "Our accounts database didn't respond. Try again in a moment." }, { status: 503 });
+  if (String(e?.message ?? "").includes("did not initialize yet")) {
+    return Response.json({ error: "Accounts aren't set up on the server yet (its database client is missing). See /status." }, { status: 503 });
+  }
   return Response.json({ error: "Something went wrong loading your account. Try again in a moment." }, { status: 500 });
 }
 

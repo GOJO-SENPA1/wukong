@@ -171,7 +171,7 @@ function PrivyAccount({ children, cluster }: { children: ReactNode; cluster?: st
         else setError(body.error);
       } else {
         // No JSON at all: the request never reached our code, or the platform cut it off.
-        retry(`The server didn't finish loading your account (error ${res.status}). Try again in a moment.`);
+        retry(`The server didn't finish loading your account (error ${res.status}). Try again in a moment, or open /status to see why.`);
       }
     } catch (err) {
       if ((err as Error).name === "TimeoutError") retry("The server took too long to load your account. Try again in a moment.");
