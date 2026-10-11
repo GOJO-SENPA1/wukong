@@ -60,7 +60,7 @@ Innocent look-alikes falsely flagged: 0/11.
 
 ### DeepSeek V4.1 Flash (via Command Code)
 
-98 entries, `deepseek/deepseek-v4.1-flash`. "Alone" is the model with Wukong's prompt and rubric but none of the pipeline: one request per entry, no verified facts, no pre-check signals, no quote checks, no sampling, no caps. "Wukong pipeline" is exactly what production runs. The pipeline row averages three full runs.
+98 entries, `deepseek/deepseek-v4.1-flash`. "Alone" is the model with Wukong's prompt and rubric but none of the pipeline: one request per entry, no verified facts, no pre-check signals, no quote checks, no sampling, no caps. "Wukong pipeline" is exactly what production runs. Its pairwise accuracy is the average of three full runs (each shown); its other numbers are from the first of those runs.
 
 | | Offline judge | DeepSeek alone | **DeepSeek + Wukong pipeline** |
 |---|---|---|---|

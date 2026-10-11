@@ -85,7 +85,8 @@ export interface ScoringOutput {
 }
 
 export type JudgeEvent =
-  | { type: "start"; task: string; count: number; engine: JudgeEngine; model: string }
+  // Public stream: the kind of judge only, never the model or provider.
+  | { type: "start"; task: string; count: number; engine: "ai" | "heuristic" }
   | { type: "tx"; kind: "close" | "score" | "settle"; sig: string; label: string; submission?: string }
   | { type: "verify"; submission: string; index: number; ok: boolean; detail: string }
   | { type: "signal"; submission: string; index: number; flag: JudgeFlag; detail: string }

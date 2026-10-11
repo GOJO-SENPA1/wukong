@@ -59,7 +59,7 @@ async function crowd(task: string) {
 
 async function judge(task: string) {
   for await (const e of judgeTask(task)) {
-    if (e.type === "start") console.log(`     ⚖️  judging ${e.count} entries with ${e.engine} (${e.model})`);
+    if (e.type === "start") console.log(`     ⚖️  judging ${e.count} entries with the ${e.engine === "ai" ? "AI" : "offline"} judge`);
     if (e.type === "signal") console.log(`     🚩 #${e.index + 1} ${e.flag}: ${e.detail}`);
     if (e.type === "scored") console.log(`     📊 #${e.index + 1} → ${(e.score / 100).toFixed(1)}`);
     if (e.type === "settled") {

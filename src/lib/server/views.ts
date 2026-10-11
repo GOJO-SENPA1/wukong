@@ -71,7 +71,8 @@ export async function stateView() {
       mint: dep.mint,
       judge: dep.judge,
     },
-    judge: judgeEngine(),
+    // Which kind of judge, never which model or provider.
+    judge: { engine: judgeEngine().engine === "heuristic" ? "heuristic" : "ai" },
     // Demo features in the UI (crowd, closing early, the test-funds button).
     demoMode: demoContent(),
     // The app quietly keeps a signed-in account's wallet topped up with the network's test funds.

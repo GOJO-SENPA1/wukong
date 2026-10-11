@@ -37,11 +37,17 @@ const nextConfig: NextConfig = {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
   reactStrictMode: true,
+  // Never ship source maps to browsers: the client code stays minified.
+  productionBrowserSourceMaps: false,
   serverExternalPackages: ["@coral-xyz/anchor"],
   agentRules: false,
   bundler: "webpack",
   async rewrites() {
-    return [{ source: "/@:handle", destination: "/u/:handle" }];
+    return [
+      { source: "/@:handle", destination: "/u/:handle" },
+      // The benchmark page is a static file in public/.
+      { source: "/benchmarks", destination: "/benchmarks.html" },
+    ];
   },
 };
 

@@ -278,7 +278,7 @@ export function Entry({
                         weighted {report.rawScore.toFixed(2)} → final {report.finalScore.toFixed(2)} → on-chain {report.onchainScore}
                       </div>
                       <div>
-                        {report.engine} · {report.model} · rubric {report.rubric}
+                        {report.engine === "heuristic" ? "Offline judge" : "AI judge"} · rubric {report.rubric}
                       </div>
                       <div className="mt-2 flex flex-wrap items-center gap-3">
                         {verified ? (

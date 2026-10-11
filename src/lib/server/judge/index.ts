@@ -131,8 +131,8 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
     }
     if (task.submissionCount === 0) throw new Error("No submissions to judge yet");
 
-    const { engine, model } = judgeEngine();
-    emit({ type: "start", task: taskKey, count: task.submissionCount, engine, model });
+    const { engine } = judgeEngine();
+    emit({ type: "start", task: taskKey, count: task.submissionCount, engine: engine === "heuristic" ? "heuristic" : "ai" });
 
     // Before the deadline only the creator closes submissions (on-chain, with their own signature).
     // The one exception: on a demo deployment, the seeded demo companies' tasks, so visitors can watch the judge.

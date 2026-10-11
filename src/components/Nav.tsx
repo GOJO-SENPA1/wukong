@@ -10,7 +10,7 @@ import { PERSONAS } from "@/lib/demo";
 import { useApp } from "./Providers";
 import { useAccount } from "./auth/Account";
 import { Logo } from "./Logo";
-import { Avatar, EngineBadge, Spinner, cx } from "./ui";
+import { Avatar, Spinner, cx } from "./ui";
 
 type NavLink = { href: string; label: string };
 
@@ -95,14 +95,6 @@ export function Nav() {
             })}
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            {state.deployment && (
-              <span className="hidden items-center gap-1.5 rounded-full bg-fg/[0.05] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted xl:inline-flex">
-                <span className="h-1.5 w-1.5 rounded-full bg-green shadow-[0_0_8px_rgb(69_207_139/0.8)]" /> {state.deployment.cluster}
-              </span>
-            )}
-            <span className="hidden lg:inline">
-              <EngineBadge />
-            </span>
             <div className={cx("flex items-center gap-2 transition-opacity duration-500", identityReady ? "opacity-100" : "pointer-events-none opacity-0")}>
               {signedOut ? (
                 <>

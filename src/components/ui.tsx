@@ -212,24 +212,6 @@ export function TierBadge({ rating, compact }: { rating: number; compact?: boole
   );
 }
 
-export function EngineBadge() {
-  const { state } = useApp();
-  if (!state.judge) return null;
-  const online = state.judge.engine !== "heuristic";
-  return (
-    <span
-      className={cx(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.12em]",
-        online ? "bg-blue/10 text-blue-2" : "bg-fg/[0.05] text-muted",
-      )}
-      title={online ? `AI judge: ${state.judge.model}` : "No AI judge configured: transparent offline heuristics"}
-    >
-      <span className={cx("h-1.5 w-1.5 rounded-full", online ? "bg-blue" : "bg-faint")} />
-      {online ? state.judge.model : "Offline judge"}
-    </span>
-  );
-}
-
 export function Empty({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={cx("card px-6 py-14 text-center text-sm text-muted", className)}>{children}</div>;
 }

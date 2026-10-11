@@ -1,3 +1,4 @@
+import { hidden, statusKeyOk } from "@/lib/server/admin";
 import { describeError } from "@/lib/server/diagnose";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,8 @@ const version = () => process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local";
  * top: if one fails to load on the host, this still answers and names it.
  */
 export async function GET(req: Request) {
+  // Private: it describes how the deployment is configured.
+  if (!statusKeyOk(req.headers.get("x-status-key"))) return hidden();
   try {
     const loaded: Record<string, Check> = {};
     const load = async <T,>(key: string, get: () => Promise<T>): Promise<T | null> => {

@@ -3,12 +3,12 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
 // The accounts code is loaded on demand, so that if it can't load on the host this
-// still answers in JSON (and /status says which part failed) instead of a blank 500.
+// still answers in JSON (and the operators' status page says which part failed) instead of a blank 500.
 const load = () => Promise.all([import("@/lib/server/accounts"), import("@/lib/server/guard")]);
 
 function crashed(err: unknown): Response {
   console.error("api/me:", err);
-  return Response.json({ error: "The server hit an error loading your account. Open /status for details." }, { status: 500 });
+  return Response.json({ error: "The server hit an error loading your account. Try again in a moment." }, { status: 500 });
 }
 
 /** The signed-in user's account: email, profile, role, whether onboarding is done, and any organisation invitation. */

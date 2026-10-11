@@ -23,7 +23,8 @@ export interface AppState {
   ready: boolean;
   error?: string;
   deployment?: { cluster: string; rpcUrl: string; programId: string; mint: string; judge: string };
-  judge?: { engine: "claude" | "openai-compatible" | "heuristic"; model: string };
+  /** Whether an AI judge or the offline heuristics score (which model is private) */
+  judge?: { engine: "ai" | "heuristic" };
   /** Demo features: the simulated crowd, closing demo tasks early, the test-funds button */
   demoMode?: boolean;
   /** The network hands out test funds: a signed-in account's wallet is topped up quietly */

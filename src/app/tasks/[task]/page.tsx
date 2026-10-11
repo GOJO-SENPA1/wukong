@@ -86,7 +86,7 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
       await streamEvents<JudgeEvent>("/api/judge", { task: taskKey }, (e) => {
         switch (e.type) {
           case "start":
-            push("ai", `Judge online: ${e.engine !== "heuristic" ? e.model : "offline heuristics"} · ${e.count} entries`);
+            push("ai", `${e.engine === "ai" ? "AI judge" : "Offline judge"} online · ${e.count} entries`);
             break;
           case "tx":
             push("good", e.label, e.sig);
@@ -324,7 +324,7 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
               {sealed && data.submissions.length > 0 && <SealedBanner count={data.submissions.length} />}
             </div>
             <AnimatePresence>
-              {judging && <JudgeStage total={data.submissions.length} scored={liveScored} scoring={live.scoring.size} engine={appState.judge?.model} />}
+              {judging && <JudgeStage total={data.submissions.length} scored={liveScored} scoring={live.scoring.size} engine={appState.judge ? (appState.judge.engine === "ai" ? "AI judge" : "offline judge") : undefined} />}
             </AnimatePresence>
             {subs.length === 0 ? (
               <Empty className="flex flex-col items-center gap-3">

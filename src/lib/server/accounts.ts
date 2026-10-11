@@ -323,7 +323,7 @@ export function accountError(err: unknown): Response {
   const dbDown = e?.name === "PrismaClientInitializationError" || (typeof e?.code === "string" && DB_UNAVAILABLE.has(e.code));
   if (dbDown) return Response.json({ error: "Our accounts database didn't respond. Try again in a moment." }, { status: 503 });
   if (String(e?.message ?? "").includes("did not initialize yet")) {
-    return Response.json({ error: "Accounts aren't set up on the server yet (its database client is missing). See /status." }, { status: 503 });
+    return Response.json({ error: "Accounts aren't available right now. Try again later." }, { status: 503 });
   }
   return Response.json({ error: "Something went wrong loading your account. Try again in a moment." }, { status: 500 });
 }
