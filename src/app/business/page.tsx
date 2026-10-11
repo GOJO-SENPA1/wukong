@@ -36,11 +36,17 @@ function Business() {
   const next = safeNext(useSearchParams().get("next"));
   const me = account.me;
   const isOrg = !!me?.onboarded && me.profile?.role === "company";
-  const invited = !!me && !me.onboarded && !!me.invite;
+  // The account is set up automatically a moment after sign-in (once its wallet exists).
+  const settingUp = account.authenticated && (!me || !me.onboarded) && !me?.walletInUse && !account.error;
+  const { refresh } = account;
   useEffect(() => {
     if (isOrg) router.replace(next);
-    else if (invited) router.replace(`/welcome?next=${encodeURIComponent(next)}`);
-  }, [isOrg, invited, next, router]);
+  }, [isOrg, next, router]);
+  useEffect(() => {
+    if (!settingUp) return;
+    const id = setInterval(refresh, 2000);
+    return () => clearInterval(id);
+  }, [settingUp, refresh]);
 
   return (
     <section className="relative -mt-16 overflow-hidden pt-16">
@@ -74,11 +80,11 @@ function Business() {
             <div className="absolute -right-3 -top-9">
               <PixelIcon name="cash" px={3.4} motion="bob" />
             </div>
-            {account.authenticated && me && !isOrg && !invited ? (
+            {account.authenticated && me && !isOrg && !settingUp ? (
               <NotRegistered />
-            ) : account.authenticated && (isOrg || invited) ? (
+            ) : account.authenticated && (isOrg || settingUp) ? (
               <div className="flex min-h-48 flex-col items-center justify-center gap-3 text-muted">
-                <Spinner /> Opening your organisation…
+                <Spinner /> {isOrg ? "Opening your organisation…" : "Setting up your account…"}
               </div>
             ) : (
               <>
@@ -137,39 +143,28 @@ function RegisterBlock({ email }: { email?: string | null }) {
   );
 }
 
-/** Signed in, but this login isn't an approved organisation. */
+/** Signed in, but this login isn't an approved organisation (yet). */
 function NotRegistered() {
   const account = useAccount();
   const me = account.me!;
-  const freelancer = me.onboarded && me.profile?.role === "worker";
   return (
     <div>
-      <div className="label">{freelancer ? "Freelancer account" : "Not registered yet"}</div>
+      <div className="label">Not approved yet</div>
       <h1 className="display mt-3 text-[2.2rem] leading-tight">
-        {freelancer ? (
-          <>
-            You&apos;re signed in as a <em className="text-gold-2">freelancer</em>
-          </>
-        ) : (
-          <>
-            This email isn&apos;t an <em className="text-gold-2">organisation</em> yet
-          </>
-        )}
+        This account isn&apos;t an <em className="text-gold-2">organisation</em> yet
       </h1>
       <p className="mt-3 text-[14px] leading-relaxed text-muted">
-        {freelancer
-          ? `@${me.profile?.handle ?? "you"} is a freelancer account. Organisations use a separate account: sign out, then sign in with your organisation's registered email.`
-          : me.email
-            ? `${me.email} hasn't been registered as an organisation. If you've already emailed us, we'll reply as soon as it's approved.`
-            : "You signed in with a wallet. Organisations sign in with the email we registered for them."}
+        {me.email
+          ? `${me.email} hasn't been approved as an organisation. Email us to register: as soon as it's approved, this same account becomes your organisation.`
+          : "You signed in with a wallet. Organisations sign in with the email we approved for them."}
       </p>
-      <div className="mt-6">{!freelancer && <RegisterBlock email={me.email} />}</div>
+      <div className="mt-6">{me.email && <RegisterBlock email={me.email} />}</div>
       <div className="mt-4 flex flex-wrap gap-2">
         <button className="btn btn-line h-11 px-4" onClick={() => account.logout()}>
           <LogOut size={15} /> Sign out
         </button>
-        <Link href={freelancer ? "/dashboard" : "/welcome"} className="btn btn-line h-11 px-4">
-          {freelancer ? "Go to my work" : "Continue as a freelancer"} <ArrowRight size={15} />
+        <Link href="/dashboard" className="btn btn-line h-11 px-4">
+          Use Wukong as a freelancer <ArrowRight size={15} />
         </Link>
       </div>
     </div>

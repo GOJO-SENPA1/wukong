@@ -5,7 +5,7 @@
 // signing, key export, and the profile from /api/me. Without it, accounts are
 // simply off and the app runs on demo personas and wallet adapters.
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useIdentityToken, useLogin, usePrivy } from "@privy-io/react-auth";
 import { useExportWallet, useSignTransaction, useWallets } from "@privy-io/react-auth/solana";
 import { Transaction, PublicKey, type VersionedTransaction } from "@solana/web3.js";
@@ -38,6 +38,8 @@ export interface Me {
   profile: MeProfile | null;
   /** An organisation invitation waiting for this email, until onboarding claims it */
   invite: { company: string } | null;
+  /** The login's wallet already belongs to another account */
+  walletInUse?: boolean;
 }
 
 export interface AccountState {
@@ -48,6 +50,8 @@ export interface AccountState {
   me: Me | null;
   /** The account's role once onboarded */
   role: Role | null;
+  /** What to call the signed-in user before their profile loads (Google name or email name) */
+  name: string | null;
   signer: ClientSigner | null;
   /** The account wallet is Privy's embedded wallet (so its key can be exported) */
   embedded: boolean;
@@ -70,6 +74,7 @@ const OFF: AccountState = {
   authenticated: false,
   me: null,
   role: null,
+  name: null,
   signer: null,
   embedded: false,
   login: () => {},
@@ -136,28 +141,48 @@ function PrivyAccount({ children, cluster }: { children: ReactNode; cluster?: st
     return { authorization: `Bearer ${token}`, ...(identityToken ? { "x-privy-id-token": identityToken } : {}) };
   }, [getAccessToken, identityToken]);
 
-  const refresh = useCallback(async () => {
+  // Transient failures (a slow or restarting server) are retried a few times before giving up.
+  const retries = useRef(0);
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const refresh = useCallback(async (): Promise<void> => {
+    clearTimeout(retryTimer.current);
     if (!authenticated) return setMe(null);
+    const retry = (message: string) => {
+      if (retries.current < 3) {
+        retries.current++;
+        retryTimer.current = setTimeout(() => void refresh(), 2500 * retries.current);
+      } else setError(message);
+    };
     try {
-      const res = await fetch("/api/me", { headers: await tokens(), cache: "no-store" });
-      const body = await res.json().catch(() => ({}));
-      if (res.ok && body.enabled !== false) {
+      const res = await fetch("/api/me", { headers: await tokens(), cache: "no-store", signal: AbortSignal.timeout(25_000) });
+      const body = await res.json().catch(() => null);
+      if (res.ok && body?.enabled === true) {
+        retries.current = 0;
         setMe(body as Me);
         setError(null);
-      } else if (res.ok || res.status === 503) {
-        setError("Accounts aren't available on the server right now. Please try again later.");
+      } else if (res.ok) {
+        setError("Sign-in isn't fully set up on the server yet (its Privy or database settings are missing).");
       } else if (res.status === 401) {
         setError("We couldn't confirm your sign-in. Sign out, then sign in again.");
-      } else if (res.status !== 429) {
-        setError(body.error ?? "We couldn't load your account. Try again in a moment.");
+      } else if (res.status === 429) {
+        retry("Too many requests. Wait a minute and refresh.");
+      } else if (body?.error) {
+        if (res.status >= 500) retry(`${body.error} (${res.status})`);
+        else setError(body.error);
+      } else {
+        // No JSON at all: the request never reached our code, or the platform cut it off.
+        retry(`The server didn't finish loading your account (error ${res.status}). Try again in a moment.`);
       }
-    } catch {
-      /* offline: keep what we had */
+    } catch (err) {
+      if ((err as Error).name === "TimeoutError") retry("The server took too long to load your account. Try again in a moment.");
+      /* otherwise offline: keep what we had */
     }
   }, [authenticated, tokens]);
 
   useEffect(() => {
+    retries.current = 0;
     refresh();
+    return () => clearTimeout(retryTimer.current);
   }, [refresh, user?.id, wallets.length]);
 
   const embeddedAddress = useMemo(() => {
@@ -193,6 +218,7 @@ function PrivyAccount({ children, cluster }: { children: ReactNode; cluster?: st
     authenticated,
     me,
     role: me?.onboarded ? (me.profile?.role ?? null) : null,
+    name: user?.google?.name ?? (user?.email?.address ?? user?.google?.email)?.split("@")[0] ?? null,
     signer,
     embedded: !!embeddedAddress && wallet?.address === embeddedAddress,
     login: (methods) => {

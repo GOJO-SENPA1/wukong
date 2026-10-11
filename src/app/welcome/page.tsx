@@ -2,24 +2,17 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, Building2, Check, Copy, LogIn, X } from "lucide-react";
-import { HELP_EMAIL, useAccount, type Role } from "@/components/auth/Account";
-import { useApp } from "@/components/Providers";
-import { Kinetic } from "@/components/fx/motion";
+import { Suspense, useEffect } from "react";
+import { LogIn, LogOut, RotateCcw } from "lucide-react";
+import { HELP_EMAIL, useAccount } from "@/components/auth/Account";
 import { PixelIcon } from "@/components/fx/PixelIcon";
-import { burst } from "@/components/fx/Overlay";
-import { Container, Spinner, cx } from "@/components/ui";
+import { Container, Spinner } from "@/components/ui";
 import { safeNext } from "@/lib/client/nav";
 
-const EASE = [0.16, 1, 0.3, 1] as const;
-const SKILLS = ["Copywriting", "Translation", "Nepali", "Hindi", "TypeScript", "Python", "Data labeling", "Research", "Design", "Social media"];
-
 /**
- * Onboarding after the first sign-in: pick a handle and fill in the public profile.
- * Everyone is a freelancer, unless an organisation invitation matches their email:
- * then they set up that organisation (its name comes from the invitation).
+ * Right after the first sign-in. The profile is set up automatically as soon as the
+ * new account's Solana wallet exists (a few seconds), so this page just waits for
+ * that, then carries on to where the user was going.
  */
 export default function WelcomePage() {
   return (
@@ -31,58 +24,22 @@ export default function WelcomePage() {
 
 function Welcome() {
   const account = useAccount();
-  const { state } = useApp();
   const router = useRouter();
-  const next = useSearchParams().get("next");
-  const [step, setStep] = useState(0);
-  const [handle, setHandle] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [city, setCity] = useState("");
-  const [skills, setSkills] = useState<string[]>([]);
-  const [skillDraft, setSkillDraft] = useState("");
-  const [emailOnWin, setEmailOnWin] = useState(true);
-  const [check, setCheck] = useState<{ handle: string; available: boolean; reason: string | null } | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const doneBtn = useRef<HTMLDivElement>(null);
+  const next = safeNext(useSearchParams().get("next"));
   const me = account.me;
-  const invite = me?.invite ?? null;
-  const role: Role = invite ? "company" : "worker";
-  const wallet = me?.wallet ?? null;
-
-  // Already set up: straight on to where they were going.
-  useEffect(() => {
-    if (me?.onboarded && step === 0) router.replace(safeNext(next));
-  }, [me?.onboarded, step, next, router]);
-
-  useEffect(() => {
-    if (me?.email && !displayName) setDisplayName(me.email.split("@")[0].slice(0, 40));
-  }, [me?.email]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // A new account's wallet is created a moment after sign-in: keep checking until it's there.
   const { refresh } = account;
+
   useEffect(() => {
-    if (!account.authenticated || !me || wallet) return;
+    if (me?.onboarded) router.replace(next);
+  }, [me?.onboarded, next, router]);
+
+  // Keep checking while the wallet (and with it the profile) is being created.
+  const waiting = account.authenticated && !me?.onboarded && !me?.walletInUse;
+  useEffect(() => {
+    if (!waiting) return;
     const id = setInterval(refresh, 2000);
     return () => clearInterval(id);
-  }, [account.authenticated, me, wallet, refresh]);
-
-  // Live handle check, debounced.
-  const h = handle.trim().replace(/^@/, "").toLowerCase();
-  useEffect(() => {
-    if (!h) return setCheck(null);
-    const id = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/handles/${encodeURIComponent(h)}`, { cache: "no-store" });
-        const data = await res.json();
-        setCheck({ handle: h, available: !!data.available, reason: data.reason ?? null });
-      } catch {
-        setCheck(null);
-      }
-    }, 350);
-    return () => clearTimeout(id);
-  }, [h]);
+  }, [waiting, refresh]);
 
   if (!account.enabled) {
     return (
@@ -93,11 +50,7 @@ function Welcome() {
   }
   if (!account.authenticated) {
     return (
-      <Container className="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center">
-        <PixelIcon name="monkey" px={3.6} motion="bob" />
-        <h1 className="display text-[clamp(2.6rem,6vw,4.2rem)]">
-          Sign in to <em className="text-gold-2">get started</em>
-        </h1>
+      <Shell icon="monkey" title={<>Sign in to <em className="text-gold-2">get started</em></>}>
         <div className="flex flex-wrap justify-center gap-3">
           <Link href="/signin" className="btn btn-red h-12 px-6">
             <LogIn size={17} /> Freelancer sign in
@@ -106,266 +59,59 @@ function Welcome() {
             Organisation sign in
           </Link>
         </div>
-      </Container>
+      </Shell>
     );
   }
-  if (!me) {
+  if (me?.walletInUse) {
     return (
-      <Container className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center text-muted">
-        {account.error ? <p className="max-w-md text-red-2">{account.error}</p> : <Spinner />}
-        {!account.error && "Loading your account…"}
-      </Container>
+      <Shell icon="lock" title={<>This wallet is <em className="text-gold-2">already linked</em></>}>
+        <p className="max-w-md leading-relaxed text-muted">
+          The wallet you signed in with belongs to another Wukong account. Sign in with that account instead, or email {HELP_EMAIL} and we&apos;ll
+          sort it out.
+        </p>
+        <button className="btn btn-line h-11 px-5" onClick={() => account.logout()}>
+          <LogOut size={15} /> Sign out
+        </button>
+      </Shell>
     );
   }
-
-  const handleOk = check?.handle === h && check.available;
-  const canSave = !!wallet && handleOk && displayName.trim().length > 0;
-
-  async function save() {
-    if (!canSave) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/me", {
-        method: "POST",
-        headers: { "content-type": "application/json", ...(await account.tokens()) },
-        body: JSON.stringify({
-          handle: h,
-          displayName: displayName.trim(),
-          role,
-          city: city.trim() || undefined,
-          skills: role === "worker" ? skills : [],
-          languages: [],
-          emailOnWin,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error ?? "Couldn't save your profile");
-      setStep(1); // before refreshing, so the "already set up" redirect doesn't skip the last step
-      await account.refresh();
-      setTimeout(() => burst(doneBtn.current, { icons: ["coin", "monkey", "trophy"], count: 28 }), 300);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
+  if (account.error && !me?.onboarded) {
+    return (
+      <Shell icon="fire" title={<>Your account didn&apos;t <em className="text-gold-2">load</em></>}>
+        <p className="max-w-md leading-relaxed text-red-2">{account.error}</p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <button
+            className="btn btn-red h-11 px-5"
+            onClick={() => {
+              account.clearError();
+              void refresh();
+            }}
+          >
+            <RotateCcw size={15} /> Try again
+          </button>
+          <button className="btn btn-line h-11 px-5" onClick={() => account.logout()}>
+            <LogOut size={15} /> Sign out
+          </button>
+        </div>
+      </Shell>
+    );
   }
-
-  const addSkill = (s: string) => {
-    const v = s.trim().slice(0, 30);
-    if (v && !skills.includes(v) && skills.length < 12) setSkills([...skills, v]);
-    setSkillDraft("");
-  };
-
   return (
-    <Container className="max-w-3xl">
-      <div className="flex items-center gap-2" aria-label={`Step ${step + 1} of 2`}>
-        {["Profile", "Wallet"].map((label, i) => (
-          <div key={label} className="flex flex-1 flex-col gap-2">
-            <div className="h-px overflow-hidden bg-fg/10">
-              <motion.div className="h-full bg-gradient-to-r from-red to-gold" animate={{ width: step >= i ? "100%" : "0%" }} transition={{ duration: 0.6, ease: EASE }} />
-            </div>
-            <span className={cx("mono-label !text-[10px] transition-colors duration-500", step >= i ? "text-fg" : "text-faint")}>
-              0{i + 1} {label}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <AnimatePresence mode="wait">
-        {step === 0 && (
-          <Step key="profile">
-            <Kinetic
-              text={role === "company" ? "Set up your *organisation*" : "Your freelancer *profile*"}
-              accent="italic text-gold-2"
-              className="display text-[clamp(2.6rem,6vw,4.5rem)]"
-            />
-            <p className="mt-4 leading-relaxed text-muted">
-              Shown on your profile, the leaderboard and every task you {role === "company" ? "post" : "enter"}. Your email stays private.
-            </p>
-            <div className="card mt-8 flex flex-col gap-5 p-6 sm:p-8">
-              {invite && (
-                <div className="well flex items-start gap-3 p-4">
-                  <Building2 size={18} className="mt-0.5 shrink-0 text-gold" />
-                  <div>
-                    <div className="text-[15px] font-semibold">{invite.company}</div>
-                    <div className="mt-0.5 text-[13px] leading-relaxed text-muted">
-                      Approved as an organisation for {me.email}. Need a different name? Email {HELP_EMAIL}.
-                    </div>
-                  </div>
-                </div>
-              )}
-              <label className="flex flex-col gap-2">
-                <span className="text-[14px] font-semibold">Handle</span>
-                <span className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-faint">@</span>
-                  <input
-                    className="input !pl-8 !pr-10"
-                    value={handle}
-                    maxLength={21}
-                    onChange={(e) => setHandle(e.target.value.replace(/\s/g, ""))}
-                    placeholder={role === "company" ? "himalayan_java" : "sita_k"}
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {h && check?.handle === h ? (
-                      check.available ? <Check size={18} className="text-green" /> : <X size={18} className="text-red-2" />
-                    ) : h ? (
-                      <Spinner className="text-faint" />
-                    ) : null}
-                  </span>
-                </span>
-                <span className={cx("text-[12.5px]", check?.handle === h && !check.available ? "text-red-2" : "text-muted")}>
-                  {check?.handle === h && check.reason ? check.reason : `wukonghq.xyz/@${h || "your_handle"}`}
-                </span>
-              </label>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <label className="flex flex-col gap-2">
-                  <span className="text-[14px] font-semibold">{role === "company" ? "Your name" : "Display name"}</span>
-                  <input className="input" value={displayName} maxLength={40} onChange={(e) => setDisplayName(e.target.value)} placeholder="Sita Karki" />
-                </label>
-                <label className="flex flex-col gap-2">
-                  <span className="text-[14px] font-semibold">City</span>
-                  <input className="input" value={city} maxLength={60} onChange={(e) => setCity(e.target.value)} placeholder={role === "company" ? "Kathmandu" : "Pokhara"} />
-                </label>
-              </div>
-              {role === "worker" && (
-                <div className="flex flex-col gap-2">
-                  <span className="text-[14px] font-semibold">Skills</span>
-                  <div className="flex flex-wrap gap-2">
-                    {SKILLS.filter((s) => !skills.includes(s)).map((s) => (
-                      <button key={s} className="chip !py-1.5 text-[13px] text-muted" onClick={() => addSkill(s)}>
-                        + {s}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <AnimatePresence>
-                      {skills.map((s) => (
-                        <motion.button
-                          key={s}
-                          layout
-                          initial={{ scale: 0.6, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0.6, opacity: 0 }}
-                          className="chip chip-on !py-1.5 text-[13px]"
-                          onClick={() => setSkills(skills.filter((x) => x !== s))}
-                        >
-                          {s} <X size={12} />
-                        </motion.button>
-                      ))}
-                    </AnimatePresence>
-                    <input
-                      className="input !w-44 !py-1.5 text-[13px]"
-                      value={skillDraft}
-                      onChange={(e) => setSkillDraft(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === ",") {
-                          e.preventDefault();
-                          addSkill(skillDraft);
-                        }
-                      }}
-                      placeholder="Add your own"
-                    />
-                  </div>
-                </div>
-              )}
-              <label className="flex cursor-pointer items-center gap-3 text-[14px]">
-                <input type="checkbox" className="h-4 w-4 accent-gold" checked={emailOnWin} onChange={(e) => setEmailOnWin(e.target.checked)} />
-                Email me when {role === "company" ? "my tasks are judged and paid out" : "my entries are judged and paid"}
-              </label>
-              {!wallet && (
-                <p className="flex items-center gap-2.5 text-[13px] text-muted">
-                  <Spinner className="text-gold" /> Setting up your Solana wallet…
-                </p>
-              )}
-              <AnimatePresence>
-                {error && (
-                  <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-xl bg-red/10 p-3 text-[14px] text-red-2" role="alert">
-                    {error}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </div>
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-              <span className="text-[13px] text-faint">
-                {role === "company" ? "Organisation account" : "Freelancer account"}
-                {!invite && (
-                  <>
-                    {" "}
-                    · Hiring?{" "}
-                    <Link href="/business" className="text-muted underline decoration-line-2 underline-offset-4 hover:text-fg">
-                      Register your organisation
-                    </Link>
-                  </>
-                )}
-              </span>
-              <button className="btn btn-red h-12 px-6" disabled={!canSave || busy} onClick={save}>
-                {busy ? <Spinner /> : null} Save and continue <ArrowRight size={17} />
-              </button>
-            </div>
-          </Step>
-        )}
-
-        {step === 1 && (
-          <Step key="wallet">
-            <Kinetic text={"You're *in.*"} accent="italic text-foil" className="display text-[clamp(3rem,7vw,5.5rem)]" />
-            <p className="mt-4 text-muted">Your Solana wallet is ready. {role === "company" ? "Rewards are paid from here, and refunds land here." : "Rewards and refunds land here."}</p>
-            <div className="card-gold relative mt-8 overflow-hidden p-6 sm:p-8">
-              <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-gold/15 blur-3xl" aria-hidden />
-              <div className="relative flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="label">Your wallet address</div>
-                  <div className="mt-2.5 break-all font-mono text-[14px] text-fg/90">{wallet ?? "Creating…"}</div>
-                  {wallet && (
-                    <button
-                      className="mt-3 inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-fg"
-                      onClick={() => {
-                        navigator.clipboard?.writeText(wallet);
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 1400);
-                      }}
-                    >
-                      {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? "Copied" : "Copy address"}
-                    </button>
-                  )}
-                </div>
-                <PixelIcon name="coin" px={3} motion="spin" />
-              </div>
-              {state.demoMode && (
-                <p className="well relative mt-5 p-3 text-[13px] leading-relaxed text-muted">
-                  This is a demo deployment on {state.deployment?.cluster ?? "a test network"}: we&apos;ve sent your wallet test SOL for fees
-                  {role === "company" ? " and test USDC for rewards" : " and a little test USDC for entry stakes"}.
-                </p>
-              )}
-            </div>
-            <div ref={doneBtn} className="mt-8 flex flex-wrap justify-end gap-3">
-              <Link href="/wallet" className="btn btn-line h-12 px-5">
-                Open wallet
-              </Link>
-              <Link href={role === "company" ? "/tasks/new" : "/tasks"} className="btn btn-red h-12 px-6">
-                {role === "company" ? "Post your first task" : "Find your first task"} <ArrowRight size={17} />
-              </Link>
-            </div>
-          </Step>
-        )}
-      </AnimatePresence>
-    </Container>
+    <Shell icon="coin" title={<>Setting up your <em className="text-gold-2">account</em></>}>
+      <p className="flex items-center gap-3 text-muted">
+        <Spinner className="text-gold" /> Creating your wallet and profile. This takes a few seconds.
+      </p>
+    </Shell>
   );
 }
 
-function Step({ children }: { children: ReactNode }) {
+function Shell({ icon, title, children }: { icon: "monkey" | "lock" | "fire" | "coin"; title: React.ReactNode; children: React.ReactNode }) {
   return (
-    <motion.div
-      className="mt-12"
-      initial={{ opacity: 0, x: 24 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -24 }}
-      transition={{ duration: 0.4, ease: EASE }}
-    >
+    <Container className="relative flex min-h-[64vh] flex-col items-center justify-center gap-6 text-center">
+      <div className="aura left-[calc(50%-9rem)] top-1/4 h-72 w-72 bg-gold/15" aria-hidden />
+      <PixelIcon name={icon} px={3.6} motion={icon === "coin" ? "spin" : "bob"} />
+      <h1 className="display text-[clamp(2.6rem,6vw,4.2rem)]">{title}</h1>
       {children}
-    </motion.div>
+    </Container>
   );
 }

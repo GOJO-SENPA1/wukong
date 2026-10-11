@@ -122,7 +122,8 @@ Use the pooled `DATABASE_URL` from the app and `DIRECT_URL` for migrations. A ty
 | Landing | `/` |
 | Freelancer sign in / sign up | `/signin` (email, Google or a Solana wallet) |
 | Organisation sign in | `/business` (email or Google; organisations are approved by hand, see below) |
-| Onboarding | `/welcome` (profile → wallet), shown until `onboarded_at` is set |
+| First sign-in | `/welcome` waits a few seconds while the wallet is created; the profile is then set up automatically |
+| Profile settings | `/settings` (name, handle, city, bio, skills, result emails) |
 | Explore | `/tasks` |
 | Task + entry | `/tasks/[task]` (worker view while open; results view once closed) |
 | Post a task | `/tasks/new` |
@@ -144,9 +145,13 @@ npm run company:invite -- --revoke ops@acme.com   # withdraw an approval nobody 
 
 Or add a row to the `CompanyInvite` table in Supabase's table editor (email in lowercase, the organisation's name). The person then signs in at `/business` with that email (an email code or the Google account for that address) and sets up the organisation; its name comes from the approval. The server enforces this: an account becomes an organisation only through an unused approval for its verified email, and each approval works once. Wallet-only logins have no email, so they're always freelancers. Someone who already set up a freelancer account with that email stays a freelancer; approve a different email for the organisation.
 
+### New accounts
+
+A new account's profile is set up automatically the moment its Solana wallet exists, a few seconds after the first sign-in: the handle comes from the email (`sita@example.com` → `@sita`, with digits added if it's taken), the name from the Google account (or the email), and the side from the approvals above (an organisation if its email is approved, else a freelancer; a freelancer approved later becomes the organisation on its next visit). Everything but the side can be changed at `/settings`.
+
 ### Checking sign-in on a deployment
 
-Open `/api/health/auth`. It answers yes/no (never values) for: the Privy app id and secret are set, Privy accepts them, the database is reachable, the schema is up to date, and result emails are configured. Anything `false` is the thing to fix in Vercel's environment variables. Privy also has to list the site's domain under **Allowed domains**, or sign-in fails before it reaches this app.
+Open `/api/health/auth`. It answers yes/no (never values) for: the Privy app id and secret are set, Privy accepts them, the database is reachable, the schema is up to date, the Redis store answers, and result emails are configured. Anything `false` is the thing to fix in Vercel's environment variables. A Redis URL for Upstash must start with `rediss://` (TLS); with `redis://` the server never answers. Privy also has to list the site's domain under **Allowed domains**, or sign-in fails before it reaches this app.
 
 ### Product details the design assumes
 

@@ -184,7 +184,7 @@ function Inner({ children, state, refresh }: { children: ReactNode; state: AppSt
       ? account.authenticated
         ? profile
           ? `${profile.role === "company" ? profile.company || profile.displayName : profile.displayName}${profile.city ? ` · ${profile.city}` : ""}`
-          : (account.me?.email ?? "Your account")
+          : (account.name ?? account.me?.email ?? "Your account")
         : "Sign in"
       : persona === "wallet"
         ? wallet.publicKey

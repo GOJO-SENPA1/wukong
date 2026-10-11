@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Check, Copy, Link2 } from "lucide-react";
+import { Check, Copy, Link2, Pencil } from "lucide-react";
 import { Counter, Kinetic, Reveal, Scramble, Spotlight } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
 import { Avatar, Container, Empty, ExplorerLink, ScoreBar, Skeleton, TierBadge, cx } from "@/components/ui";
 import { getJSON } from "@/lib/client/api";
 import { useApp } from "@/components/Providers";
+import { useAccount } from "@/components/auth/Account";
 import { TaskCard } from "@/components/TaskCard";
 import { TIERS, fmtUsdc, shortAddr, tierFor, toUsdc } from "@/lib/format";
 import type { ReputationView, SubmissionView, TaskStatus } from "@/lib/wukong";
@@ -174,6 +175,7 @@ const rep = await program.account.reputation.fetch(pda);`;
             )}
           </div>
           <Reveal delay={0.3} className="flex flex-col items-start gap-3 md:items-end">
+            <EditOwnProfile wallet={data.worker} />
             <button className="btn btn-line h-11" onClick={() => copy("link", window.location.href)}>
               <AnimatePresence mode="wait">
                 <motion.span key={copied === "link" ? "ok" : "link"} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }}>
@@ -296,6 +298,17 @@ const rep = await program.account.reputation.fetch(pda);`;
   );
 }
 
+/** On your own profile, a way to change it. */
+function EditOwnProfile({ wallet }: { wallet: string }) {
+  const account = useAccount();
+  if (!account.me?.onboarded || account.me.wallet !== wallet) return null;
+  return (
+    <Link href="/settings" className="btn btn-red h-11 px-5">
+      <Pencil size={15} /> Edit profile
+    </Link>
+  );
+}
+
 /** An organisation's public page: who they are and the tasks they've posted. */
 function OrgProfile({ profile, wallet, display }: { profile: PublicProfile; wallet: string; display: string }) {
   const { state } = useApp();
@@ -324,6 +337,7 @@ function OrgProfile({ profile, wallet, display }: { profile: PublicProfile; wall
             </Reveal>
             {profile.bio && <Reveal delay={0.25} className="mt-4 max-w-xl text-[15px] leading-relaxed text-fg/75">{profile.bio}</Reveal>}
           </div>
+          <EditOwnProfile wallet={wallet} />
         </div>
       </section>
       <Container className="flex flex-col gap-6 !pt-8">

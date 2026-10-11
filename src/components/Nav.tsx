@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/react";
-import { ArrowUpRight, Check, ChevronDown, LayoutDashboard, LogIn, LogOut, Menu, Plus, Search, UserRound, Wallet, X } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, LayoutDashboard, LogIn, LogOut, Menu, Plus, Search, Settings, UserRound, Wallet, X } from "lucide-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { PERSONAS } from "@/lib/demo";
 import { useApp } from "./Providers";
@@ -306,11 +306,12 @@ function AccountMenu() {
                     </div>
                     {persona === "account" && <Check size={16} className="text-gold" />}
                   </button>
-                  <div className="mt-3 grid grid-cols-3 gap-1">
+                  <div className="mt-3 grid grid-cols-4 gap-1">
                     {[
                       { href: account.me?.onboarded ? "/dashboard" : "/welcome", label: "Dashboard", Icon: LayoutDashboard },
                       { href: "/wallet", label: "Wallet", Icon: Wallet },
                       { href: profile?.handle ? `/u/${profile.handle}` : "/welcome", label: "Profile", Icon: UserRound },
+                      { href: "/settings", label: "Settings", Icon: Settings },
                     ].map(({ href, label, Icon }) => (
                       <Link
                         key={label}

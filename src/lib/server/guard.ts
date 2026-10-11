@@ -23,9 +23,12 @@ export function clientIp(req: Request): string {
 /** Allow `limit` requests per `windowMs` per IP for this bucket; throws 429 beyond that. */
 export async function rateLimit(req: Request, bucket: string, limit: number, windowMs: number, key?: string): Promise<void> {
   const id = key ?? clientIp(req);
-  const n = await kv()
-    .hit(`${bucket}:${id}`, windowMs)
-    .catch(() => 0); // a store outage shouldn't take the site down
+  let n = 0;
+  try {
+    n = await kv().hit(`${bucket}:${id}`, windowMs);
+  } catch {
+    /* a store outage (or no store configured) shouldn't take the site down */
+  }
   if (n > limit) throw new HttpError(429, "Too many requests. Slow down and try again shortly.");
 }
 

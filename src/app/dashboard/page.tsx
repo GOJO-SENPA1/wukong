@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
-import { ArrowRight, ArrowUpRight, ChevronDown, Lock, LogIn, Plus, Search, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ChevronDown, Lock, LogIn, Plus, Search, Sparkles, X } from "lucide-react";
 import { useApp } from "@/components/Providers";
 import { useAccount } from "@/components/auth/Account";
 import { TaskCard } from "@/components/TaskCard";
@@ -11,7 +11,7 @@ import { Counter, Kinetic, Reveal } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
 import { Avatar, Container, Countdown, Empty, Kicker, Skeleton, Spinner, StatusPill, cx } from "@/components/ui";
 import type { TaskPayload } from "@/components/arena/types";
-import { getJSON, postJSON } from "@/lib/client/api";
+import { getJSON } from "@/lib/client/api";
 import { useWorker } from "@/lib/client/hooks";
 import { fmtUsdc, shortAddr, timeAgo, toUsdc } from "@/lib/format";
 import type { TaskCard as TaskCardData } from "@/lib/server/views";
@@ -72,8 +72,8 @@ export default function DashboardPage() {
   }
   return (
     <Container className="flex flex-col gap-10">
+      <WelcomeBanner />
       {role === "company" ? <Hiring me={me} name={personaName.split(" · ")[0]} /> : <Working me={me} name={personaName.split(" · ")[0]} />}
-      <Settings />
     </Container>
   );
 }
@@ -459,57 +459,55 @@ function Section({ title, count, children }: { title: string; count: number; chi
   );
 }
 
-/* ---------- account settings: result emails */
-function Settings() {
+/* ---------- a new account's first look: its name, its public profile, where to edit it */
+const WELCOME_KEY = "wukong.welcomed";
+
+function WelcomeBanner() {
   const { persona } = useApp();
   const account = useAccount();
   const profile = account.me?.profile;
-  const [saving, setSaving] = useState(false);
-  if (persona !== "account" || !profile) return null;
-  const toggle = async () => {
-    setSaving(true);
+  const [dismissed, setDismissed] = useState(true);
+  useEffect(() => {
     try {
-      await postJSON("/api/me", {
-        handle: profile.handle ?? "",
-        displayName: profile.displayName,
-        role: profile.role,
-        company: profile.company ?? undefined,
-        city: profile.city ?? undefined,
-        bio: profile.bio ?? undefined,
-        skills: profile.skills,
-        languages: profile.languages,
-        emailOnWin: !profile.emailOnWin,
-      });
-      await account.refresh();
-    } finally {
-      setSaving(false);
+      setDismissed(localStorage.getItem(WELCOME_KEY) === profile?.wallet);
+    } catch {
+      setDismissed(false);
+    }
+  }, [profile?.wallet]);
+  const isNew = !!profile && Date.now() - new Date(profile.joined).getTime() < 3 * 86_400_000;
+  if (persona !== "account" || !profile || !isNew || dismissed) return null;
+  const dismiss = () => {
+    setDismissed(true);
+    try {
+      localStorage.setItem(WELCOME_KEY, profile.wallet);
+    } catch {
+      /* private mode: it just shows again next time */
     }
   };
+  const org = profile.role === "company";
   return (
-    <Reveal>
-      <div className="card flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
-        <div>
-          <div className="text-[15px] font-semibold">Result emails</div>
-          <div className="mt-0.5 text-[13.5px] text-muted">
-            {profile.role === "company" ? "When your tasks are judged, shortlisted or paid out" : "When your entries are judged or paid"}, sent to{" "}
-            {account.me?.email ?? "your email"}.
-          </div>
+    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="card-gold relative flex flex-wrap items-center gap-5 p-5 sm:p-6">
+      <Avatar id={profile.wallet} name={profile.displayName} size={52} />
+      <div className="min-w-0 flex-1">
+        <div className="text-[17px] font-semibold">Welcome to Wukong, {profile.displayName}.</div>
+        <div className="mt-0.5 text-[13.5px] leading-relaxed text-muted">
+          Your {org ? "organisation's" : ""} profile is live at <span className="text-fg">wukonghq.xyz/@{profile.handle}</span>.{" "}
+          {org ? "Add a bio and city so freelancers know who they're working for." : "Add your skills and a short bio so organisations know what you do best."}
         </div>
-        <button
-          role="switch"
-          aria-checked={profile.emailOnWin}
-          aria-label="Result emails"
-          disabled={saving}
-          onClick={toggle}
-          className={cx("relative h-7 w-12 rounded-full transition-colors duration-300", profile.emailOnWin ? "bg-green/80" : "bg-fg/15")}
-        >
-          <motion.span
-            layout
-            transition={{ type: "spring", stiffness: 500, damping: 32 }}
-            className={cx("absolute top-1 h-5 w-5 rounded-full bg-fg shadow", profile.emailOnWin ? "right-1" : "left-1")}
-          />
-        </button>
       </div>
-    </Reveal>
+      <div className="flex flex-wrap gap-2">
+        <Link href="/settings" className="btn btn-red h-10 px-4">
+          Edit profile
+        </Link>
+        {profile.handle && (
+          <Link href={`/u/${profile.handle}`} className="btn btn-line h-10 px-4">
+            View profile
+          </Link>
+        )}
+      </div>
+      <button onClick={dismiss} aria-label="Dismiss" className="absolute right-3 top-3 text-muted transition-colors hover:text-fg">
+        <X size={16} />
+      </button>
+    </motion.div>
   );
 }

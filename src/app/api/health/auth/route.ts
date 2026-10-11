@@ -1,6 +1,7 @@
 import { privyCredentialsWork } from "@/lib/server/auth";
 import { hasDatabase, privyConfig, resendConfig } from "@/lib/server/config";
 import { db } from "@/lib/server/db";
+import { kv, redisUrl } from "@/lib/server/kv";
 import { rateLimit } from "@/lib/server/guard";
 import { fail } from "@/lib/server/http";
 
@@ -25,7 +26,15 @@ export async function GET(req: Request) {
     databaseReachable: null,
     schemaUpToDate: null,
     resultEmails: !!resendConfig(),
+    storeConfigured: !!redisUrl() || !process.env.VERCEL,
+    storeReachable: null,
   };
+  try {
+    await kv().get("names", "__health__");
+    checks.storeReachable = true;
+  } catch {
+    checks.storeReachable = false;
+  }
   if (privyConfig()) checks.privyKeysAccepted = await privyCredentialsWork();
   if (hasDatabase()) {
     try {

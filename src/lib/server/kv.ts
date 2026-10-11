@@ -105,8 +105,18 @@ function fileBackend(): Backend {
 
 const RELEASE = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
 
+// Serverless functions are frozen between requests, and a frozen function's socket can die
+// silently. Out of the box the client would queue commands and reconnect forever, so a bad
+// connection hung every request until the platform killed it. Instead: give up connecting
+// after a few seconds, refuse commands while disconnected, and time-box every command,
+// dropping the connection on a timeout so the next request starts a fresh one.
+const OP_TIMEOUT_MS = 3_000;
 const connect = (url: string) =>
-  createClient({ url })
+  createClient({
+    url,
+    disableOfflineQueue: true,
+    socket: { connectTimeout: 4_000, reconnectStrategy: (retries) => (retries >= 2 ? false : 150 * (retries + 1)) },
+  })
     .on("error", (err: Error) => console.error("redis:", err.message))
     .connect();
 type Client = Awaited<ReturnType<typeof connect>>;
@@ -115,40 +125,75 @@ function redisBackend(url: string): Backend {
   const prefix = process.env.WUKONG_KV_PREFIX ?? "wukong:";
   // One connection per server instance, reused across requests (and dev reloads).
   const g = globalThis as { __wukongRedis?: Promise<Client> };
-  const client = () =>
+  const reset = () => {
+    const stale = g.__wukongRedis;
+    g.__wukongRedis = undefined;
+    stale?.then((c) => c.destroy()).catch(() => {});
+  };
+  const connected = () =>
     (g.__wukongRedis ??= connect(url).catch((err) => {
       g.__wukongRedis = undefined;
       throw err;
     }));
+  const client = async (): Promise<Client> => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        reset();
+        reject(new Error("redis: no connection"));
+      }, OP_TIMEOUT_MS);
+    });
+    try {
+      return await Promise.race([connected(), timeout]);
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+  /** Run one command with a deadline; a command that doesn't answer in time drops the connection. */
+  const op = async <T>(fn: (c: Client) => Promise<T>): Promise<T> => {
+    const c = await client();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        fn(c),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(() => {
+            reset();
+            reject(new Error("redis: command timed out"));
+          }, OP_TIMEOUT_MS);
+        }),
+      ]);
+    } finally {
+      clearTimeout(timer);
+    }
+  };
   const k = (coll: Coll, key?: string) => (key === undefined ? `${prefix}${coll}` : `${prefix}${coll}:${key}`);
   const parse = <T>(v: string | null | undefined) => (v == null ? undefined : (JSON.parse(v) as T));
 
   return {
-    get: async <T>(coll: Coll, key: string) => parse<T>(await (await client()).hGet(k(coll), key)),
+    get: async <T>(coll: Coll, key: string) => parse<T>(await op((c) => c.hGet(k(coll), key))),
     async many<T>(coll: Coll, keys: string[]) {
       if (keys.length === 0) return [];
-      return (await (await client()).hmGet(k(coll), keys)).map((v) => parse<T>(v));
+      return (await op((c) => c.hmGet(k(coll), keys))).map((v) => parse<T>(v));
     },
     async all<T>(coll: Coll) {
-      const raw = await (await client()).hGetAll(k(coll));
+      const raw = await op((c) => c.hGetAll(k(coll)));
       return Object.fromEntries(Object.entries(raw).map(([key, v]) => [key, JSON.parse(v) as T]));
     },
-    set: async <T>(coll: Coll, key: string, value: T) => void (await (await client()).hSet(k(coll), key, JSON.stringify(value))),
-    push: async <T>(coll: Coll, key: string, value: T) => void (await (await client()).rPush(k(coll, key), JSON.stringify(value))),
-    list: async <T>(coll: Coll, key: string) => (await (await client()).lRange(k(coll, key), 0, -1)).map((v) => JSON.parse(v) as T),
+    set: async <T>(coll: Coll, key: string, value: T) => void (await op((c) => c.hSet(k(coll), key, JSON.stringify(value)))),
+    push: async <T>(coll: Coll, key: string, value: T) => void (await op((c) => c.rPush(k(coll, key), JSON.stringify(value)))),
+    list: async <T>(coll: Coll, key: string) => (await op((c) => c.lRange(k(coll, key), 0, -1))).map((v) => JSON.parse(v) as T),
     async lock(name, ttlMs) {
-      const c = await client();
       const key = `${prefix}lock:${name}`;
       const token = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      const ok = await c.set(key, token, { condition: "NX", expiration: { type: "PX", value: ttlMs } });
+      const ok = await op((c) => c.set(key, token, { condition: "NX", expiration: { type: "PX", value: ttlMs } }));
       if (ok !== "OK") return null;
-      return async () => void (await c.eval(RELEASE, { keys: [key], arguments: [token] }));
+      return async () => void (await op((c) => c.eval(RELEASE, { keys: [key], arguments: [token] })));
     },
     async hit(name, windowMs) {
-      const c = await client();
       const key = `${prefix}rl:${name}`;
-      const n = await c.incr(key);
-      if (n === 1) await c.pExpire(key, windowMs);
+      const n = await op((c) => c.incr(key));
+      if (n === 1) await op((c) => c.pExpire(key, windowMs));
       return n;
     },
   };

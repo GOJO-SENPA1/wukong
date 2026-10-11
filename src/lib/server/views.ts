@@ -149,9 +149,10 @@ export async function workerView(worker: string) {
   } catch {
     usdc = 0;
   }
+  // Names and reports are extras: a store hiccup shouldn't take the whole profile down.
   const [names, reports, profile] = await Promise.all([
-    store.names(),
-    store.reports(subs.map((s) => s.pubkey)),
+    store.names().catch(() => ({}) as Record<string, string>),
+    store.reports(subs.map((s) => s.pubkey)).catch(() => subs.map(() => undefined)),
     profileByWallet(worker).catch(() => null),
   ]);
   return {

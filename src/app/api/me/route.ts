@@ -2,6 +2,8 @@ import { accountError, accountsEnabled, companyInviteFor, OnboardSchema, publicP
 import { rateLimit, readJson } from "@/lib/server/guard";
 
 export const dynamic = "force-dynamic";
+// Every call inside is time-boxed; this is only the outer limit.
+export const maxDuration = 30;
 
 /** The signed-in user's account: email, profile, role, whether onboarding is done, and any organisation invitation. */
 export async function GET(req: Request) {
@@ -17,6 +19,8 @@ export async function GET(req: Request) {
       onboarded: !!profile?.onboardedAt,
       profile: profile ? { ...publicProfile(profile), emailOnWin: profile.emailOnWin } : null,
       invite: invite ? { company: invite.company } : null,
+      // The login's wallet already belongs to another account, so no profile could be made.
+      walletInUse: !profile && !!auth.wallet,
     });
   } catch (err) {
     return accountError(err);
