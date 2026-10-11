@@ -27,6 +27,14 @@ The W mark for X and other social accounts: a sharp W with the jewel from the Mo
 
 Upload [`brand/wukong-pfp.png`](brand/wukong-pfp.png) (1000×1000). The SVGs in [`brand/`](brand/) are the sources, and [`brand/x-preview.png`](brand/x-preview.png) shows both at X's display sizes in light and dark mode.
 
+## X header
+
+![X header](brand/x-header.png)
+
+The crowd forms the mark: about 2,000 tiny Ws, with the ones inside the logo lit up, an AI-judge scan line crossing the field and one entry picked out as the winner. The bottom left stays clear for the profile picture ([preview on a profile](brand/x-header-preview.png)).
+
+Upload [`brand/x-header.png`](brand/x-header.png) (1500×500); [`brand/x-header@2x.png`](brand/x-header@2x.png) is the same at 3000×1000. The source is [`brand/x-header.html`](brand/x-header.html): open it at 1500×500 and screenshot.
+
 ## Screens
 
 ### Landing page
