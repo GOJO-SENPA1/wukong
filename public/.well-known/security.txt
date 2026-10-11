@@ -1,0 +1,5 @@
+Contact: mailto:help@wukonghq.xyz
+Expires: 2027-10-11T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://wukonghq.xyz/.well-known/security.txt
+Policy: https://wukonghq.xyz/security

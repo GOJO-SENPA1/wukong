@@ -1,0 +1,65 @@
+{
+  "voice": { "lengthScale": 0.97, "lead": 0.6, "gapAfterLine": 0.32, "gapAfterScene": 0.75, "tail": 1.6 },
+  "scenes": [
+    {
+      "id": "problem",
+      "lines": [
+        { "id": "p1", "text": "Hiring online is a one-to-one bet." },
+        { "id": "p2", "text": "You pick one freelancer, wait, and hope." },
+        { "id": "p3", "text": "Contests fix that. Many people try, and you pay only for the best." },
+        { "id": "p4", "text": "But every contest today is judged by hand." },
+        { "id": "p5", "text": "Colosseum's spring hackathon had almost three thousand submissions. That's hundreds of judge-hours, and weeks of waiting." }
+      ]
+    },
+    {
+      "id": "solution",
+      "lines": [
+        { "id": "s1", "text": "Wukong is a work marketplace where the crowd competes, an AI judge scores every entry, and the winners are paid automatically, on Solana." }
+      ]
+    },
+    {
+      "id": "demo",
+      "lines": [
+        { "id": "d1", "text": "Here's the real app. A coffee brand posts a tagline task, and one signature locks fifty USDC in escrow before anyone starts.", "say": "Here's the real app. A coffee brand posts a tagline task, and one signature locks fifty U S D C in escrow before anyone starts." },
+        { "id": "d2", "text": "A worker enters. The entry is sealed by its hash on-chain, so nobody can copy it." },
+        { "id": "d3", "text": "Then the crowd arrives: real signed transactions, including a copycat, a prompt-injection attempt and a spam bot." },
+        { "id": "d4", "text": "The brand closes the task, and the judge goes to work. It checks the brief's rules in code, scores every entry three times, and must quote the entry to justify each score." },
+        { "id": "d5", "text": "Every score goes on-chain with a hash of its report, and the program pays the top three in one transaction." },
+        { "id": "d6", "text": "Every entrant gets written coaching, with evidence quoted from their own work." },
+        { "id": "d7", "text": "The copycat, the injection and the spam bot score under twenty, and lose their stakes." },
+        { "id": "d8", "text": "Agents can buy work too. This one gets a 402, Payment Required, and pays twenty-five USDC over x402.", "say": "Agents can buy work too. This one gets a four oh two, Payment Required, and pays twenty-five U S D C over x four oh two." },
+        { "id": "d9", "text": "Its task is escrowed, judged and paid, and the agent gets back a Nepali translation." }
+      ]
+    },
+    {
+      "id": "proof",
+      "lines": [
+        { "id": "b1", "text": "We built a benchmark to break our own judge: ninety-eight entries with provable answers, and twenty-five injection attacks." },
+        { "id": "b2", "text": "Wukong ranks ninety-six and a half percent of pairs correctly. The same model alone gets ninety." },
+        { "id": "b3", "text": "It blocked all twenty-five attacks, including ten written after tuning, and published zero invented quotes." },
+        { "id": "b4", "text": "It's our own benchmark, so we publish its limits: it still misses paraphrased copies." }
+      ]
+    },
+    {
+      "id": "business",
+      "lines": [
+        { "id": "m1", "text": "We take ten percent of each payout, enforced on-chain." },
+        { "id": "m2", "text": "Next, the fee moves to buyers so workers keep everything, and we sell the judge as a service to hackathons, grant rounds and bounty programs." },
+        { "id": "m3", "text": "Judging a thousand entries costs us a few dollars." }
+      ]
+    },
+    {
+      "id": "status",
+      "lines": [
+        { "id": "t1", "text": "Wukong is live on devnet at wukonghq.xyz. The benchmark is public, and we're recruiting our first ten design partners.", "say": "Wukong is live on dev net at wukong h q dot x y z. The benchmark is public, and we're recruiting our first ten design partners." }
+      ]
+    },
+    {
+      "id": "close",
+      "lines": [
+        { "id": "c1", "text": "We're a small team building from Kathmandu." },
+        { "id": "c2", "text": "Wukong. Post a task. Summon the crowd. Pay the best.", "hold": 0.4 }
+      ]
+    }
+  ]
+}

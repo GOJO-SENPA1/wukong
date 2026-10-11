@@ -205,8 +205,9 @@ export function Counter({
       <span className="invisible [grid-area:1/1]" aria-hidden>
         {fmt(value)}
       </span>
+      {/* Always 0 at first, so server and browser render the same; the effect shows the value (instantly with reduced motion). */}
       <span ref={ref} className="[grid-area:1/1]">
-        {fmt(reduce ? value : 0)}
+        {fmt(0)}
       </span>
     </span>
   );

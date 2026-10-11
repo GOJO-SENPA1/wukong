@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { AlertCircle, Mail, Wallet, X } from "lucide-react";
 import { useAccount, type LoginMethod } from "./Account";
@@ -46,6 +47,17 @@ export function SignInPanel({ methods, primary = "email" }: { methods: LoginMeth
           {busy && m === primary ? <Spinner /> : OPTIONS[m].icon} {busy && m === primary ? (account.authenticated ? "Loading your account…" : "Loading…") : OPTIONS[m].label}
         </button>
       ))}
+      <p className="mt-1 text-center text-[12.5px] leading-relaxed text-faint">
+        By continuing you agree to our{" "}
+        <Link href="/terms" className="underline decoration-line-2 underline-offset-2 hover:text-fg">
+          Terms
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="underline decoration-line-2 underline-offset-2 hover:text-fg">
+          Privacy Policy
+        </Link>
+        .
+      </p>
       <AnimatePresence>
         {account.error && (
           <motion.div

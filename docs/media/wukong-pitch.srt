@@ -1,0 +1,99 @@
+1
+00:00:00,600 --> 00:00:02,975
+Hiring online is a one-to-one bet.
+
+2
+00:00:03,045 --> 00:00:05,535
+You pick one freelancer, wait, and hope.
+
+3
+00:00:05,605 --> 00:00:09,445
+Contests fix that. Many people try, and you pay only for the best.
+
+4
+00:00:09,515 --> 00:00:12,249
+But every contest today is judged by hand.
+
+5
+00:00:12,319 --> 00:00:18,972
+Colosseum's spring hackathon had almost three thousand submissions. That's hundreds of judge-hours, and weeks of waiting.
+
+6
+00:00:19,472 --> 00:00:27,396
+Wukong is a work marketplace where the crowd competes, an AI judge scores every entry, and the winners are paid automatically, on Solana.
+
+7
+00:00:27,896 --> 00:00:36,569
+Here's the real app. A coffee brand posts a tagline task, and one signature locks fifty USDC in escrow before anyone starts.
+
+8
+00:00:36,639 --> 00:00:41,209
+A worker enters. The entry is sealed by its hash on-chain, so nobody can copy it.
+
+9
+00:00:41,279 --> 00:00:47,973
+Then the crowd arrives: real signed transactions, including a copycat, a prompt-injection attempt and a spam bot.
+
+10
+00:00:48,043 --> 00:00:57,773
+The brand closes the task, and the judge goes to work. It checks the brief's rules in code, scores every entry three times, and must quote the entry to justify each score.
+
+11
+00:00:57,843 --> 00:01:03,642
+Every score goes on-chain with a hash of its report, and the program pays the top three in one transaction.
+
+12
+00:01:03,712 --> 00:01:07,702
+Every entrant gets written coaching, with evidence quoted from their own work.
+
+13
+00:01:07,772 --> 00:01:12,782
+The copycat, the injection and the spam bot score under twenty, and lose their stakes.
+
+14
+00:01:12,852 --> 00:01:21,119
+Agents can buy work too. This one gets a 402, Payment Required, and pays twenty-five USDC over x402.
+
+15
+00:01:21,189 --> 00:01:26,652
+Its task is escrowed, judged and paid, and the agent gets back a Nepali translation.
+
+16
+00:01:27,152 --> 00:01:34,298
+We built a benchmark to break our own judge: ninety-eight entries with provable answers, and twenty-five injection attacks.
+
+17
+00:01:34,368 --> 00:01:39,907
+Wukong ranks ninety-six and a half percent of pairs correctly. The same model alone gets ninety.
+
+18
+00:01:39,977 --> 00:01:46,601
+It blocked all twenty-five attacks, including ten written after tuning, and published zero invented quotes.
+
+19
+00:01:46,671 --> 00:01:51,646
+It's our own benchmark, so we publish its limits: it still misses paraphrased copies.
+
+20
+00:01:52,146 --> 00:01:55,472
+We take ten percent of each payout, enforced on-chain.
+
+21
+00:01:55,542 --> 00:02:03,258
+Next, the fee moves to buyers so workers keep everything, and we sell the judge as a service to hackathons, grant rounds and bounty programs.
+
+22
+00:02:03,328 --> 00:02:06,190
+Judging a thousand entries costs us a few dollars.
+
+23
+00:02:06,690 --> 00:02:14,875
+Wukong is live on devnet at wukonghq.xyz. The benchmark is public, and we're recruiting our first ten design partners.
+
+24
+00:02:15,375 --> 00:02:17,994
+We're a small team building from Kathmandu.
+
+25
+00:02:18,064 --> 00:02:21,733
+Wukong. Post a task. Summon the crowd. Pay the best.

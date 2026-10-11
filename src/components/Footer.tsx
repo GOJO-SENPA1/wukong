@@ -31,9 +31,19 @@ const COLS = [
     title: "Resources",
     links: [
       { href: "https://github.com/GOJO-SENPA1/wukong", label: "GitHub" },
-      { href: "https://github.com/GOJO-SENPA1/wukong/blob/claude/hackathon-demo-project-accszr/docs/PLAN.md", label: "How judging works" },
+      { href: "/rules", label: "How judging works" },
+      { href: "/benchmarks", label: "Judge benchmark" },
       { href: "/actions.json", label: "Solana Actions" },
       { href: "mailto:help@wukonghq.xyz", label: "help@wukonghq.xyz" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { href: "/terms", label: "Terms of Service" },
+      { href: "/privacy", label: "Privacy Policy" },
+      { href: "/rules", label: "Task and judging rules" },
+      { href: "/security", label: "Security" },
     ],
   },
 ];
@@ -53,7 +63,7 @@ export function Footer() {
           ))}
         </Marquee>
       </div>
-      <div className="mx-auto grid w-full max-w-7xl gap-12 px-4 pb-10 pt-16 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr] lg:px-8">
+      <div className="mx-auto grid w-full max-w-7xl gap-12 px-4 pb-10 pt-16 sm:px-6 sm:grid-cols-2 md:grid-cols-[1.5fr_1fr_1fr_1fr] lg:px-8">
         <div className="flex flex-col gap-5">
           <Logo size={28} />
           <p className="max-w-sm text-[14px] leading-relaxed text-muted">
@@ -63,11 +73,18 @@ export function Footer() {
         {COLS.map((c) => (
           <div key={c.title} className="flex flex-col gap-3">
             <div className="label !text-faint">{c.title}</div>
-            {c.links.map((l) => (
-              <Link key={l.href} href={l.href} className="link-underline w-fit text-[14px] text-fg/75 transition-colors hover:text-fg">
-                {l.label}
-              </Link>
-            ))}
+            {c.links.map((l) =>
+              // The benchmark is a static page, not an app route: a plain link loads it.
+              l.href === "/benchmarks" ? (
+                <a key={l.href} href={l.href} className="link-underline w-fit text-[14px] text-fg/75 transition-colors hover:text-fg">
+                  {l.label}
+                </a>
+              ) : (
+                <Link key={l.href} href={l.href} className="link-underline w-fit text-[14px] text-fg/75 transition-colors hover:text-fg">
+                  {l.label}
+                </Link>
+              ),
+            )}
           </div>
         ))}
       </div>

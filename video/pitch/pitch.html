@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Wukong pitch</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=block" rel="stylesheet">
+<style>
+  /* The pitch video: a deterministic timeline. render.mjs calls renderAt(t) for every frame. */
+  :root {
+    --bg: #07080c; --surface: #0e1017; --surface-2: #151822; --fg: #f1ede4; --muted: #9b9da6; --faint: #5f626c;
+    --line: rgba(255,255,255,.08); --line-2: rgba(255,255,255,.14);
+    --red: #f0412f; --red-2: #ff6b57; --gold: #d8b36c; --gold-2: #f0d9a6; --green: #45cf8b; --cyan: #5ec8e8; --bar: #5d616c;
+    --serif: "Instrument Serif", Georgia, serif; --sans: "Instrument Sans", system-ui, sans-serif; --mono: "JetBrains Mono", monospace; --mark: "Anton", Impact, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--fg); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  .abs { position: absolute; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+  #grid { inset: 0; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 96px 96px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 30% 10%, #000 20%, transparent 75%); opacity: .7; }
+  .aura { border-radius: 50%; }
+  #brand { left: 72px; top: 48px; display: flex; align-items: center; gap: 14px; font-family: var(--mark); font-size: 34px; letter-spacing: .02em; }
+  #brand i { width: 11px; height: 11px; border-radius: 50%; background: var(--red); box-shadow: 0 0 16px var(--red); }
+  #label { right: 72px; top: 56px; font-family: var(--mono); font-size: 17px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+  #progress { left: 0; bottom: 0; height: 4px; background: var(--red); }
+  .scene { inset: 0; opacity: 0; }
+  .serif { font-family: var(--serif); font-weight: 400; letter-spacing: -.01em; }
+  .w { display: inline-block; white-space: pre; }
+  em { font-style: italic; color: var(--gold-2); }
+  .red { color: var(--red-2); }
+  .mono { font-family: var(--mono); }
+  .kicker { font-family: var(--mono); font-size: 18px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); }
+
+  /* captions */
+  #cap { left: 50%; bottom: 46px; transform: translateX(-50%); max-width: 1500px; text-align: center; font-size: 31px; line-height: 1.35; font-weight: 500;
+    padding: 14px 28px; border-radius: 16px; background: rgba(7,8,12,.92); border: 1px solid var(--line-2); }
+  #cap .w { transition: none; }
+
+  /* problem */
+  #plines { left: 150px; top: 250px; width: 1000px; display: grid; gap: 26px; }
+  .pl { font-size: 78px; line-height: 1.04; }
+  #dots { right: 150px; top: 300px; width: 560px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 22px; }
+  #dots b { width: 46px; height: 46px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line-2); }
+  #stat { left: 150px; top: 270px; }
+  #stat .big { font-family: var(--sans); font-weight: 600; font-size: 240px; line-height: .9; letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+  #stat .sub { margin-top: 18px; font-size: 40px; color: var(--muted); }
+  .chips { display: flex; gap: 18px; flex-wrap: wrap; }
+  .statchip { border: 1px solid var(--line-2); border-radius: 18px; padding: 22px 28px; background: var(--surface); min-width: 360px; }
+  .statchip .v { font-size: 64px; font-weight: 600; letter-spacing: -.03em; }
+  .statchip .l { font-size: 24px; color: var(--muted); margin-top: 4px; }
+  .src { font-family: var(--mono); font-size: 16px; color: var(--faint); letter-spacing: .06em; }
+
+  /* solution */
+  #sol-mark { left: 150px; top: 250px; font-family: var(--mark); font-size: 150px; letter-spacing: .01em; line-height: 1; }
+  #sol-line { left: 150px; top: 430px; width: 760px; font-size: 54px; line-height: 1.14; }
+  #steps { left: 150px; top: 790px; display: flex; gap: 12px; }
+  .step { font-size: 24px; font-weight: 600; border: 1px solid var(--line-2); border-radius: 999px; padding: 10px 22px; background: var(--surface); }
+  .step.hot { border-color: var(--red); color: #fff; background: rgba(240,65,47,.16); }
+
+  /* browser frame */
+  .browser { border-radius: 16px; overflow: hidden; border: 1px solid var(--line-2); background: #000; box-shadow: 0 40px 120px -30px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.03); }
+  .chrome { height: 40px; background: #12141b; display: flex; align-items: center; gap: 9px; padding: 0 16px; border-bottom: 1px solid var(--line); }
+  .chrome i { width: 12px; height: 12px; border-radius: 50%; background: #2a2d36; }
+  .chrome .url { margin-left: 18px; flex: 1; height: 26px; border-radius: 8px; background: #0a0b10; color: var(--muted); font-family: var(--mono); font-size: 14px; display: flex; align-items: center; padding: 0 12px; }
+  .chrome .tag { font-family: var(--mono); font-size: 13px; color: var(--gold); letter-spacing: .1em; text-transform: uppercase; }
+  .browser img { display: block; width: 100%; }
+  #sol-browser { left: 960px; top: 230px; width: 830px; }
+  #demo-browser { left: 180px; top: 112px; width: 1560px; }
+  #tracker { left: 50%; transform: translateX(-50%); top: 52px; display: flex; gap: 8px; }
+  #tracker span { font-size: 19px; font-weight: 600; border-radius: 999px; padding: 6px 15px; border: 1px solid var(--line); color: var(--faint); }
+  #tracker span.on { color: #fff; border-color: var(--red); background: rgba(240,65,47,.18); }
+  #tracker span.done { color: var(--muted); border-color: var(--line-2); }
+  #speed { right: 196px; top: 168px; font-family: var(--mono); font-size: 17px; font-weight: 700; color: #fff; background: rgba(7,8,12,.85); border: 1px solid var(--line-2); padding: 6px 12px; border-radius: 8px; letter-spacing: .06em; }
+
+  /* terminal */
+  #term { left: 180px; top: 112px; width: 1560px; height: 917px; border-radius: 16px; border: 1px solid var(--line-2); background: #05060a; overflow: hidden; box-shadow: 0 40px 120px -30px rgba(0,0,0,.9); }
+  #term .body { padding: 34px 40px; font-family: var(--mono); font-size: 25px; line-height: 1.62; white-space: pre-wrap; }
+  #term .who { display: inline-block; min-width: 118px; font-weight: 700; }
+  #term .agent { color: var(--cyan); }
+  #term .wk { color: var(--gold); }
+  #term .dim { color: var(--faint); }
+  #term .hl { color: #fff; }
+  #term .ok { color: var(--green); }
+
+  /* proof */
+  #pf-title { left: 150px; top: 150px; font-size: 104px; }
+  #pf-chips { left: 150px; top: 300px; }
+  .chip2 { font-size: 26px; border: 1px solid var(--line-2); border-radius: 999px; padding: 10px 22px; color: var(--muted); }
+  .chip2 b { color: var(--fg); font-weight: 600; }
+  #chart { left: 150px; top: 420px; width: 1000px; }
+  #chart h4 { font-size: 26px; font-weight: 600; margin-bottom: 26px; }
+  #chart h4 span { color: var(--muted); font-weight: 400; }
+  .row { display: grid; grid-template-columns: 260px 1fr; align-items: center; gap: 22px; margin-bottom: 26px; }
+  .row .n { font-size: 25px; color: var(--muted); }
+  .row .n b { color: var(--fg); }
+  .track { position: relative; height: 54px; display: flex; align-items: center; }
+  .bar { height: 54px; border-radius: 0 6px 6px 0; background: var(--bar); }
+  .bar.us { background: var(--red); }
+  .val { margin-left: 16px; font-size: 34px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .axis { margin-left: 282px; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 16px; color: var(--faint); }
+  #tiles { left: 1240px; top: 420px; width: 560px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .tile { border: 1px solid var(--line); border-radius: 18px; background: var(--surface); padding: 22px 22px 20px; }
+  .tile .v { font-size: 58px; font-weight: 600; letter-spacing: -.03em; line-height: 1; }
+  .tile .l { margin-top: 10px; font-size: 20px; color: var(--muted); line-height: 1.3; }
+  #caveat { left: 150px; top: 790px; width: 1650px; border: 1px solid var(--line-2); border-radius: 16px; background: var(--surface-2); padding: 18px 26px; font-size: 25px; color: var(--muted); display: flex; gap: 34px; }
+  #caveat b { color: var(--gold); font-family: var(--mono); font-size: 16px; letter-spacing: .18em; text-transform: uppercase; align-self: center; }
+
+  /* business */
+  #biz-fee { left: 150px; top: 230px; }
+  #biz-fee .big { font-size: 260px; font-weight: 600; letter-spacing: -.05em; line-height: .85; }
+  #biz-fee .sub { font-size: 44px; margin-top: 14px; }
+  #biz-fee .sub2 { font-size: 26px; color: var(--muted); margin-top: 8px; }
+  #biz-cards { left: 980px; top: 220px; width: 800px; display: grid; gap: 18px; }
+  .card { border: 1px solid var(--line-2); border-radius: 20px; background: var(--surface); padding: 26px 30px; }
+  .card .k { font-family: var(--mono); font-size: 16px; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); }
+  .card .h { font-size: 40px; font-weight: 600; margin-top: 10px; line-height: 1.12; }
+  .card .p { font-size: 25px; color: var(--muted); margin-top: 8px; }
+  #biz-cost { left: 150px; top: 760px; font-size: 44px; }
+  #biz-cost span { color: var(--muted); font-size: 28px; display: block; margin-top: 6px; }
+
+  /* status */
+  #st { left: 150px; top: 250px; display: grid; gap: 30px; }
+  .check { display: flex; align-items: center; gap: 28px; font-size: 56px; }
+  .check i { width: 60px; height: 60px; border-radius: 50%; background: rgba(69,207,139,.14); color: var(--green); display: grid; place-items: center; font-style: normal; font-size: 34px; font-weight: 700; flex: none; }
+  .check small { display: block; font-size: 28px; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
+
+  /* close */
+  #cl-team { left: 0; right: 0; top: 230px; text-align: center; }
+  #cl-team .k { font-family: var(--mono); font-size: 20px; letter-spacing: .24em; text-transform: uppercase; color: var(--gold); }
+  #cl-team .names { font-size: 44px; margin-top: 18px; }
+  #cl-mark { left: 0; right: 0; top: 390px; text-align: center; font-family: var(--mark); font-size: 200px; line-height: 1; }
+  #cl-tag { left: 0; right: 0; top: 640px; text-align: center; font-size: 76px; }
+  #cl-links { left: 0; right: 0; top: 790px; text-align: center; font-family: var(--mono); font-size: 26px; color: var(--muted); letter-spacing: .04em; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="grid" class="abs"></div>
+  <div id="aura1" class="abs aura" style="width:1500px;height:1500px;left:-560px;top:-720px;background:radial-gradient(closest-side, rgba(240,65,47,.20), rgba(240,65,47,.07) 55%, transparent)"></div>
+  <div id="aura2" class="abs aura" style="width:1400px;height:1400px;right:-600px;bottom:-720px;background:radial-gradient(closest-side, rgba(216,179,108,.10), transparent)"></div>
+
+  <!-- PROBLEM -->
+  <section id="sc-problem" class="abs scene">
+    <div id="plines" class="abs">
+      <div id="pl1" class="pl serif"></div>
+      <div id="pl2" class="pl serif" style="color:var(--muted)"></div>
+      <div id="pl3" class="pl serif" style="margin-top:28px"></div>
+      <div id="pl4" class="pl serif"></div>
+    </div>
+    <div id="dots" class="abs"></div>
+    <div id="stat" class="abs">
+      <div class="big" id="stat-n">0</div>
+      <div class="sub">submissions to Colosseum's spring hackathon</div>
+      <div class="chips" style="margin-top:44px">
+        <div class="statchip" id="stat-a"><div class="v">≈ 476</div><div class="l">judge-hours at 10 minutes an entry</div></div>
+        <div class="statchip" id="stat-b"><div class="v">~6 weeks</div><div class="l">from deadline to winners</div></div>
+      </div>
+      <div class="src" style="margin-top:28px">Colosseum Frontier, Apr–May 2026: 2,857 submissions, winners announced Jun 26</div>
+    </div>
+  </section>
+
+  <!-- SOLUTION -->
+  <section id="sc-solution" class="abs scene">
+    <div id="sol-mark" class="abs">WUKONG</div>
+    <div id="sol-line" class="abs serif"></div>
+    <div id="steps" class="abs"><span class="step">Post a task</span><span class="step">Crowd competes</span><span class="step">AI judge scores</span><span class="step">Winners paid</span></div>
+    <div id="sol-browser" class="abs browser"><div class="chrome"><i></i><i></i><i></i><div class="url">wukonghq.xyz</div></div><img id="sol-img" alt=""></div>
+  </section>
+
+  <!-- DEMO -->
+  <section id="sc-demo" class="abs scene">
+    <div id="tracker" class="abs"><span>Post</span><span>Enter</span><span>Crowd</span><span>Judge</span><span>Pay</span><span>Coach</span><span>Slash</span><span>Agent</span></div>
+    <div id="demo-browser" class="abs browser"><div class="chrome"><i></i><i></i><i></i><div class="url" id="demo-url">localhost:3000/tasks/new</div><span class="tag">Real app · local Solana validator</span></div><img id="demo-img" alt=""></div>
+    <div id="speed" class="abs"></div>
+    <div id="term" class="abs"><div class="chrome"><i></i><i></i><i></i><div class="url">npm run agent -- --auto</div><span class="tag">Real output</span></div><div class="body" id="term-body"></div></div>
+  </section>
+
+  <!-- PROOF -->
+  <section id="sc-proof" class="abs scene">
+    <div id="pf-title" class="abs serif">Wukong<em>Bench</em></div>
+    <div id="pf-chips" class="abs chips">
+      <span class="chip2"><b>98</b> entries · 10 tasks</span>
+      <span class="chip2">answers from <b>test suites</b>, <b>answer keys</b>, <b>planted defects</b></span>
+      <span class="chip2"><b>25</b> injection attacks</span>
+      <span class="chip2"><b>11</b> innocent look-alikes</span>
+    </div>
+    <div id="chart" class="abs">
+      <h4>Pairs of entries ranked correctly <span>· 339 pairs, average of 3 runs for Wukong</span></h4>
+      <div class="row"><div class="n">Rule-based judge</div><div class="track"><div class="bar" id="bar0"></div><span class="val" id="val0"></span></div></div>
+      <div class="row"><div class="n">Same model alone</div><div class="track"><div class="bar" id="bar1"></div><span class="val" id="val1"></span></div></div>
+      <div class="row"><div class="n"><b>Wukong judge</b></div><div class="track"><div class="bar us" id="bar2"></div><span class="val" id="val2"></span></div></div>
+      <div class="axis"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+    </div>
+    <div id="tiles" class="abs">
+      <div class="tile"><div class="v">25/25</div><div class="l">injection attacks blocked</div></div>
+      <div class="tile"><div class="v">10/10</div><div class="l">held-out attacks, written after tuning</div></div>
+      <div class="tile"><div class="v">0</div><div class="l">invented quotes published</div></div>
+      <div class="tile"><div class="v">0/11</div><div class="l">innocent entries falsely flagged</div></div>
+    </div>
+    <div id="caveat" class="abs"><b>Limits</b><span>Our own benchmark, and we tuned on it. Untuned: 94.7%.</span><span>Right winner in 8 of 10 tasks.</span><span>Misses paraphrased copies.</span></div>
+  </section>
+
+  <!-- BUSINESS -->
+  <section id="sc-business" class="abs scene">
+    <div id="biz-fee" class="abs"><div class="kicker">Business model · today</div><div class="big" style="margin-top:20px">10%</div><div class="sub">of each payout, enforced on-chain</div><div class="sub2">The program caps the fee at 20%.</div></div>
+    <div id="biz-cards" class="abs">
+      <div class="card" id="card1"><div class="k">Next</div><div class="h">The fee moves to buyers. Workers keep 100%.</div></div>
+      <div class="card" id="card2"><div class="k">Next</div><div class="h">The judge, sold as a service</div><div class="p">Hackathons · grant rounds · bounty programs, priced per entry</div></div>
+    </div>
+    <div id="biz-cost" class="abs">A few dollars to judge 1,000 entries<span>vs. roughly $6,700 of human panel time at 10 minutes and $40 an hour</span></div>
+  </section>
+
+  <!-- STATUS -->
+  <section id="sc-status" class="abs scene">
+    <div id="st" class="abs">
+      <div class="kicker">Where we are</div>
+      <div class="check" id="ck1"><i>✓</i><div>Live on devnet<small>wukonghq.xyz</small></div></div>
+      <div class="check" id="ck2"><i>✓</i><div>Benchmark public<small>wukonghq.xyz/benchmarks</small></div></div>
+      <div class="check" id="ck3"><i>→</i><div>Recruiting our first 10 design partners<small>Solana teams, hackathons, grant programs</small></div></div>
+    </div>
+  </section>
+
+  <!-- CLOSE -->
+  <section id="sc-close" class="abs scene">
+    <div id="cl-team" class="abs"><div class="k">Built in Kathmandu</div><div class="names" id="cl-names"></div></div>
+    <div id="cl-mark" class="abs">WUKONG</div>
+    <div id="cl-tag" class="abs serif"></div>
+    <div id="cl-links" class="abs">wukonghq.xyz · github.com/GOJO-SENPA1/wukong</div>
+  </section>
+
+  <div id="brand" class="abs"><i></i>WUKONG</div>
+  <div id="label" class="abs"></div>
+  <div id="cap" class="abs"></div>
+  <div id="progress" class="abs"></div>
+</div>
+
+<script src="timing.js"></script>
+<script src="clips.js"></script>
+<script src="team.js"></script>
+<script src="agent.js"></script>
+<script>
+const T = window.TIMING, L = T.lines, S = Object.fromEntries(T.scenes.map((s) => [s.id, s]));
+window.DURATION = T.duration;
+window.SCENES = T.scenes;
+window.CUES = [];
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const ease = (x) => 1 - Math.pow(1 - clamp(x), 3);
+const inOut = (x) => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const prog = (t, a, d) => clamp((t - a) / d);
+function setO(el, o, dy = 0, dx = 0, s = 1) { el.style.opacity = o; el.style.transform = `translate(${dx}px, ${dy}px) scale(${s})`; }
+const LABELS = { problem: "01 · The problem", solution: "02 · Wukong", demo: "03 · Live demo", proof: "04 · Proof", business: "05 · Business", status: "06 · Status", close: "07 · Team" };
+
+// Words of a line, revealed as they're spoken. `fmt` styles single words.
+function words(id, fmt = (w) => w) {
+  return L[id].words.map((w) => `<span class="w" data-t="${w.t0}">${fmt(w.w)} </span>`).join("");
+}
+function reveal(el, t, dim = 0) {
+  for (const w of el.querySelectorAll(".w")) {
+    const p = ease(prog(t, +w.dataset.t - 0.05, 0.35));
+    w.style.opacity = dim ? dim + (1 - dim) * p : p;
+    w.style.transform = dim ? "none" : `translateY(${(1 - p) * 18}px)`;
+  }
+}
+function sceneAlpha(t, id, fade = 0.45) {
+  const s = S[id];
+  return Math.min(ease(prog(t, s.start - 0.2, fade)), 1 - ease(prog(t, s.end - fade + 0.05, fade)));
+}
+
+// ---------- build static content ----------
+$("pl1").innerHTML = words("p1");
+$("pl2").innerHTML = words("p2");
+$("pl3").innerHTML = words("p3", (w) => (/best/.test(w) ? `<em>${w}</em>` : w));
+$("pl4").innerHTML = words("p4", (w) => (/hand/.test(w) || w === "by" ? `<em class="red">${w}</em>` : w));
+$("dots").innerHTML = Array.from({ length: 24 }, () => "<b></b>").join("");
+$("sol-line").innerHTML = words("s1", (w) => (/automatically/.test(w) ? `<em>${w}</em>` : w));
+$("cl-tag").innerHTML = words("c2", (w) => (/best/.test(w) ? `<em>${w}</em>` : w)).replace(/^<span class="w"[^>]*>Wukong\. <\/span>/, "");
+$("cl-names").textContent = (window.TEAM && window.TEAM.length) ? window.TEAM.join("  ·  ") : "The Wukong team";
+const TRACK = { d1: 0, d2: 1, d3: 2, d4: 3, d5: 4, d6: 5, d7: 6, d8: 7, d9: 7 };
+const URLS = { s1: "wukonghq.xyz", d1: "localhost:3000/tasks/new", d2: "localhost:3000/tasks/…", d3: "localhost:3000/tasks/…", d4: "localhost:3000/tasks/…", d5: "localhost:3000/tasks/…", d6: "localhost:3000/tasks/…", d7: "localhost:3000/tasks/…", d9: "localhost:3000/tasks/… · posted by an AI agent" };
+
+// terminal lines from the real agent run
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+function termLine(s) {
+  s = s.replace(/^\p{Extended_Pictographic}️?\s*/u, (m) => m);
+  let m;
+  if ((m = s.match(/^🤖 agent\s+(.*)$/u))) return `<span class="who agent">agent</span>${esc(m[1])}`;
+  if ((m = s.match(/^🐒 wukong\s+(.*)$/u))) {
+    const body = esc(m[1]).replace(/^(402 Payment Required|201 Created)/, '<span class="hl">$1</span>').replace(/(Escrow locked on-chain|Task is live)/, '<span class="ok">$1</span>');
+    return `<span class="who wk">wukong</span>${body}`;
+  }
+  if (/^x402 agent buyer/.test(s)) return `<span class="hl">${esc(s.split(" · ")[0])}</span> <span class="dim">· ${esc((s.split(" · ")[1] || "").slice(0, 12))}…</span>`;
+  return `<span class="dim">${esc(s)}</span>`;
+}
+const TERM = window.AGENT.lines.map((r) => termLine(r.text));
+
+// ---------- frames ----------
+let lastSrc = {};
+async function showFrame(img, clip, t) {
+  const i = Math.min(clip.frames - 1, Math.max(0, Math.floor((t - clip.start) * 30)));
+  const src = `${clip.dir}/${String(i + 1).padStart(5, "0")}.jpg`;
+  if (lastSrc[img.id] === src) return;
+  lastSrc[img.id] = src;
+  img.src = src;
+  try { await img.decode(); } catch (e) { /* keep last frame */ }
+}
+function clipAt(t, lines) {
+  let best = null;
+  for (const c of window.CLIPS) if (lines.includes(c.line) && t >= c.start - 0.001) best = c;
+  return best && t < best.start + best.dur + 0.5 ? best : best;
+}
+function currentLine(t) {
+  let cur = null;
+  for (const [id, l] of Object.entries(L)) if (t >= l.start - 0.05) cur = id;
+  return cur;
+}
+
+window.renderAt = async function (t) {
+  $("progress").style.width = `${(t / T.duration) * 100}%`;
+  $("aura1").style.transform = `translate(${Math.sin(t / 7) * 40}px, ${Math.cos(t / 9) * 30}px)`;
+  const line = currentLine(t);
+  const scene = line ? L[line].scene : "problem";
+  $("label").textContent = LABELS[scene];
+
+  // captions: the spoken line, dimmed words ahead
+  const NOCAP = ["p1", "p2", "p3", "p4", "s1", "c2"];
+  const capOn = line && !NOCAP.includes(line) && t <= L[line].end + 0.6;
+  const cap = $("cap");
+  if (capOn) {
+    if (cap.dataset.line !== line) { cap.innerHTML = words(line); cap.dataset.line = line; }
+    reveal(cap, t, 0.35);
+  }
+  cap.style.opacity = capOn ? 1 : 0;
+
+  // PROBLEM
+  const aP = sceneAlpha(t, "problem");
+  $("sc-problem").style.opacity = aP;
+  if (aP > 0) {
+    for (const [el, id] of [["pl1", "p1"], ["pl2", "p2"], ["pl3", "p3"], ["pl4", "p4"]]) reveal($(el), t);
+    const out = ease(prog(t, L.p5.start - 0.4, 0.6));
+    for (const id of ["pl1", "pl2", "pl3", "pl4"]) { $(id).style.opacity = 1 - out; $(id).style.transform = `translateY(${-out * 40}px)`; }
+    const dots = $("dots").children;
+    for (let i = 0; i < dots.length; i++) {
+      const on = ease(prog(t, L.p3.start + i * 0.06, 0.3));
+      const star = i === 13 ? ease(prog(t, L.p3.end - 0.9, 0.5)) : 0;
+      const dim = ease(prog(t, L.p4.start, 0.8));
+      dots[i].style.background = star > 0 ? `rgba(240,65,47,${0.3 + star * 0.7})` : `rgba(241,237,228,${0.05 + on * 0.25 * (1 - dim * 0.7)})`;
+      dots[i].style.boxShadow = star > 0 ? `0 0 ${24 * star}px rgba(240,65,47,.8)` : "none";
+      dots[i].style.transform = `scale(${0.6 + on * 0.4})`;
+    }
+    $("dots").style.opacity = (ease(prog(t, L.p3.start - 0.3, 0.4))) * (1 - out);
+    const sIn = ease(prog(t, L.p5.start, 0.6));
+    setO($("stat"), sIn, (1 - sIn) * 30);
+    $("stat-n").textContent = Math.round(2857 * inOut(prog(t, L.p5.start, 1.6))).toLocaleString("en-US");
+    setO($("stat-a"), ease(prog(t, L.p5.start + 2.6, 0.5)), (1 - ease(prog(t, L.p5.start + 2.6, 0.5))) * 20);
+    setO($("stat-b"), ease(prog(t, L.p5.start + 4.3, 0.5)), (1 - ease(prog(t, L.p5.start + 4.3, 0.5))) * 20);
+  }
+
+  // SOLUTION
+  const aS = sceneAlpha(t, "solution");
+  $("sc-solution").style.opacity = aS;
+  if (aS > 0) {
+    const m = ease(prog(t, S.solution.start - 0.1, 0.7));
+    setO($("sol-mark"), m, (1 - m) * 30);
+    reveal($("sol-line"), t);
+    const steps = $("steps").children;
+    for (let i = 0; i < steps.length; i++) {
+      const p = ease(prog(t, L.s1.start + 1.2 + i * 1.3, 0.4));
+      setO(steps[i], p, (1 - p) * 16);
+      steps[i].classList.toggle("hot", t >= L.s1.start + 1.2 + i * 1.3 && t < L.s1.start + 2.5 + i * 1.3);
+    }
+    const b = ease(prog(t, S.solution.start + 0.3, 0.8));
+    setO($("sol-browser"), b, 0, (1 - b) * 60);
+    const c = clipAt(t, ["s1"]);
+    if (c) await showFrame($("sol-img"), c, t);
+  }
+
+  // DEMO
+  const aD = sceneAlpha(t, "demo");
+  $("sc-demo").style.opacity = aD;
+  if (aD > 0) {
+    const dl = L[line] && L[line].scene === "demo" ? line : "d1";
+    const spans = $("tracker").children;
+    for (let i = 0; i < spans.length; i++) { spans[i].className = i === TRACK[dl] ? "on" : i < TRACK[dl] ? "done" : ""; }
+    const termOn = dl === "d8";
+    $("term").style.opacity = termOn ? 1 : 0;
+    $("demo-browser").style.opacity = termOn ? 0 : 1;
+    if (termOn) {
+      const t0 = L.d8.start, span = (L.d9.start - L.d8.start) - 0.6;
+      const n = Math.min(TERM.length, Math.floor(prog(t, t0 - 0.2, span) * (TERM.length + 0.5)) + 1);
+      $("term-body").innerHTML = TERM.slice(0, n).join("\n") + (n < TERM.length && Math.floor(t * 2) % 2 ? "\n▍" : "");
+      $("speed").style.opacity = 0;
+    } else {
+      const c = clipAt(t, ["d1", "d2", "d3", "d4", "d5", "d6", "d7", "d9"]);
+      if (c) {
+        await showFrame($("demo-img"), c, t);
+        $("demo-url").textContent = URLS[c.line] || "localhost:3000";
+        $("speed").textContent = `${c.speed.toFixed(c.speed >= 5 ? 0 : 1)}× speed`;
+        $("speed").style.opacity = c.speed >= 2 ? 1 : 0;
+      }
+    }
+  }
+
+  // PROOF
+  const aB = sceneAlpha(t, "proof");
+  $("sc-proof").style.opacity = aB;
+  if (aB > 0) {
+    const h = ease(prog(t, S.proof.start, 0.6));
+    setO($("pf-title"), h, (1 - h) * 24);
+    const ch = $("pf-chips").children;
+    for (let i = 0; i < ch.length; i++) { const p = ease(prog(t, L.b1.start + 1.2 + i * 1.1, 0.4)); setO(ch[i], p, (1 - p) * 14); }
+    const c = ease(prog(t, L.b2.start - 0.2, 0.5));
+    setO($("chart"), c, (1 - c) * 20);
+    const vals = [79.1, 90.0, 96.5];
+    for (let i = 0; i < 3; i++) {
+      const p = inOut(prog(t, L.b2.start + 0.2 + i * 0.7, 1.4));
+      $("bar" + i).style.width = `${(vals[i] / 100) * 640 * p}px`;
+      $("val" + i).textContent = p > 0.02 ? `${(vals[i] * p).toFixed(1)}%` : "";
+      $("val" + i).style.opacity = p;
+    }
+    const tl = $("tiles").children;
+    for (let i = 0; i < tl.length; i++) { const p = ease(prog(t, L.b3.start + i * 0.9, 0.45)); setO(tl[i], p, (1 - p) * 18); }
+    const cv = ease(prog(t, L.b4.start, 0.5));
+    setO($("caveat"), cv, (1 - cv) * 18);
+  }
+
+  // BUSINESS
+  const aM = sceneAlpha(t, "business");
+  $("sc-business").style.opacity = aM;
+  if (aM > 0) {
+    const f = ease(prog(t, S.business.start, 0.6));
+    setO($("biz-fee"), f, (1 - f) * 24);
+    const c1 = ease(prog(t, L.m2.start + 0.2, 0.5)), c2 = ease(prog(t, L.m2.start + 3.4, 0.5));
+    setO($("card1"), c1, 0, (1 - c1) * 40);
+    setO($("card2"), c2, 0, (1 - c2) * 40);
+    const co = ease(prog(t, L.m3.start, 0.5));
+    setO($("biz-cost"), co, (1 - co) * 18);
+  }
+
+  // STATUS
+  const aT = sceneAlpha(t, "status");
+  $("sc-status").style.opacity = aT;
+  if (aT > 0) {
+    const k = [L.t1.start + 0.1, L.t1.start + 3.6, L.t1.start + 5.3];
+    ["ck1", "ck2", "ck3"].forEach((id, i) => { const p = ease(prog(t, k[i], 0.45)); setO($(id), p, 0, (1 - p) * -30); });
+  }
+
+  // CLOSE
+  const aC = Math.min(ease(prog(t, S.close.start - 0.2, 0.5)), 1 - ease(prog(t, T.duration - 0.6, 0.6)));
+  $("sc-close").style.opacity = aC;
+  if (aC > 0) {
+    const tm = ease(prog(t, S.close.start, 0.6));
+    setO($("cl-team"), tm, (1 - tm) * 16);
+    const mk = ease(prog(t, L.c2.start - 0.1, 0.6));
+    setO($("cl-mark"), mk, 0, 0, 0.92 + 0.08 * mk);
+    reveal($("cl-tag"), t);
+    const ln = ease(prog(t, L.c2.end - 0.6, 0.6));
+    setO($("cl-links"), ln);
+  }
+  $("brand").style.opacity = (1 - aC) * (1 - aD);
+};
+
+document.fonts.ready.then(async () => { await window.renderAt(0); window.__ready = true; });
+</script>
+</body>
+</html>

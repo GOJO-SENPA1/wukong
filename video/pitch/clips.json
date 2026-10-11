@@ -1,0 +1,15 @@
+{
+  "fps": 30,
+  "source": "recording of the real app driven by record.mjs (not committed: 180 s webm)",
+  "clips": [
+    { "line": "s1", "cuts": [[8.5, 20.0]] },
+    { "line": "d1", "cuts": [[24.0, 39.5]] },
+    { "line": "d2", "cuts": [[41.0, 51.0]] },
+    { "line": "d3", "cuts": [[52.0, 70.0]] },
+    { "line": "d4", "cuts": [[76.0, 84.0, 0.55], [84.0, 118.0, 0.45]] },
+    { "line": "d5", "cuts": [[118.0, 128.0]] },
+    { "line": "d6", "cuts": [[131.5, 140.0]] },
+    { "line": "d7", "cuts": [[148.0, 156.0]] },
+    { "line": "d9", "cuts": [[167.5, 178.0]] }
+  ]
+}
