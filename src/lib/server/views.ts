@@ -78,11 +78,13 @@ export async function stateView() {
     autoFund: demoMode(),
     config,
     tasks: list,
+    // Every number comes from the tasks shown, so hidden demo tasks never inflate the totals
+    // (the program's own counters include every task ever posted).
     stats: {
       tasks: list.length,
       open: list.filter((t) => t.status === "open").length,
-      escrowed: config?.totalEscrowed ?? 0,
-      paid: config?.totalPaid ?? 0,
+      escrowed: list.filter((t) => t.status === "open" || t.status === "judging").reduce((a, t) => a + t.reward, 0),
+      paid: list.reduce((a, t) => a + t.paidOut, 0),
       submissions: list.reduce((a, t) => a + t.submissionCount, 0),
     },
   };
