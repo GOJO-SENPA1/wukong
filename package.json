@@ -4,6 +4,9 @@
   "private": true,
   "description": "Post a task. Summon the crowd. Pay the best. Competitive work marketplace on Solana with AI judging and on-chain reputation.",
   "license": "MIT",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && node scripts/db-sync.mjs && next build",
@@ -65,6 +68,9 @@
     "tailwindcss": "4.3.3",
     "tsx": "4.23.15",
     "typescript": "5.9.3"
+  },
+  "overrides": {
+    "rpc-websockets": "^9.3.10"
   },
   "allowScripts": {
     "prisma@6.19.3": true,
