@@ -19,7 +19,7 @@ import {
   type SubmissionView,
   type TaskView,
 } from "../../wukong";
-import { connection, demoMode, isDemoCreator, loadKey, program } from "../env";
+import { connection, demoContent, isDemoCreator, loadKey, program } from "../env";
 import { kv } from "../kv";
 import { store } from "../store";
 import { claudeAvailable, JUDGE_MODEL, JudgeRefusal, scoreWithClaude } from "./claude";
@@ -122,8 +122,8 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
     emit({ type: "start", task: taskKey, count: task.submissionCount, engine, model });
 
     // Before the deadline only the creator closes submissions (on-chain, with their own signature).
-    // The one exception: in demo mode, the seeded demo companies' tasks, so visitors can watch the judge.
-    if (task.status === "open" && Date.now() / 1000 <= task.deadline && !(demoMode() && isDemoCreator(task.creator))) {
+    // The one exception: on a demo deployment, the seeded demo companies' tasks, so visitors can watch the judge.
+    if (task.status === "open" && Date.now() / 1000 <= task.deadline && !(demoContent() && isDemoCreator(task.creator))) {
       throw new Error("Submissions are still open: the creator closes them on-chain, or the deadline does");
     }
     if (task.status === "open") {

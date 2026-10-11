@@ -137,7 +137,7 @@ Every open task is a Blink. `/actions.json` maps `/tasks/<id>` to `/api/actions/
 
 ### Production mode and the keeper
 
-`WUKONG_DEMO_MODE` is on for localnet only (`1` turns it on elsewhere; it's never on for mainnet): the faucet, the simulated crowd, and early closing of the seeded demo companies' tasks. Off, the demo endpoints refuse, and only the creator (on-chain) or the deadline closes submissions. See [docs/SECURITY.md](docs/SECURITY.md). Run `npm run keeper` alongside the app: it closes and judges tasks whose deadline passed, resumes interrupted judging, settles, pays the AI's pick when a creator's pick window lapses, and settles stakes. Nobody has to click anything.
+`WUKONG_DEMO_MODE` is on for localnet only (`1` turns it on elsewhere; it's never on for mainnet): the faucet, the simulated crowd, and early closing of the seeded demo companies' tasks. Where sign-in is on (Privy + database), none of the demo content is shown and demo mode only tops up signed-in accounts' wallets with test funds. Off, the demo endpoints refuse, and only the creator (on-chain) or the deadline closes submissions. See [docs/SECURITY.md](docs/SECURITY.md). Run `npm run keeper` alongside the app: it closes and judges tasks whose deadline passed, resumes interrupted judging, settles, pays the AI's pick when a creator's pick window lapses, and settles stakes. Nobody has to click anything.
 
 ## Scripts
 

@@ -35,7 +35,7 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
   const { task: taskKey } = use(params);
   const { signer, personaName, refresh: refreshState, state: appState, role } = useApp();
   const account = useAccount();
-  const demoMode = appState.demoMode !== false;
+  const demoMode = appState.demoMode === true;
   const [data, setData] = useState<TaskPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [live, setLive] = useState<LiveState>(emptyLive);

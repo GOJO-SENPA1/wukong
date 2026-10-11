@@ -1,7 +1,6 @@
 import { accountError, accountsEnabled, authFromRequest, HttpError, requireAccount } from "@/lib/server/accounts";
 import { rateLimit, readJson } from "@/lib/server/guard";
 import { ActionSchema, buildAction, type Action } from "@/lib/server/actions";
-import { demoMode } from "@/lib/server/env";
 import { fail, ok } from "@/lib/server/http";
 
 // Which role may build which action. The program itself is permissionless (and
@@ -32,8 +31,8 @@ export async function POST(req: Request) {
       if (need && profile.role !== need) {
         throw new HttpError(403, need === "company" ? "Only organisation accounts can post and manage tasks" : "Organisation accounts can't enter tasks");
       }
-    } else if (accountsEnabled() && !demoMode() && (action.kind === "create_task" || action.kind === "submit")) {
-      // With accounts on and the demo off, posting and entering need a signed-in account.
+    } else if (accountsEnabled() && (action.kind === "create_task" || action.kind === "submit")) {
+      // With accounts on, posting and entering always need a signed-in account (demo personas only exist without sign-in).
       throw new HttpError(401, "Sign in to continue");
     }
   } catch (err) {

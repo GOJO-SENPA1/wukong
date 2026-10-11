@@ -16,7 +16,7 @@ import {
   type SubmissionView,
   type TaskView,
 } from "../wukong";
-import { demoMode, connection, deployment, isDemoCreator, program, publicRpcUrl } from "./env";
+import { demoContent, demoMode, connection, deployment, demoWallets, isDemoCreator, program, publicRpcUrl } from "./env";
 import { judgeEngine } from "./judge";
 import { store, type BriefRecord, type ReportRecord, type TaskMeta, type TxRecord } from "./store";
 import { profileByWallet, publicProfile } from "./accounts";
@@ -27,8 +27,13 @@ export interface TaskCard extends TaskView {
   agent?: BriefRecord["agent"];
   template?: string;
   categoryLabel: string;
-  /** Posted by a seeded demo company: in demo mode anyone may close it early */
+  /** Posted by a seeded demo company: on a demo deployment anyone may close it early */
   demoCreator: boolean;
+}
+
+/** A seeded demo company's task. Shown only on a demo deployment, never where real accounts exist. */
+function hidden(t: TaskCard): boolean {
+  return !demoContent() && (t.origin === "seed" || demoWallets().has(t.creator));
 }
 
 /** Join tasks with their off-chain metadata (three store round trips, however many tasks). */
@@ -49,7 +54,7 @@ function card(t: TaskView, meta: TaskMeta | BriefRecord | undefined, names: Reco
     agent: meta?.agent,
     template: meta?.template,
     categoryLabel: categoryById(t.category).label,
-    demoCreator: demoMode() && isDemoCreator(t.creator),
+    demoCreator: demoContent() && isDemoCreator(t.creator),
   };
 }
 
@@ -57,7 +62,7 @@ export async function stateView() {
   const dep = deployment();
   const prog = program();
   const [config, tasks] = await Promise.all([fetchConfig(prog), fetchTasks(prog)]);
-  const list = await cards(tasks);
+  const list = (await cards(tasks)).filter((t) => !hidden(t));
   return {
     deployment: {
       cluster: dep.cluster,
@@ -67,7 +72,10 @@ export async function stateView() {
       judge: dep.judge,
     },
     judge: judgeEngine(),
-    demoMode: demoMode(),
+    // Demo features in the UI (crowd, closing early, the test-funds button).
+    demoMode: demoContent(),
+    // The app quietly keeps a signed-in account's wallet topped up with the network's test funds.
+    autoFund: demoMode(),
     config,
     tasks: list,
     stats: {
@@ -121,8 +129,10 @@ export async function taskView(taskKey: string) {
     };
   });
 
+  const card = (await cards([task], names))[0];
+  if (hidden(card)) return null;
   return {
-    task: (await cards([task], names))[0],
+    task: card,
     brief: brief ? { text: brief.brief, verified: true } : null,
     vaultBalance,
     submissions,
@@ -178,5 +188,7 @@ export async function workerView(worker: string) {
 
 export async function leaderboardView(): Promise<(ReputationView & { name?: string })[]> {
   const [reps, names] = await Promise.all([fetchReputations(program()), store.names()]);
-  return reps.map((r) => ({ ...r, name: names[r.worker] }));
+  // The simulated crowd only ranks on a demo deployment.
+  const shown = demoContent() ? reps : reps.filter((r) => !demoWallets().has(r.worker));
+  return shown.map((r) => ({ ...r, name: names[r.worker] }));
 }

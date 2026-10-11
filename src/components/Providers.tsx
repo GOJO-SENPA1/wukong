@@ -24,7 +24,10 @@ export interface AppState {
   error?: string;
   deployment?: { cluster: string; rpcUrl: string; programId: string; mint: string; judge: string };
   judge?: { engine: "claude" | "heuristic"; model: string };
+  /** Demo features: the simulated crowd, closing demo tasks early, the test-funds button */
   demoMode?: boolean;
+  /** The network hands out test funds: a signed-in account's wallet is topped up quietly */
+  autoFund?: boolean;
   config?: ConfigView | null;
   tasks?: TaskCard[];
   stats?: { tasks: number; open: number; escrowed: number; paid: number; submissions: number };
@@ -200,15 +203,21 @@ function Inner({ children, state, refresh }: { children: ReactNode; state: AppSt
   const role: Role | null =
     persona === "account" ? account.role : persona === "wallet" ? (wallet.publicKey ? "worker" : null) : PERSONAS.find((x) => x.id === persona)?.role === "company" ? "company" : "worker";
 
-  // Demo deployments fund a signed-in account's wallet once, like the personas.
+  // On a test network, a signed-in account's wallet is kept topped up for fees (and an
+  // organisation's with the network's USDC), quietly: once per browser session, and the
+  // server only sends anything when a balance has run low.
   const accountWallet = persona === "account" && account.role ? account.me?.wallet : undefined;
   useEffect(() => {
-    if (!accountWallet || !state.demoMode || !mint) return;
-    const key = `${FUNDED_KEY}.${accountWallet}`;
-    if (safeGet(key) === mint) return;
-    safeSet(key, mint);
+    if (!accountWallet || !state.autoFund || !mint) return;
+    const key = `${FUNDED_KEY}.${accountWallet}.${mint}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch {
+      /* storage blocked: top up anyway, the server rate-limits it */
+    }
     postJSON("/api/faucet", { address: accountWallet, role: account.role === "company" ? "company" : "worker" }).catch(() => {});
-  }, [accountWallet, state.demoMode, mint, account.role]);
+  }, [accountWallet, state.autoFund, mint, account.role]);
 
   const identityReady =
     hydrated &&

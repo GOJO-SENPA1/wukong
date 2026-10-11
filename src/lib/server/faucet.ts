@@ -9,6 +9,7 @@ import {
   type TransactionInstruction,
 } from "@solana/web3.js";
 import {
+  getAccount,
   getMint,
   createAssociatedTokenAccountIdempotentInstruction,
   createMintToInstruction,
@@ -42,7 +43,7 @@ export async function faucetKey(): Promise<Keypair> {
 
 export async function fund(
   address: string,
-  opts: { sol?: number; usdc?: number; minSol?: number } = {},
+  opts: { sol?: number; usdc?: number; minSol?: number; minUsdc?: number } = {},
 ): Promise<{ sol: number; usdc: number; sig?: string }> {
   const to = new PublicKey(address);
   const conn = connection();
@@ -68,17 +69,23 @@ export async function fund(
       solSent = wantSol;
     }
   }
+  let usdcSent = 0;
   if (wantUsdc > 0) {
     const m = mint();
     const ata = getAssociatedTokenAddressSync(m, to, true);
-    ixs.push(
-      createAssociatedTokenAccountIdempotentInstruction(admin.publicKey, ata, to, m),
-      createMintToInstruction(m, ata, admin.publicKey, Math.round(wantUsdc * 1_000_000)),
-    );
+    // With minUsdc, only top up a balance that has run low.
+    const have = opts.minUsdc === undefined ? 0 : await getAccount(conn, ata).then((a) => Number(a.amount), () => 0);
+    if (opts.minUsdc === undefined || have < opts.minUsdc * 1_000_000) {
+      ixs.push(
+        createAssociatedTokenAccountIdempotentInstruction(admin.publicKey, ata, to, m),
+        createMintToInstruction(m, ata, admin.publicKey, Math.round(wantUsdc * 1_000_000)),
+      );
+      usdcSent = wantUsdc;
+    }
   }
   let sig: string | undefined;
   if (ixs.length) sig = await sendIxs(conn, keypairSigner(admin), ixs);
-  return { sol: solSent, usdc: wantUsdc, sig };
+  return { sol: solSent, usdc: usdcSent, sig };
 }
 
 export async function ensureGas(address: PublicKey, minSol = 0.02) {

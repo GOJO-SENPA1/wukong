@@ -138,7 +138,11 @@ export default function TasksPage() {
           {state.tasks && tasks.length === 0 && (
             <Empty className="flex flex-col items-center gap-3">
               <PixelIcon name="monkey" px={3} motion="bob" />
-              Nothing matches. Try another filter, or post the first task like it.
+              {state.tasks.length === 0
+                ? role === "company"
+                  ? "No tasks yet. Post the first one: it goes live the moment the reward is locked."
+                  : "No tasks yet. New tasks appear here the moment an organisation locks the reward."
+                : "Nothing matches. Try another filter, or post the first task like it."}
             </Empty>
           )}
           <AnimatePresence mode="popLayout">

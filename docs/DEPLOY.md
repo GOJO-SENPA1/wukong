@@ -107,5 +107,5 @@ Without Redis the app keeps content in a JSON file on the volume; set `REDIS_URL
 | `SOLANA_RPC_URL` | the deployment's `rpcUrl` | Server-side RPC override |
 | `ANTHROPIC_API_KEY` | unset → offline judge | Enables the Claude judge |
 | `WUKONG_JUDGE_MODEL` / `WUKONG_JUDGE_EFFORT` / `WUKONG_JUDGE_CONCURRENCY` | `claude-opus-5-5` / `medium` / `8` | Judge tuning |
-| `WUKONG_DEMO_MODE` | on for localnet only; `1` turns it on elsewhere; never on mainnet | Faucet, simulated crowd, early close of the seeded demo companies' and x402 tasks |
+| `WUKONG_DEMO_MODE` | on for localnet only; `1` turns it on elsewhere; never on mainnet | Without sign-in: burner personas, the faucet button, the seeded demo tasks, simulated crowd, early close of the seeded demo companies' and x402 tasks. With sign-in (Privy + database): none of that is shown; signed-in accounts' wallets are quietly topped up with the network's test SOL (and organisations' with test USDC) when they run low |
 | `KEEPER` / `KEEPER_INTERVAL_MS` | `1` / `30000` | Run the keeper loop in the container, and how often |

@@ -9,7 +9,6 @@ import { z } from "zod";
 import { verifyAuth, type AuthUser } from "./auth";
 import { hasDatabase, privyConfig } from "./config";
 import { db } from "./db";
-import { demoMode } from "./env";
 import { store } from "./store";
 import { HttpError } from "./guard";
 import { HELP_EMAIL } from "@/lib/contact";
@@ -332,7 +331,7 @@ export function accountError(err: unknown): Response {
 /**
  * Identity for a write that only one role may make. Signed in: the verified,
  * onboarded account with that role. Not signed in: allowed only where there are
- * no accounts to sign in to, or on a demo deployment (demo personas); returns null.
+ * no accounts to sign in to (a local demo with personas); returns null.
  */
 export async function writerFor(req: Request, role: Role): Promise<Profile | null> {
   const signedIn = accountsEnabled() && (await authFromRequest(req)) !== null;
@@ -344,7 +343,8 @@ export async function writerFor(req: Request, role: Role): Promise<Profile | nul
     }
     return profile;
   }
-  if (accountsEnabled() && !demoMode()) throw new HttpError(401, "Sign in to continue");
+  // Demo personas only exist without sign-in: with accounts on, every write needs one.
+  if (accountsEnabled()) throw new HttpError(401, "Sign in to continue");
   return null;
 }
 

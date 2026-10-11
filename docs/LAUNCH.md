@@ -76,7 +76,7 @@ Add these in Vercel (Production, plus Preview if you use preview deploys). Copy 
 
 These are already set from the earlier deploy: `WUKONG_DEPLOYMENT`, `WUKONG_JUDGE_SECRET`, `WUKONG_GATEWAY_SECRET`, `SOLANA_RPC_URL`, `KV_URL` / `REDIS_URL`, `CRON_SECRET`, `WUKONG_DEMO_MODE`, `ANTHROPIC_API_KEY`. Replace `WUKONG_ADMIN_SECRET` with `WUKONG_FAUCET_SECRET` (see [SECURITY.md](SECURITY.md)). See [DEPLOY.md](DEPLOY.md).
 
-For real users, set `WUKONG_DEMO_MODE=0`. That turns off the faucet, the simulated crowd and early closing, as the production design expects.
+With accounts on, the site never shows demo content: no burner personas, seeded demo tasks, simulated crowd, early closing or test-funds button. On devnet, keep `WUKONG_DEMO_MODE=1` so signed-in accounts' wallets are quietly topped up with test SOL for fees (and organisations' with test USDC) when they run low; without it nobody on devnet could pay a fee. Set it to `0` on mainnet, where people bring real funds.
 
 ---
 

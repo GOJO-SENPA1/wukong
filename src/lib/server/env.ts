@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { getProgram, type WukongProgram } from "../wukong";
+import { hasDatabase, privyConfig } from "./config";
 
 // turbopackIgnore: keep the dev bundler from tracing (and watching) the whole
 // project through process.cwd(); otherwise every ledger/store write reloads the page.
@@ -30,24 +31,45 @@ export function demoMode(): boolean {
   return cluster === "localnet";
 }
 
-const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-let demoCreators: Set<string> | null = null;
-
 /**
- * The seeded demo companies (keys derived on the server by scripts/seed.ts) and the x402 gateway.
- * In demo mode their tasks may be closed early by anyone, so visitors can watch
- * the judge work; nobody else's task can be closed early by the server.
+ * Demo content: the seeded companies' tasks, the simulated crowd, and closing those
+ * tasks early so visitors can watch the judge. Only on a deployment without sign-in.
+ * Where real accounts exist the site shows real work only; demo mode there just keeps
+ * signed-in wallets topped up with the network's test funds.
  */
-export function isDemoCreator(creator: string): boolean {
-  if (!demoCreators) {
+export function demoContent(): boolean {
+  return demoMode() && !(privyConfig() && hasDatabase());
+}
+
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+/** The derived-key role of a simulated crowd worker. */
+export const botRole = (name: string) => `bots/${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+let demoKeys: Set<string> | null = null;
+
+/** Wallets of the seeded demo companies (scripts/seed.ts) and the simulated crowd. Their keys are derived, so every server agrees. */
+export function demoWallets(): Set<string> {
+  if (!demoKeys) {
     // Lazy import: demo content is only needed here.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { TEMPLATES } = require("../demo") as typeof import("../demo");
-    demoCreators = new Set(TEMPLATES.map((t) => loadOrDeriveKey(`creators/${slug(t.creatorName)}`).publicKey.toBase58()));
-    // x402 tasks are created by the gateway on an agent's behalf: in a demo, the agent's run can close its own task.
-    demoCreators.add(deployment().gateway);
+    const roles = TEMPLATES.flatMap((t) => [`creators/${slug(t.creatorName)}`, ...t.crowd.map((e) => botRole(e.name))]);
+    try {
+      demoKeys = new Set(roles.map((r) => loadOrDeriveKey(r).publicKey.toBase58()));
+    } catch {
+      demoKeys = new Set(); // no key to derive them from, so nothing was seeded with them either
+    }
   }
-  return demoCreators.has(creator);
+  return demoKeys;
+}
+
+/**
+ * The seeded demo companies and the x402 gateway. With demo content on, their tasks
+ * may be closed early by anyone, so visitors can watch the judge work; nobody else's
+ * task can be closed early by the server.
+ */
+export function isDemoCreator(creator: string): boolean {
+  // x402 tasks are created by the gateway on an agent's behalf: in a demo, the agent's run can close its own task.
+  return demoWallets().has(creator) || creator === deployment().gateway;
 }
 
 export interface Deployment {

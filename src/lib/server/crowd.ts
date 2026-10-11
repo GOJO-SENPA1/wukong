@@ -7,7 +7,7 @@ import { templateById, type CrowdEntry } from "../demo";
 import { sha256Hex } from "../hash";
 import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { buildSubmitForTask, explainError, fetchTask, keypairSigner, pda, sendIxs } from "../wukong";
-import { connection, loadOrDeriveKey, program } from "./env";
+import { botRole, connection, loadOrDeriveKey, program } from "./env";
 import { ensureGas, fund } from "./faucet";
 import { store } from "./store";
 
@@ -19,7 +19,6 @@ export type CrowdEvent =
   | { type: "error"; message: string };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
 export async function* summonCrowd(taskKey: string, pace = 700): AsyncGenerator<CrowdEvent> {
   try {
@@ -39,7 +38,7 @@ export async function* summonCrowd(taskKey: string, pace = 700): AsyncGenerator<
 
     let submitted = 0;
     for (const entry of crowd) {
-      const kp = loadOrDeriveKey(`bots/${slug(entry.name)}`);
+      const kp = loadOrDeriveKey(botRole(entry.name));
       const existing = await conn.getAccountInfo(pda.submission(taskPk, kp.publicKey));
       if (existing) {
         yield { type: "skipped", name: entry.name, reason: "already submitted" };
