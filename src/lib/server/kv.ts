@@ -124,18 +124,23 @@ type Client = Awaited<ReturnType<typeof connect>>;
 function redisBackend(url: string): Backend {
   const prefix = process.env.WUKONG_KV_PREFIX ?? "wukong:";
   // One connection per server instance, reused across requests (and dev reloads).
-  const g = globalThis as { __wukongRedis?: Promise<Client> };
+  const g = globalThis as { __wukongRedis?: Promise<Client>; __wukongRedisDownUntil?: number };
+  // After a failure, skip Redis for a while so a dead store costs one slow request, not every request.
+  const COOLDOWN_MS = 30_000;
   const reset = () => {
     const stale = g.__wukongRedis;
     g.__wukongRedis = undefined;
+    g.__wukongRedisDownUntil = Date.now() + COOLDOWN_MS;
     stale?.then((c) => c.destroy()).catch(() => {});
   };
   const connected = () =>
     (g.__wukongRedis ??= connect(url).catch((err) => {
       g.__wukongRedis = undefined;
+      g.__wukongRedisDownUntil = Date.now() + COOLDOWN_MS;
       throw err;
     }));
   const client = async (): Promise<Client> => {
+    if (Date.now() < (g.__wukongRedisDownUntil ?? 0)) throw new Error("redis: unreachable a moment ago, skipping");
     let timer: ReturnType<typeof setTimeout> | undefined;
     const timeout = new Promise<never>((_, reject) => {
       timer = setTimeout(() => {
