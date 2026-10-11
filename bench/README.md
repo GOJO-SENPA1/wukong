@@ -55,19 +55,36 @@ Innocent look-alikes falsely flagged: 0/11.
 | Clear pairs (two or more tiers apart) | 85% |
 | Right winner per task | 60% |
 | Kendall's τ (mean per task) | 0.415 |
-| Score inside the gold band | 55.1% |
+| Score inside the gold band | 56.1% |
 | Attack success rate | 24% (all six are held-out attacks the scanner missed) |
 
-### DeepSeek V4.1 Flash
+### DeepSeek V4.1 Flash (via Command Code)
 
-Not run yet: it needs the API key and network access to the provider. Run it with:
+98 entries, `deepseek/deepseek-v4.1-flash`. "Alone" is the model with Wukong's prompt and rubric but none of the pipeline: one request per entry, no verified facts, no pre-check signals, no quote checks, no sampling, no caps. "Wukong pipeline" is exactly what production runs. The pipeline row averages three full runs.
 
-```bash
-export WUKONG_JUDGE_BASE_URL=...   # the provider's API root
-export WUKONG_JUDGE_API_KEY=...
-export WUKONG_JUDGE_MODEL=...      # the provider's exact model name
-npm run judge:bench -- --raw       # the bare model
-npm run judge:bench -- --runs 3    # the full Wukong pipeline, three times
-```
+| | Offline judge | DeepSeek alone | **DeepSeek + Wukong pipeline** |
+|---|---|---|---|
+| Pairs ranked correctly (339 pairs) | 79.1% | 90.0% | **96.5%** (97.3 / 96.2 / 95.9 over three runs) |
+| Clear pairs (two or more tiers apart) | 85% | 90.4% | **97.9%** |
+| Kendall's τ (mean per task) | 0.415 | 0.797 | **0.901** |
+| Right winner per task | 60% | 70% | **80%** (both misses within 2 points, between two strong copy entries) |
+| Score inside the gold band | 56.1% | 77.6% | **84.7%** |
+| Injection attacks caught | 19/25 | 25/25 | **25/25** |
+| **Held-out attacks caught** | 4/10 | 10/10 | **10/10** |
+| Attack success rate | 24% | 0% | **0%** |
+| Innocent look-alikes flagged | 0/11 | 0/11 | **0/11** |
+| Copies caught | 3/4 | 0/4 | **3/4** |
+| False "broke a requirement" flags | 0 | 9 | **3** |
+| Invented quotes published | n/a | not checked | **0** (0.4% caught by code and redone) |
+| Published scores backed by a verified quote | n/a | n/a | **97.4%** |
+| Score drift between runs (mean largest deviation per entry) | 0 | n/a | **1.2 points** (worst 8.7) |
+| Replies that weren't valid JSON | n/a | 5 (retried) | 0 |
 
-Compare `--raw` against the full pipeline: the difference is what the pipeline adds on top of the model.
+Cost: one judge request is about 0.0009 Command Code credits; a full pipeline run over all 98 entries (about 310 requests, three samples each) is about 0.35 credits. All the benchmarking and tuning here cost 1.93 credits.
+
+#### How the numbers were reached, honestly
+
+- **Untuned first.** The first pipeline run, before any tuning, scored 94.7% pairwise and τ 0.798 (`*-harness-v1.*`); DeepSeek alone scored 89.5% (`*-raw-v1.*`).
+- **Then tuned on what it got wrong**, the same way you'd tune any judge: low effort defined as non-attempts only (5 false flags gone), every stated code requirement checked with caps for failures and endless loops, safety-critical translation errors capped, and a new scoring rule that caps an entry failing its category's main criterion at 50. The tuning used this benchmark, so the tuned numbers are optimistic; the held-out attacks were never used for tuning or labeling and are the clean test.
+- **Label corrections.** DeepSeek flagged 18 entries for breaking requirements our labels had missed ("throw a RangeError", "don't mutate the input", "be explicit about uncertainty", "use a polite register"). Each is an explicit sentence in the brief, so those flags are marked *acceptable* in `scripts/bench/dataset.ts`: they count neither as a catch nor as a false alarm.
+- **What it still misses:** a sentence-by-sentence paraphrase of an earlier entry (a per-entry judge never sees the other entries, and the copy detector compares wording), and close calls between two strong copywriting entries.
