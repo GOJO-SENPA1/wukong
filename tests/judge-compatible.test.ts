@@ -49,6 +49,7 @@ before(async () => {
   process.env.WUKONG_JUDGE_BASE_URL = `http://127.0.0.1:${(server.address() as AddressInfo).port}/v1/chat/completions`;
   process.env.WUKONG_JUDGE_API_KEY = KEY;
   process.env.WUKONG_JUDGE_MODEL = "deepseek-v4.1-flash";
+  process.env.WUKONG_JUDGE_SAMPLES = "1"; // one call per entry here; sampling has its own tests
 });
 after(() => server.close());
 beforeEach(() => {

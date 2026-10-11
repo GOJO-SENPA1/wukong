@@ -4,6 +4,10 @@ import type { CriterionScore, JudgeFlag, ScoringOutput } from "./types";
 /**
  * Weighted rubric score plus deterministic integrity penalties. Published in
  * every report so anyone can recompute the on-chain number from the criteria.
+ * Caps that only code can trigger (hardFlags): a hard requirement the brief
+ * states and the entry breaks caps its constraints criterion at 40 and the
+ * entry at 60, so a rule-breaker can't win on polish. A flag the model raises
+ * on its own never triggers these, so a hallucinated violation can't sink an entry.
  */
 export function finalizeScore(
   category: number,
@@ -12,16 +16,22 @@ export function finalizeScore(
 ): { flags: JudgeFlag[]; criteria: CriterionScore[]; raw: number; final: number } {
   const cat = categoryById(category);
   const flags = [...new Set<JudgeFlag>([...hardFlags, ...out.flags])];
-  const criteria = cat.criteria.map((c, i) => ({
-    key: c.key,
-    label: c.label,
-    weight: c.weight,
-    score: out.criteria[i]?.score ?? 0,
-    comment: out.criteria[i]?.comment ?? "",
-  }));
+  const broken = hardFlags.includes("constraint_violation");
+  const criteria = cat.criteria.map((c, i) => {
+    const score = out.criteria[i]?.score ?? 0;
+    return {
+      key: c.key,
+      label: c.label,
+      weight: c.weight,
+      score: broken && (c.key === "constraints" || c.key === "format") ? Math.min(score, 40) : score,
+      comment: out.criteria[i]?.comment ?? "",
+      ...(out.criteria[i]?.evidence !== undefined ? { evidence: out.criteria[i].evidence } : {}),
+    };
+  });
   const raw = criteria.reduce((sum, c) => sum + c.weight * c.score, 0);
 
   let final = raw;
+  if (broken) final = Math.min(final, 60);
   if (flags.includes("prompt_injection") || flags.includes("content_missing")) final = 0;
   if (flags.includes("unsafe")) final = 0;
   if (flags.includes("duplicate") || flags.includes("plagiarism_suspected")) final = Math.min(final, 10);

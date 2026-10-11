@@ -27,7 +27,8 @@
     "keeper": "tsx scripts/keeper.ts",
     "ci:chain": "bash scripts/ci-chain.sh",
     "start:prod": "bash scripts/start-prod.sh",
-    "export:env": "tsx scripts/export-env.ts"
+    "export:env": "tsx scripts/export-env.ts",
+    "judge:bench": "tsx scripts/bench/run.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.133.0",

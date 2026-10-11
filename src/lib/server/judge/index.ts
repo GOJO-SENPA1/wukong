@@ -2,7 +2,7 @@
 // publish each score on-chain → crank settlement. Streams every step.
 
 import { PublicKey } from "@solana/web3.js";
-import { categoryById } from "../../categories";
+import { categoryById, RUBRIC_VERSION } from "../../categories";
 import { canonicalJson, sha256Hex } from "../../hash";
 import {
   buildClaimStakes,
@@ -25,10 +25,12 @@ import { store } from "../store";
 import { claudeAvailable, JUDGE_MODEL, scoreWithClaude } from "./claude";
 import { compatibleConfig, scoreWithCompatible } from "./compatible";
 import { JudgeRefusal } from "./prompt";
-import { integritySignals, type PriorEntry, type Signal } from "./detect";
+import { factLines, type Fact } from "./constraints";
+import { type PriorEntry, type Signal } from "./detect";
+import { precheck } from "./precheck";
 import { scoreHeuristic } from "./heuristic";
 import { finalizeScore } from "./score";
-import type { JudgeEngine, JudgeEvent, JudgeReport, ScoringOutput } from "./types";
+import type { JudgeEngine, JudgeEvent, JudgeReport, ScoringInput, ScoringOutput } from "./types";
 import { notifyTaskSafe } from "../notify";
 
 const CONCURRENCY = Number(process.env.WUKONG_JUDGE_CONCURRENCY ?? 8);
@@ -96,6 +98,7 @@ interface Prepared {
   sub: SubmissionView;
   content: string;
   signals: Signal[];
+  facts: Fact[];
   peers: string[];
 }
 
@@ -168,14 +171,13 @@ async function run(taskKey: string, emit: (e: JudgeEvent) => void) {
         ok,
         detail: ok ? `sha256 ${sub.contentHash.slice(0, 10)}… matches chain` : "content missing or hash mismatch",
       });
-      const signals: Signal[] = ok
-        ? integritySignals(rec!.content, earlier, { headline: task.category === 0, brief: briefText })
-        : [{ flag: "content_missing", detail: "no content matching the on-chain hash" }];
+      const checked = ok ? precheck(rec!.content, earlier, { brief: briefText, category: task.category }) : null;
+      const signals: Signal[] = checked?.signals ?? [{ flag: "content_missing", detail: "no content matching the on-chain hash" }];
       for (const s of signals) {
         emit({ type: "signal", submission: sub.pubkey, index: sub.index, flag: s.flag, detail: s.detail });
       }
       if (ok) earlier.push({ index: sub.index, submittedAt: sub.submittedAt, content: rec!.content });
-      prepared.push({ sub, content: ok ? rec!.content : "", signals, peers: [] });
+      prepared.push({ sub, content: ok ? rec!.content : "", signals, facts: checked?.facts ?? [], peers: [] });
     }
     // Peers let the offline judge measure consensus on labeling tasks.
     for (const p of prepared) {
@@ -283,27 +285,38 @@ async function settleStakes(task: TaskView, emit: (e: JudgeEvent) => void) {
   }
 }
 
-async function scoreOne(
-  task: TaskView,
-  brief: string,
-  p: Prepared,
+/** The judged part of a report: everything except the on-chain identifiers. */
+export type EntryVerdict = Pick<
+  JudgeReport,
+  "engine" | "model" | "rubric" | "criteria" | "flags" | "signals" | "summary" | "strengths" | "improvements" | "consensus" | "rawScore" | "finalScore"
+>;
+
+/**
+ * Judge one entry: the engine's verdict (sampled and quote-checked for AI engines),
+ * then the deterministic penalties and caps. Production judging and the benchmark
+ * both run exactly this. `scorer` replaces the engine's scorer (the benchmark's raw-model baseline).
+ */
+export async function scoreEntry(
+  task: { title: string; brief: string; category: number },
+  entry: { content: string; index: number; signals: Signal[]; facts: Fact[]; peers?: string[] },
   engine: JudgeEngine,
-): Promise<JudgeReport> {
+  scorer?: (input: ScoringInput) => Promise<ScoringOutput>,
+): Promise<EntryVerdict> {
   const cat = categoryById(task.category);
-  const input = {
-    brief,
+  const input: ScoringInput = {
+    brief: task.brief,
     title: task.title,
     category: task.category,
-    content: p.content,
-    index: p.sub.index,
-    signals: p.signals.map((s) => `${s.flag}: ${s.detail}`),
-    peers: p.peers,
+    content: entry.content,
+    index: entry.index,
+    signals: entry.signals.map((s) => `${s.flag}: ${s.detail}`),
+    facts: factLines(entry.facts),
+    peers: entry.peers,
   };
   const signals = [...input.signals];
 
   let out: ScoringOutput;
-  let used = engine;
-  if (!p.content) {
+  if (!entry.content) {
     out = {
       criteria: cat.criteria.map((c) => ({ key: c.key, score: 0, comment: "Content unavailable." })),
       flags: [],
@@ -315,7 +328,7 @@ async function scoreOne(
   } else if (engine !== "heuristic") {
     // Never mix engines within a task: a transient failure leaves the entry
     // unscored (the keeper retries), and a firm refusal scores it as unsafe.
-    const score = engine === "claude" ? scoreWithClaude : scoreWithCompatible;
+    const score = scorer ?? (engine === "claude" ? scoreWithClaude : scoreWithCompatible);
     try {
       out = await score(input).catch(async (err) => {
         if (err instanceof JudgeRefusal) throw err;
@@ -324,7 +337,7 @@ async function scoreOne(
         return score(input);
       });
     } catch (err) {
-      if (!(err instanceof JudgeRefusal)) throw new Error(`The AI judge is unavailable right now; entry #${p.sub.index + 1} will be scored on the next pass`);
+      if (!(err instanceof JudgeRefusal)) throw new Error(`The AI judge is unavailable right now; entry #${entry.index + 1} will be scored on the next pass`);
       out = {
         criteria: cat.criteria.map((c) => ({ key: c.key, score: 0, comment: "The judge declined to evaluate this content." })),
         flags: ["unsafe"],
@@ -339,9 +352,29 @@ async function scoreOne(
     out = scoreHeuristic(input);
   }
 
-  const { flags, criteria, raw, final } = finalizeScore(task.category, out, p.signals.map((s) => s.flag));
-  const summary = used === "heuristic" ? penaltySummary(flags) ?? out.summary : out.summary;
+  const { flags, criteria, raw, final } = finalizeScore(task.category, out, entry.signals.map((s) => s.flag));
+  return {
+    engine,
+    model: out.model,
+    rubric: `${cat.slug}@${RUBRIC_VERSION}`,
+    criteria,
+    flags,
+    signals,
+    summary: engine === "heuristic" ? (penaltySummary(flags) ?? out.summary) : out.summary,
+    strengths: out.strengths,
+    improvements: out.improvements,
+    ...(out.consensus ? { consensus: out.consensus } : {}),
+    rawScore: Math.round(raw * 100) / 100,
+    finalScore: final,
+  };
+}
 
+async function scoreOne(task: TaskView, brief: string, p: Prepared, engine: JudgeEngine): Promise<JudgeReport> {
+  const verdict = await scoreEntry(
+    { title: task.title, brief, category: task.category },
+    { content: p.content, index: p.sub.index, signals: p.signals, facts: p.facts, peers: p.peers },
+    engine,
+  );
   return {
     version: 1,
     task: task.pubkey,
@@ -349,18 +382,8 @@ async function scoreOne(
     worker: p.sub.worker,
     contentHash: p.sub.contentHash,
     briefHash: task.briefHash,
-    engine: used,
-    model: out.model,
-    rubric: `${cat.slug}@v1`,
-    criteria,
-    flags,
-    signals,
-    summary,
-    strengths: out.strengths,
-    improvements: out.improvements,
-    rawScore: Math.round(raw * 100) / 100,
-    finalScore: final,
-    onchainScore: Math.round(final * 100),
+    ...verdict,
+    onchainScore: Math.round(verdict.finalScore * 100),
     judgedAt: Math.floor(Date.now() / 1000),
   };
 }

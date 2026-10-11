@@ -6,7 +6,8 @@
 import { z } from "zod";
 import { cleanCredential } from "../config";
 import { describeError } from "../diagnose";
-import { JudgeRefusal, judgeRequest, MODEL_FLAGS, SYSTEM, toOutput, Verdict } from "./prompt";
+import { judgeWithModel, samplesFor, type Ask } from "./consensus";
+import { JudgeRefusal, MODEL_FLAGS, SYSTEM, Verdict } from "./prompt";
 import type { ScoringInput, ScoringOutput } from "./types";
 
 export interface CompatibleConfig {
@@ -36,7 +37,7 @@ ${JSON.stringify(z.toJSONSchema(Verdict))}`;
 // missing lists, and drop flags we don't know rather than failing the whole verdict.
 const KNOWN_FLAGS: readonly string[] = MODEL_FLAGS;
 const Loose = z.object({
-  criteria: z.array(z.object({ key: z.string(), score: z.coerce.number(), comment: z.string().default("") })),
+  criteria: z.array(z.object({ key: z.string(), evidence: z.string().default(""), comment: z.string().default(""), score: z.coerce.number() })),
   flags: z
     .array(z.string())
     .default([])
@@ -82,20 +83,21 @@ function extractJson(text: string): unknown {
   return JSON.parse(t.slice(start, end + 1));
 }
 
-export async function scoreWithCompatible(input: ScoringInput): Promise<ScoringOutput> {
+/**
+ * One call to the provider. The first sample runs at temperature 0; the others at 0.6,
+ * so the samples are independent opinions rather than the same one repeated.
+ */
+export const askCompatible: Ask = async (turns, sample) => {
   const cfg = compatibleConfig();
   if (!cfg) throw new Error("The OpenAI-compatible judge isn't configured");
   const request = {
     model: cfg.model,
-    messages: [
-      { role: "system", content: SYSTEM + JSON_RULES },
-      { role: "user", content: judgeRequest(input) },
-    ],
+    messages: [{ role: "system", content: SYSTEM + JSON_RULES }, ...turns],
     max_tokens: 8000,
   };
-  // Deterministic scoring and JSON mode where the provider supports them; one that
+  // JSON mode and a set temperature where the provider supports them; one that
   // rejects either (HTTP 400) gets the plain request, which still asks for JSON.
-  let res = await post(cfg, { ...request, temperature: 0, response_format: { type: "json_object" } });
+  let res = await post(cfg, { ...request, temperature: sample === 0 ? 0 : 0.6, response_format: { type: "json_object" } });
   if (res.status === 400) res = await post(cfg, request);
   if (!res.ok) throw new Error(`Judge API answered HTTP ${res.status}: ${await errorText(res)}`);
 
@@ -112,7 +114,11 @@ export async function scoreWithCompatible(input: ScoringInput): Promise<ScoringO
     throw new Error(`Judge returned no parseable verdict (finish_reason=${choice?.finish_reason ?? "none"})`);
   }
   if (!verdict.summary) verdict.summary = "Scored against the brief's rubric.";
-  return toOutput(input, verdict, data.model ?? cfg.model);
+  return { verdict, model: data.model ?? cfg.model };
+};
+
+export function scoreWithCompatible(input: ScoringInput): Promise<ScoringOutput> {
+  return judgeWithModel(input, askCompatible, samplesFor("openai-compatible"));
 }
 
 /**

@@ -1,9 +1,10 @@
-// The Claude judge: one structured-output call per submission, rubric-anchored,
-// with the submission treated strictly as untrusted data (see prompt.ts).
+// The Claude judge: structured output in the verdict's exact shape, rubric-anchored, with
+// the submission treated strictly as untrusted data (prompt.ts), sampled and quote-checked (consensus.ts).
 
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
-import { JudgeRefusal, judgeRequest, SYSTEM, toOutput, Verdict } from "./prompt";
+import { judgeWithModel, samplesFor, type Ask } from "./consensus";
+import { JudgeRefusal, SYSTEM, Verdict } from "./prompt";
 import type { ScoringInput, ScoringOutput } from "./types";
 
 export const JUDGE_MODEL = process.env.WUKONG_JUDGE_MODEL ?? "claude-opus-5-5";
@@ -20,13 +21,14 @@ export function claudeAvailable(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
 }
 
-export async function scoreWithClaude(input: ScoringInput): Promise<ScoringOutput> {
+/** One Claude call: structured output in the verdict's exact shape. */
+export const askClaude: Ask = async (turns) => {
   const params = {
     model: JUDGE_MODEL,
     max_tokens: 16000,
     output_config: { effort: JUDGE_EFFORT, format: betaZodOutputFormat(Verdict) },
     system: [{ type: "text" as const, text: SYSTEM, cache_control: { type: "ephemeral" as const } }],
-    messages: [{ role: "user" as const, content: judgeRequest(input) }],
+    messages: turns,
   };
 
   // Server-side refusal fallback keeps a classifier false-positive from
@@ -46,5 +48,9 @@ export async function scoreWithClaude(input: ScoringInput): Promise<ScoringOutpu
   if (response.stop_reason === "refusal") throw new JudgeRefusal(response.stop_details?.category ?? "unknown");
   const parsed = response.parsed_output;
   if (!parsed) throw new Error(`Judge returned no parseable verdict (stop_reason=${response.stop_reason})`);
-  return toOutput(input, parsed, response.model);
+  return { verdict: parsed, model: response.model };
+};
+
+export function scoreWithClaude(input: ScoringInput): Promise<ScoringOutput> {
+  return judgeWithModel(input, askClaude, samplesFor("claude"));
 }

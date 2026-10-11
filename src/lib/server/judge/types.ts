@@ -18,6 +18,22 @@ export interface CriterionScore {
   weight: number;
   score: number; // 0..100
   comment: string;
+  /** The verbatim quote from the entry the score rests on, verified by code ("" when the point is something missing) */
+  evidence?: string;
+}
+
+/** How a model's verdict was reached: samples drawn, quotes checked, agreement. */
+export interface Consensus {
+  samples: number;
+  /** Samples sent back once because they quoted text that isn't in the entry */
+  repaired: number;
+  /** Quotes not found in the entry, before and after repair */
+  hallucinatedQuotes: { before: number; after: number };
+  /** Criteria with a verified quote in the final verdict, of all criteria */
+  grounded: number;
+  criteria: number;
+  /** Largest disagreement between samples on any criterion, in points */
+  spread: number;
 }
 
 /** The full written verdict for one submission. Its sha256 goes on-chain. */
@@ -37,6 +53,8 @@ export interface JudgeReport {
   summary: string;
   strengths: string[];
   improvements: string[];
+  /** Present for AI engines: how the verdict was reached */
+  consensus?: Consensus;
   rawScore: number; // weighted criteria, 0..100
   finalScore: number; // after integrity penalties, 0..100
   onchainScore: number; // finalScore * 100, 0..10000
@@ -50,17 +68,20 @@ export interface ScoringInput {
   content: string;
   index: number;
   signals: string[];
+  /** The brief's hard requirements checked by code, as "PASS/FAIL: rule (measurement)" lines */
+  facts?: string[];
   /** Other entries' content; used only for consensus checks offline. */
   peers?: string[];
 }
 
 export interface ScoringOutput {
-  criteria: { key: string; score: number; comment: string }[];
+  criteria: { key: string; score: number; comment: string; evidence?: string }[];
   flags: JudgeFlag[];
   summary: string;
   strengths: string[];
   improvements: string[];
   model: string;
+  consensus?: Consensus;
 }
 
 export type JudgeEvent =
