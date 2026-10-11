@@ -22,20 +22,30 @@ import {
 import { connection, demoContent, isDemoCreator, loadKey, program } from "../env";
 import { kv } from "../kv";
 import { store } from "../store";
-import { claudeAvailable, JUDGE_MODEL, JudgeRefusal, scoreWithClaude } from "./claude";
+import { claudeAvailable, JUDGE_MODEL, scoreWithClaude } from "./claude";
+import { compatibleConfig, scoreWithCompatible } from "./compatible";
+import { JudgeRefusal } from "./prompt";
 import { integritySignals, type PriorEntry, type Signal } from "./detect";
 import { scoreHeuristic } from "./heuristic";
 import { finalizeScore } from "./score";
-import type { JudgeEvent, JudgeReport, ScoringOutput } from "./types";
+import type { JudgeEngine, JudgeEvent, JudgeReport, ScoringOutput } from "./types";
 import { notifyTaskSafe } from "../notify";
 
 const CONCURRENCY = Number(process.env.WUKONG_JUDGE_CONCURRENCY ?? 8);
 const running = new Set<string>();
 
-export function judgeEngine(): { engine: "claude" | "heuristic"; model: string } {
-  return claudeAvailable()
-    ? { engine: "claude", model: JUDGE_MODEL }
-    : { engine: "heuristic", model: "wukong-heuristic-v1" };
+/**
+ * The judge this deployment uses: an OpenAI-compatible API when one is configured
+ * (WUKONG_JUDGE_BASE_URL + _API_KEY + _MODEL), else Claude when there's an Anthropic
+ * key, else the offline heuristics. WUKONG_JUDGE_ENGINE=heuristic forces offline.
+ */
+export function judgeEngine(): { engine: JudgeEngine; model: string } {
+  const offline = { engine: "heuristic" as const, model: "wukong-heuristic-v1" };
+  if (process.env.WUKONG_JUDGE_ENGINE === "heuristic") return offline;
+  const compatible = compatibleConfig();
+  if (compatible) return { engine: "openai-compatible", model: compatible.model };
+  if (claudeAvailable()) return { engine: "claude", model: JUDGE_MODEL };
+  return offline;
 }
 
 /** Async-iterable event stream backed by a push queue. */
@@ -277,7 +287,7 @@ async function scoreOne(
   task: TaskView,
   brief: string,
   p: Prepared,
-  engine: "claude" | "heuristic",
+  engine: JudgeEngine,
 ): Promise<JudgeReport> {
   const cat = categoryById(task.category);
   const input = {
@@ -302,14 +312,16 @@ async function scoreOne(
       improvements: ["Resubmit through Wukong so the content matches the on-chain hash."],
       model: "none",
     };
-  } else if (engine === "claude") {
+  } else if (engine !== "heuristic") {
     // Never mix engines within a task: a transient failure leaves the entry
     // unscored (the keeper retries), and a firm refusal scores it as unsafe.
+    const score = engine === "claude" ? scoreWithClaude : scoreWithCompatible;
     try {
-      out = await scoreWithClaude(input).catch(async (err) => {
+      out = await score(input).catch(async (err) => {
         if (err instanceof JudgeRefusal) throw err;
+        console.error(`judge (${engine}):`, (err as Error).message);
         await new Promise((r) => setTimeout(r, 2000));
-        return scoreWithClaude(input);
+        return score(input);
       });
     } catch (err) {
       if (!(err instanceof JudgeRefusal)) throw new Error(`The AI judge is unavailable right now; entry #${p.sub.index + 1} will be scored on the next pass`);
@@ -319,7 +331,7 @@ async function scoreOne(
         summary: "The judge declined to score this entry; it was flagged for review.",
         strengths: [],
         improvements: ["Keep entries within the brief and the platform's content rules."],
-        model: JUDGE_MODEL,
+        model: judgeEngine().model,
       };
       signals.push(`judge_refusal: ${(err as JudgeRefusal).category}`);
     }

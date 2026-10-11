@@ -86,7 +86,7 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
       await streamEvents<JudgeEvent>("/api/judge", { task: taskKey }, (e) => {
         switch (e.type) {
           case "start":
-            push("ai", `Judge online: ${e.engine === "claude" ? e.model : "offline heuristics"} · ${e.count} entries`);
+            push("ai", `Judge online: ${e.engine !== "heuristic" ? e.model : "offline heuristics"} · ${e.count} entries`);
             break;
           case "tx":
             push("good", e.label, e.sig);

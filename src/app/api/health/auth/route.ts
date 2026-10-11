@@ -75,7 +75,7 @@ export async function GET(req: Request) {
 
     const hasDb = config?.hasDatabase() ?? false;
     const db = prisma?.db;
-    const [privyKeysAccepted, databaseReachable, schemaUpToDate, storeReachable] = await Promise.all([
+    const [privyKeysAccepted, databaseReachable, schemaUpToDate, storeReachable, judge] = await Promise.all([
       auth ? auth.privyDiagnosis().catch((err): Check => ({ ok: false, reason: describeError(err) })) : skipped,
       hasDb && db ? attempt(() => db().$queryRaw`SELECT 1`) : skipped,
       // The newest parts of the schema: if these answer, the build's schema sync has run.
@@ -83,6 +83,10 @@ export async function GET(req: Request) {
         ? attempt(() => Promise.all([db().profile.findFirst({ select: { handle: true, onboardedAt: true } }), db().companyInvite.count()]))
         : skipped,
       store ? attempt(() => store.kv().get("names", "__health__")) : skipped,
+      // An OpenAI-compatible judge (DeepSeek and others), checked with the provider's free model list.
+      import("@/lib/server/judge/compatible")
+        .then((m) => m.compatibleDiagnosis())
+        .catch((err) => ({ reachable: { ok: false, reason: describeError(err) } as Check, model: skipped })),
     ]);
     const clean = config?.cleanCredential ?? ((v?: string) => v?.trim() || undefined);
     const results: Record<string, Check> = {
@@ -97,6 +101,8 @@ export async function GET(req: Request) {
       storeConfigured: { ok: !!(process.env.REDIS_URL || process.env.KV_URL) || !process.env.VERCEL },
       storeReachable,
       resultEmails: { ok: !!process.env.RESEND_API_KEY },
+      judgeReachable: judge.reachable,
+      judgeModel: judge.model,
     };
     const checks = Object.fromEntries(Object.entries(results).map(([k, v]) => [k, v.ok]));
     const reasons = Object.fromEntries(Object.entries(results).flatMap(([k, v]) => (v.reason ? [[k, v.reason]] : [])));

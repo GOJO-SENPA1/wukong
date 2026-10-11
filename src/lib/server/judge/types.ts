@@ -1,3 +1,6 @@
+/** Which judge scored: Claude, an OpenAI-compatible API (DeepSeek and others), or the offline heuristics. */
+export type JudgeEngine = "claude" | "openai-compatible" | "heuristic";
+
 export type JudgeFlag =
   | "prompt_injection"
   | "duplicate"
@@ -25,7 +28,7 @@ export interface JudgeReport {
   worker: string;
   contentHash: string;
   briefHash: string;
-  engine: "claude" | "heuristic";
+  engine: JudgeEngine;
   model: string;
   rubric: string;
   criteria: CriterionScore[];
@@ -61,7 +64,7 @@ export interface ScoringOutput {
 }
 
 export type JudgeEvent =
-  | { type: "start"; task: string; count: number; engine: "claude" | "heuristic"; model: string }
+  | { type: "start"; task: string; count: number; engine: JudgeEngine; model: string }
   | { type: "tx"; kind: "close" | "score" | "settle"; sig: string; label: string; submission?: string }
   | { type: "verify"; submission: string; index: number; ok: boolean; detail: string }
   | { type: "signal"; submission: string; index: number; flag: JudgeFlag; detail: string }

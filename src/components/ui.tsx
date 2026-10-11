@@ -215,17 +215,17 @@ export function TierBadge({ rating, compact }: { rating: number; compact?: boole
 export function EngineBadge() {
   const { state } = useApp();
   if (!state.judge) return null;
-  const claude = state.judge.engine === "claude";
+  const online = state.judge.engine !== "heuristic";
   return (
     <span
       className={cx(
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.12em]",
-        claude ? "bg-blue/10 text-blue-2" : "bg-fg/[0.05] text-muted",
+        online ? "bg-blue/10 text-blue-2" : "bg-fg/[0.05] text-muted",
       )}
-      title={claude ? `AI judge: ${state.judge.model}` : "No ANTHROPIC_API_KEY: transparent offline heuristics"}
+      title={online ? `AI judge: ${state.judge.model}` : "No AI judge configured: transparent offline heuristics"}
     >
-      <span className={cx("h-1.5 w-1.5 rounded-full", claude ? "bg-blue" : "bg-faint")} />
-      {claude ? state.judge.model : "Offline judge"}
+      <span className={cx("h-1.5 w-1.5 rounded-full", online ? "bg-blue" : "bg-faint")} />
+      {online ? state.judge.model : "Offline judge"}
     </span>
   );
 }

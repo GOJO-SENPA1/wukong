@@ -2,7 +2,7 @@
 // status page: what failed and why, never a credential. Deliberately has no
 // imports, so it still loads when the code it reports on doesn't.
 
-const SECRET_ENVS = ["PRIVY_APP_SECRET", "DATABASE_URL", "DIRECT_URL", "REDIS_URL", "KV_URL", "RESEND_API_KEY", "CRON_SECRET", "ANTHROPIC_API_KEY"];
+const SECRET_ENVS = ["PRIVY_APP_SECRET", "DATABASE_URL", "DIRECT_URL", "REDIS_URL", "KV_URL", "RESEND_API_KEY", "CRON_SECRET", "ANTHROPIC_API_KEY", "WUKONG_JUDGE_API_KEY"];
 
 /** Every configured secret, and the password inside each connection string. */
 function secrets(): string[] {

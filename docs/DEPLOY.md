@@ -106,6 +106,8 @@ Without Redis the app keeps content in a JSON file on the volume; set `REDIS_URL
 | `WUKONG_PUBLIC_RPC_URL` | the cluster's public RPC | The RPC URL sent to browsers |
 | `SOLANA_RPC_URL` | the deployment's `rpcUrl` | Server-side RPC override |
 | `ANTHROPIC_API_KEY` | unset → offline judge | Enables the Claude judge |
-| `WUKONG_JUDGE_MODEL` / `WUKONG_JUDGE_EFFORT` / `WUKONG_JUDGE_CONCURRENCY` | `claude-opus-5-5` / `medium` / `8` | Judge tuning |
+| `WUKONG_JUDGE_BASE_URL` + `WUKONG_JUDGE_API_KEY` + `WUKONG_JUDGE_MODEL` | unset | An OpenAI-compatible judge (DeepSeek, OpenRouter, Together, Groq, a self-hosted server). With all three set it's used instead of Claude. The base URL is the provider's API root (often ending in `/v1`); the model is the provider's exact model ID. `/status` checks the key and the model name for free. |
+| `WUKONG_JUDGE_MODEL` / `WUKONG_JUDGE_EFFORT` / `WUKONG_JUDGE_CONCURRENCY` | `claude-opus-5-5` / `medium` / `8` | Judge tuning (`WUKONG_JUDGE_EFFORT` is Claude only) |
+| `WUKONG_JUDGE_ENGINE` | unset | `heuristic` forces the offline judge |
 | `WUKONG_DEMO_MODE` | on for localnet only; `1` turns it on elsewhere; never on mainnet | Without sign-in: burner personas, the faucet button, the seeded demo tasks, simulated crowd, early close of the seeded demo companies' and x402 tasks. With sign-in (Privy + database): none of that is shown; signed-in accounts' wallets are quietly topped up with the network's test SOL (and organisations' with test USDC) when they run low |
 | `KEEPER` / `KEEPER_INTERVAL_MS` | `1` / `30000` | Run the keeper loop in the container, and how often |

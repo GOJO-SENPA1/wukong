@@ -23,7 +23,7 @@ export interface AppState {
   ready: boolean;
   error?: string;
   deployment?: { cluster: string; rpcUrl: string; programId: string; mint: string; judge: string };
-  judge?: { engine: "claude" | "heuristic"; model: string };
+  judge?: { engine: "claude" | "openai-compatible" | "heuristic"; model: string };
   /** Demo features: the simulated crowd, closing demo tasks early, the test-funds button */
   demoMode?: boolean;
   /** The network hands out test funds: a signed-in account's wallet is topped up quietly */

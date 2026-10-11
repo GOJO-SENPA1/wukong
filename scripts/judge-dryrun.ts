@@ -1,17 +1,23 @@
 // Score every demo template's crowd offline (no chain) to sanity-check the
-// judge. Uses Claude when ANTHROPIC_API_KEY is set, heuristics otherwise.
+// judge. Uses the deployment's judge: an OpenAI-compatible API (WUKONG_JUDGE_BASE_URL
+// + _API_KEY + _MODEL), Claude (ANTHROPIC_API_KEY), or heuristics otherwise.
 //   npx tsx scripts/judge-dryrun.ts [template-id]
 import { TEMPLATES } from "../src/lib/demo";
-import { claudeAvailable, scoreWithClaude } from "../src/lib/server/judge/claude";
+import { scoreWithClaude } from "../src/lib/server/judge/claude";
+import { scoreWithCompatible } from "../src/lib/server/judge/compatible";
 import { integritySignals, type PriorEntry } from "../src/lib/server/judge/detect";
 import { scoreHeuristic } from "../src/lib/server/judge/heuristic";
+import { judgeEngine } from "../src/lib/server/judge";
 import { finalizeScore } from "../src/lib/server/judge/score";
+import type { ScoringInput, ScoringOutput } from "../src/lib/server/judge/types";
 
 const only = process.argv[2];
-const useClaude = claudeAvailable();
+const { engine, model } = judgeEngine();
+const score: (input: ScoringInput) => Promise<ScoringOutput> =
+  engine === "claude" ? scoreWithClaude : engine === "openai-compatible" ? scoreWithCompatible : async (input) => scoreHeuristic(input);
 
 async function main() {
-  console.log(`engine: ${useClaude ? "claude" : "heuristic"}`);
+  console.log(`engine: ${engine} (${model})`);
   for (const t of TEMPLATES.filter((t) => !only || t.id === only)) {
     if (!t.crowd.length) continue;
     console.log(`\n== ${t.title}`);
@@ -32,7 +38,7 @@ async function main() {
           signals: signals.map((s) => `${s.flag}: ${s.detail}`),
           peers: contents.filter((_, i) => i !== index),
         };
-        const out = useClaude ? await scoreWithClaude(input) : scoreHeuristic(input);
+        const out = await score(input);
         const f = finalizeScore(t.category, out, signals.map((s) => s.flag));
         return { entry, f, out };
       }),

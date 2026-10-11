@@ -47,6 +47,18 @@ const CHECKS: { key: string; label: string; fix: string; optional?: boolean; uns
   { key: "schemaUpToDate", label: "Database tables are up to date", fix: "Run the upgrade SQL in Supabase's SQL editor (see docs/LAUNCH.md), then redeploy." },
   { key: "storeConfigured", label: "Redis store is set", fix: "Vercel → Storage → add Upstash for Redis to this project (it sets REDIS_URL / KV_URL), then redeploy." },
   { key: "storeReachable", label: "Redis store answers", fix: "Check REDIS_URL / KV_URL: for Upstash it must start with rediss:// (with two s). Then redeploy." },
+  {
+    key: "judgeReachable",
+    label: "AI judge accepts the key",
+    fix: "Check WUKONG_JUDGE_BASE_URL is the provider's API address (often ending in /v1) and WUKONG_JUDGE_API_KEY is current, then redeploy.",
+    unset: "No OpenAI-compatible judge set (Claude scores if ANTHROPIC_API_KEY is set, otherwise the offline judge).",
+  },
+  {
+    key: "judgeModel",
+    label: "AI judge model exists",
+    fix: "Set WUKONG_JUDGE_MODEL to the exact model name from the provider's model list, then redeploy.",
+    unset: "Not checked.",
+  },
   { key: "resultEmails", label: "Result emails are set up", fix: "Optional: add RESEND_API_KEY and EMAIL_FROM to send result emails.", optional: true },
 ];
 
@@ -118,7 +130,7 @@ export default function StatusPage() {
       <div>
         <Kicker>System status</Kicker>
         <h1 className="display mt-5 text-[clamp(2.6rem,6vw,4.2rem)]">
-          Sign-in <em className="text-gold-2">health</em>
+          Site <em className="text-gold-2">health</em>
         </h1>
       </div>
 
@@ -156,7 +168,7 @@ export default function StatusPage() {
       {checks && (
         <>
           <p className={cx("rounded-xl p-4 text-[14.5px]", failing.length ? "bg-red/10 text-red-2" : "bg-green/10 text-green")}>
-            {failing.length ? `${failing.length} thing${failing.length === 1 ? "" : "s"} to fix, listed below.` : "Everything sign-in needs is working."}
+            {failing.length ? `${failing.length} thing${failing.length === 1 ? "" : "s"} to fix, listed below.` : "Everything the site needs is working."}
           </p>
           <ul className="card divide-y divide-line">
             {CHECKS.map((c) => {
