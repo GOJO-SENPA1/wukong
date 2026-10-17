@@ -15,6 +15,7 @@ export type Role = "worker" | "company";
 export type LoginMethod = "email" | "google" | "wallet";
 
 export { HELP_EMAIL } from "@/lib/contact";
+import { track } from "@/lib/client/analytics";
 
 export interface MeProfile {
   handle: string | null;
@@ -116,6 +117,20 @@ export function loginErrorMessage(code: string): string {
   return LOGIN_ERRORS[code] ?? `Sign-in didn't complete (${code}). Try again.`;
 }
 
+/** Count a finished sign-up once: a profile made in the last few minutes, first seen in this browser. */
+function countSignUp(me: Me) {
+  const p = me.profile;
+  if (!me.onboarded || !p?.joined || Date.now() - Date.parse(p.joined) > 10 * 60_000) return;
+  try {
+    const key = `wukong.signup-counted.${p.wallet}`;
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, "1");
+  } catch {
+    return;
+  }
+  track("sign_up_complete", { role: p.role });
+}
+
 export function AccountProvider({ children, cluster }: { children: ReactNode; cluster?: string }) {
   if (!ACCOUNTS_ON) return <Ctx.Provider value={OFF}>{children}</Ctx.Provider>;
   return <PrivyAccount cluster={cluster}>{children}</PrivyAccount>;
@@ -160,6 +175,7 @@ function PrivyAccount({ children, cluster }: { children: ReactNode; cluster?: st
         retries.current = 0;
         setMe(body as Me);
         setError(null);
+        countSignUp(body as Me);
       } else if (res.ok) {
         setError("Sign-in isn't fully set up on the server yet (its Privy or database settings are missing).");
       } else if (res.status === 401) {

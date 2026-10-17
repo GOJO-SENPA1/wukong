@@ -296,6 +296,18 @@ export async function profileByHandle(handle: string): Promise<Profile | null> {
   return db().profile.findUnique({ where: { handle: h } });
 }
 
+/** Handles of every finished public profile, for the sitemap. */
+export async function publicHandles(limit = 10_000): Promise<{ handle: string; updatedAt: Date }[]> {
+  if (!hasDatabase()) return [];
+  const rows = await db().profile.findMany({
+    where: { onboardedAt: { not: null }, handle: { not: null } },
+    select: { handle: true, updatedAt: true },
+    orderBy: { updatedAt: "desc" },
+    take: limit,
+  });
+  return rows.flatMap((r) => (r.handle ? [{ handle: r.handle, updatedAt: r.updatedAt }] : []));
+}
+
 export async function profileByWallet(wallet: string): Promise<Profile | null> {
   if (!hasDatabase()) return null;
   return db().profile.findUnique({ where: { wallet } });

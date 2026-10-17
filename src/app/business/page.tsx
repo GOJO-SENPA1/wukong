@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { ArrowRight, Check, Copy, LogOut, Mail } from "lucide-react";
+import { ArrowRight, Check, Copy, LogOut, Mail, Send } from "lucide-react";
 import { HELP_EMAIL, useAccount } from "@/components/auth/Account";
 import { SignInPanel } from "@/components/auth/SignInPanel";
 import { Kinetic, Reveal } from "@/components/fx/motion";
@@ -11,9 +11,11 @@ import { PixelIcon } from "@/components/fx/PixelIcon";
 import { Kicker, Spinner } from "@/components/ui";
 import { orgRegistrationMailto } from "@/lib/contact";
 import { safeNext } from "@/lib/client/nav";
+import { track } from "@/lib/client/analytics";
+import { toast } from "@/components/Toast";
 
 const STEPS = [
-  { title: "Email us", body: `Send your organisation's name, website and the email you'll sign in with to ${HELP_EMAIL}.` },
+  { title: "Tell us who you are", body: `Use the contact form, or email ${HELP_EMAIL}, with your organisation's name, website and the email you'll sign in with.` },
   { title: "We approve it", body: "We check every organisation by hand, usually within one working day, and reply when you're in." },
   { title: "Sign in and post", body: "Sign in here with that email (or its Google account), lock a reward and post your first task." },
 ];
@@ -116,23 +118,27 @@ function Business() {
   );
 }
 
-/** Registering means emailing us; this makes that one click (or one copy). */
+/** Registering means writing to us: the contact form, an email, or a copied address. */
 function RegisterBlock({ email }: { email?: string | null }) {
   const [copied, setCopied] = useState(false);
   return (
     <div>
       <p className="text-[14px] leading-relaxed text-muted">
-        Organisation accounts are set up by our team. Email <span className="text-fg">{HELP_EMAIL}</span> and we&apos;ll get you started.
+        Organisation accounts are set up by our team. Send us a message, or email <span className="text-fg">{HELP_EMAIL}</span>, and we&apos;ll get you started.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <a href={orgRegistrationMailto(email)} className="btn btn-red h-11 px-5">
-          <Mail size={16} /> Email us to register
+        <Link href="/contact?topic=organisation" className="btn btn-red h-11 px-5" onClick={() => track("cta_click", { cta: "org_contact_form" })}>
+          <Send size={16} /> Request an account
+        </Link>
+        <a href={orgRegistrationMailto(email)} className="btn btn-line h-11 px-4" onClick={() => track("org_request", { method: "email" })}>
+          <Mail size={16} /> Email us
         </a>
         <button
           className="btn btn-line h-11 px-4"
           onClick={() => {
             navigator.clipboard?.writeText(HELP_EMAIL);
             setCopied(true);
+            toast.success("Email address copied", HELP_EMAIL);
             setTimeout(() => setCopied(false), 1400);
           }}
         >

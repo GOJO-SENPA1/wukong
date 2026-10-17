@@ -67,3 +67,43 @@ export async function sendEmail(to: string, subject: string, content: EmailConte
   if (error) console.error("resend:", error.name ?? "error");
   return !error;
 }
+
+export interface ContactMessage {
+  name: string;
+  email: string;
+  topic: string;
+  message: string;
+}
+
+/** A contact-form message, to the team's inbox, with Reply-To set to the sender. */
+export async function sendContactMessage(m: ContactMessage, to: string): Promise<boolean> {
+  const r = resend();
+  const cfg = resendConfig();
+  if (!r || !cfg) return false;
+  const rows = [
+    ["From", `${m.name} <${m.email}>`],
+    ["About", m.topic],
+  ];
+  const html = `<!doctype html><html><body style="margin:0;background:#F3F6FA;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;">
+  <div style="max-width:560px;margin:0 auto;padding:28px 16px;">
+    <div style="background:#ffffff;border-radius:18px;padding:26px;">
+      <div style="font-family:Menlo,monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#E4261C;margin-bottom:14px;">Contact form · wukonghq.xyz</div>
+      <table style="border-collapse:collapse;font-size:14px;color:#3b4459;margin-bottom:18px;">${rows
+        .map(([k, v]) => `<tr><td style="padding:3px 14px 3px 0;color:#8A94AB;">${k}</td><td style="padding:3px 0;">${escapeHtml(v)}</td></tr>`)
+        .join("")}</table>
+      <div style="white-space:pre-wrap;font-size:15px;line-height:1.6;color:#0C1424;border-top:1px solid #E6EAF0;padding-top:16px;">${escapeHtml(m.message)}</div>
+    </div>
+    <p style="color:#8A94AB;font-size:12px;margin:14px 6px 0;">Reply to this email to answer ${escapeHtml(m.name)} directly.</p>
+  </div></body></html>`;
+  const text = `Contact form · wukonghq.xyz\n\nFrom: ${m.name} <${m.email}>\nAbout: ${m.topic}\n\n${m.message}\n`;
+  const { error } = await r.emails.send({
+    from: cfg.from,
+    to,
+    replyTo: `${m.name.replace(/[<>"]/g, "")} <${m.email}>`,
+    subject: `[Contact] ${m.topic}: ${m.name}`.slice(0, 140),
+    html,
+    text,
+  });
+  if (error) console.error("resend:", error.name ?? "error");
+  return !error;
+}

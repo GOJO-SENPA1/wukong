@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { drawIcon, fitCanvas, prefersReducedMotion } from "@/lib/fx/draw";
 import type { SpriteName } from "@/lib/fx/sprites";
-import { cx } from "@/components/ui";
+import { clsx as cx } from "clsx";
 
 /**
  * One of the promo's 3D pixel icons. `motion`: "spin" flips it like a coin,

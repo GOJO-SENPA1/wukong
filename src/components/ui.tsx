@@ -3,11 +3,14 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import clsx from "clsx";
 import { ArrowUpRight } from "lucide-react";
-import { motion, useInView, useReducedMotion } from "motion/react";
+import { motion, useInView } from "motion/react";
+import { useReducedMotionSafe } from "./fx/motion";
 import { categoryById } from "@/lib/categories";
 import { fmtScore, fmtUsdc, shortAddr, tierFor } from "@/lib/format";
 import type { TaskStatus } from "@/lib/wukong";
 import { useApp } from "./Providers";
+import { PixelIcon } from "./fx/PixelIcon";
+import type { SpriteName } from "@/lib/fx/sprites";
 
 export function cx(...args: Parameters<typeof clsx>) {
   return clsx(...args);
@@ -173,7 +176,7 @@ export function ScoreBar({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const seen = useInView(ref, { once: true });
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const pct = Math.max(0, Math.min(100, (score / max) * 100));
   const color = {
     fg: "bg-fg",
@@ -214,6 +217,30 @@ export function TierBadge({ rating, compact }: { rating: number; compact?: boole
 
 export function Empty({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={cx("card px-6 py-14 text-center text-sm text-muted", className)}>{children}</div>;
+}
+
+/** An empty or error state with a picture, a plain explanation and a way forward. */
+export function EmptyState({
+  icon = "cloud",
+  title,
+  children,
+  actions,
+  className,
+}: {
+  icon?: SpriteName;
+  title: ReactNode;
+  children?: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cx("card flex flex-col items-center gap-4 px-6 py-14 text-center", className)}>
+      <PixelIcon name={icon} px={3} motion="bob" />
+      <h2 className="mt-1 text-[19px] font-semibold tracking-tight text-fg">{title}</h2>
+      {children && <div className="max-w-md text-[14.5px] leading-relaxed text-muted">{children}</div>}
+      {actions && <div className="mt-2 flex flex-wrap justify-center gap-3">{actions}</div>}
+    </div>
+  );
 }
 
 export function Spinner({ className }: { className?: string }) {

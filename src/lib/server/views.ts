@@ -91,6 +91,22 @@ export async function stateView() {
   };
 }
 
+/** Every task the site shows publicly, for the sitemap. */
+export async function publicTasks(): Promise<TaskCard[]> {
+  return (await cards(await fetchTasks(program()))).filter((t) => !hidden(t));
+}
+
+/** One task's public card and brief, for page metadata and share images. Null when missing or hidden. */
+export async function taskSummary(taskKey: string) {
+  const task = await fetchTask(program(), new PublicKey(taskKey));
+  if (!task) return null;
+  const [c] = await cards([task]);
+  if (hidden(c)) return null;
+  const brief = await store.brief(task.briefHash).catch(() => undefined);
+  return { ...c, briefText: brief?.brief };
+}
+export type TaskSummary = NonNullable<Awaited<ReturnType<typeof taskSummary>>>;
+
 export interface SubmissionDetail extends SubmissionView {
   content?: string;
   contentVerified: boolean;

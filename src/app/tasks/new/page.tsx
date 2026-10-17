@@ -14,6 +14,8 @@ import { Kicker, Skeleton, Spinner, cx } from "@/components/ui";
 import { CATEGORIES, categoryById } from "@/lib/categories";
 import { TEMPLATES } from "@/lib/demo";
 import { postJSON, runAction } from "@/lib/client/api";
+import { track } from "@/lib/client/analytics";
+import { toast } from "@/components/Toast";
 import { HELP_EMAIL, orgRegistrationMailto } from "@/lib/contact";
 import { categoryIcon } from "@/lib/fx/sprites";
 
@@ -87,10 +89,13 @@ export default function NewTaskPage() {
       });
       setStep("done");
       burst(cta.current, { icons: ["coin", "coin", "lock", "monkey"], count: 30 });
+      toast.success("Task posted", `${reward} USDC is locked in escrow. Share the task to bring in entries.`, { action: { label: "Open the task", href: `/tasks/${task}` } });
+      track("task_posted", { category: categoryById(category).label });
       await refresh();
       setTimeout(() => router.push(`/tasks/${task}`), 900);
     } catch (err) {
       setError((err as Error).message);
+      toast.error("Task not posted", (err as Error).message);
       setStep("idle");
     }
   }

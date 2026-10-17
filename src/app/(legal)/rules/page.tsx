@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { A, Doc, List, Mail } from "@/components/legal/Doc";
 import { CATEGORIES, RUBRIC_VERSION } from "@/lib/categories";
 import { LEGAL } from "@/lib/legal";
 
-export const metadata: Metadata = {
-  title: "Task and judging rules · Wukong",
+export const metadata: Metadata = pageMetadata({
+  title: "Task and judging rules",
   description: "How every Wukong task runs: entering, how the AI judge scores, the caps it applies, who gets paid and how stakes work.",
-};
+  path: "/rules",
+  ownImage: true,
+  type: "article",
+});
 
 const L = LEGAL;
 

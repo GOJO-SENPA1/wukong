@@ -8,6 +8,7 @@ import { Kinetic, Magnetic, Reveal, Scramble, Tilt } from "@/components/fx/motio
 import { Summon } from "@/components/fx/Summon";
 import { Avatar, Countdown, Kicker } from "@/components/ui";
 import { fmtUsdc, shortAddr } from "@/lib/format";
+import { track } from "@/lib/client/analytics";
 import type { TaskCard } from "@/lib/server/views";
 
 export function Hero() {
@@ -51,11 +52,11 @@ export function Hero() {
           </Reveal>
           <Reveal delay={0.7} className="mt-10 flex flex-wrap items-center gap-3">
             <Magnetic strength={0.2}>
-              <Link href={primary.href} className="btn btn-red h-12 px-6 text-[15px]">
+              <Link href={primary.href} className="btn btn-red h-12 px-6 text-[15px]" onClick={() => track("cta_click", { cta: `hero ${primary.label}` })}>
                 {primary.label} <primary.Icon size={17} />
               </Link>
             </Magnetic>
-            <Link href={secondary.href} className="btn btn-line h-12 px-6 text-[15px]">
+            <Link href={secondary.href} className="btn btn-line h-12 px-6 text-[15px]" onClick={() => track("cta_click", { cta: `hero ${secondary.label}` })}>
               {secondary.label}
             </Link>
           </Reveal>

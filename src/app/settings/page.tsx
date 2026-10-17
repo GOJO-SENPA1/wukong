@@ -9,6 +9,7 @@ import { Kinetic, Reveal } from "@/components/fx/motion";
 import { burst } from "@/components/fx/Overlay";
 import { Container, Kicker, Skeleton, Spinner, cx } from "@/components/ui";
 import { postJSON } from "@/lib/client/api";
+import { toast } from "@/components/Toast";
 
 const SKILLS = ["Copywriting", "Translation", "Nepali", "Hindi", "TypeScript", "Python", "Data labeling", "Research", "Design", "Social media"];
 
@@ -106,9 +107,11 @@ function Editor({ profile }: { profile: MeProfile }) {
       await account.refresh();
       setSaved(true);
       burst(btn, { count: 10 });
+      toast.success("Profile saved", "Your public profile is up to date.");
       setTimeout(() => setSaved(false), 2200);
     } catch (err) {
       setError((err as Error).message);
+      toast.error("Profile not saved", (err as Error).message);
     } finally {
       setBusy(false);
     }

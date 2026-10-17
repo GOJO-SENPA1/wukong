@@ -73,6 +73,7 @@ Add these in Vercel (Production, plus Preview if you use preview deploys). Copy 
 | `SUPABASE_SECRET_KEY` | Supabase → API Keys → secret (only if supabase-js is used) | **no** |
 | `RESEND_API_KEY` | Resend → API Keys | **no** |
 | `EMAIL_FROM` | `Wukong <noreply@send.wukonghq.xyz>` | no |
+| `CONTACT_TO` | Inbox for contact-form messages (optional, defaults to `help@wukonghq.xyz`) | no |
 
 These are already set from the earlier deploy: `WUKONG_DEPLOYMENT`, `WUKONG_JUDGE_SECRET`, `WUKONG_GATEWAY_SECRET`, `SOLANA_RPC_URL`, `KV_URL` / `REDIS_URL`, `CRON_SECRET`, `WUKONG_DEMO_MODE`, `ANTHROPIC_API_KEY`. Replace `WUKONG_ADMIN_SECRET` with `WUKONG_FAUCET_SECRET` (see [SECURITY.md](SECURITY.md)). See [DEPLOY.md](DEPLOY.md).
 

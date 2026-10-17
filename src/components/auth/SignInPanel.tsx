@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { AlertCircle, Mail, Wallet, X } from "lucide-react";
 import { useAccount, type LoginMethod } from "./Account";
 import { Spinner } from "@/components/ui";
+import { track } from "@/lib/client/analytics";
 
 function GoogleMark() {
   return (
@@ -42,7 +43,10 @@ export function SignInPanel({ methods, primary = "email" }: { methods: LoginMeth
           key={m}
           className={m === primary ? "btn btn-ivory h-12 w-full text-[15px]" : "btn btn-line h-12 w-full text-[15px]"}
           disabled={busy}
-          onClick={() => account.login([m])}
+          onClick={() => {
+            track("sign_in_start", { method: m });
+            account.login([m]);
+          }}
         >
           {busy && m === primary ? <Spinner /> : OPTIONS[m].icon} {busy && m === primary ? (account.authenticated ? "Loading your account…" : "Loading…") : OPTIONS[m].label}
         </button>

@@ -6,6 +6,8 @@ import { PixelIcon } from "./fx/PixelIcon";
 import { Logo } from "./Logo";
 import { useApp } from "./Providers";
 import type { SpriteName } from "@/lib/fx/sprites";
+import { openConsentPreferences } from "@/lib/client/consent";
+import { isPlainHref } from "@/lib/links";
 
 const STRIP: { icon: SpriteName; text: string }[] = [
   { icon: "lock", text: "Reward locked before work starts" },
@@ -34,7 +36,7 @@ const COLS = [
       { href: "/rules", label: "How judging works" },
       { href: "/benchmarks", label: "Judge benchmark" },
       { href: "/actions.json", label: "Solana Actions" },
-      { href: "mailto:help@wukonghq.xyz", label: "help@wukonghq.xyz" },
+      { href: "/contact", label: "Contact us" },
     ],
   },
   {
@@ -74,8 +76,8 @@ export function Footer() {
           <div key={c.title} className="flex flex-col gap-3">
             <div className="label !text-faint">{c.title}</div>
             {c.links.map((l) =>
-              // The benchmark is a static page, not an app route: a plain link loads it.
-              l.href === "/benchmarks" ? (
+              // Static pages, files and other sites load with a plain link, not client-side navigation.
+              isPlainHref(l.href) ? (
                 <a key={l.href} href={l.href} className="link-underline w-fit text-[14px] text-fg/75 transition-colors hover:text-fg">
                   {l.label}
                 </a>
@@ -85,10 +87,15 @@ export function Footer() {
                 </Link>
               ),
             )}
+            {c.title === "Legal" && (
+              <button type="button" onClick={openConsentPreferences} className="link-underline w-fit text-left text-[14px] text-fg/75 transition-colors hover:text-fg">
+                Cookie preferences
+              </button>
+            )}
           </div>
         ))}
       </div>
-      <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8" aria-hidden>
+      <div className="pointer-events-none relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8" aria-hidden>
         <div className="wordmark select-none whitespace-nowrap bg-gradient-to-b from-fg/[0.06] via-fg/[0.03] to-fg/0 bg-clip-text text-center text-[22vw] leading-[0.8] text-transparent">
           WUKONG
         </div>

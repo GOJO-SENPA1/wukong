@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Check, Copy } from "lucide-react";
 import { useApp } from "@/components/Providers";
+import { toast } from "@/components/Toast";
+import { track } from "@/lib/client/analytics";
 import { TaskCard } from "@/components/TaskCard";
 import { Kinetic, Reveal, Spotlight, TypeLines } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
@@ -157,6 +159,8 @@ function Terminal({ title, lines, copyText }: { title: string; lines: { text: st
           onClick={() => {
             navigator.clipboard?.writeText(copyText);
             setCopied(true);
+            toast.success("Copied to clipboard");
+            track("agent_snippet_copied");
             setTimeout(() => setCopied(false), 1400);
           }}
         >

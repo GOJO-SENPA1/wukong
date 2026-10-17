@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowDown, Bot, ChevronRight, Gavel, Lock, Users } from "lucide-react";
+import { ArrowDown, Bot, Gavel, Lock, RotateCcw, Users } from "lucide-react";
 import { useApp } from "@/components/Providers";
 import { useAccount } from "@/components/auth/Account";
 import { Entry } from "@/components/arena/Entry";
@@ -12,7 +12,11 @@ import type { CrowdEvent, JudgeEvent, LiveState, LogLine, TaskPayload } from "@/
 import { Kinetic, Reveal, Scramble } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
 import { burst } from "@/components/fx/Overlay";
-import { Avatar, Countdown, Empty, ExplorerLink, Skeleton, Spinner, cx } from "@/components/ui";
+import { Avatar, Countdown, EmptyState, ExplorerLink, Skeleton, Spinner, cx } from "@/components/ui";
+import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
+import { RelatedLinks } from "@/components/RelatedLinks";
+import { TaskCard } from "@/components/TaskCard";
+import { pages } from "@/lib/links";
 import { getJSON, runAction, streamEvents } from "@/lib/client/api";
 import { templateById } from "@/lib/demo";
 import { fmtUsdc, shortAddr } from "@/lib/format";
@@ -170,7 +174,29 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
     }
   }, [taskKey, push, load]);
 
-  if (error && !data) return <Empty>{error}</Empty>;
+  if (error && !data) {
+    const missing = /not found/i.test(error);
+    return (
+      <EmptyState
+        icon={missing ? "cloud" : "fire"}
+        title={missing ? "This task doesn't exist" : "This task didn't load"}
+        actions={
+          <>
+            {!missing && (
+              <button type="button" className="btn btn-red h-11 px-5" onClick={load}>
+                <RotateCcw size={15} /> Try again
+              </button>
+            )}
+            <Link href="/tasks" className={cx("btn h-11 px-5", missing ? "btn-red" : "btn-line")}>
+              Browse open tasks
+            </Link>
+          </>
+        }
+      >
+        {missing ? "The link may be mistyped, or the task was posted on a different network. Open tasks are all in the marketplace." : error}
+      </EmptyState>
+    );
+  }
   if (!data || !task) {
     return (
       <div className="flex flex-col gap-6">
@@ -196,17 +222,18 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
   const liveScored = data.submissions.filter((s) => s.scored || live.scored.has(s.pubkey)).length;
   const canEnter = task.status === "open" && !isCreator && role === "worker";
   const needsSignIn = task.status === "open" && role === null && account.enabled && !account.authenticated;
+  // Other open tasks, same category first: somewhere to go next.
+  const more = (appState.tasks ?? [])
+    .filter((t) => t.status === "open" && t.pubkey !== task.pubkey)
+    .sort((a, b) => Number(b.category === task.category) - Number(a.category === task.category) || b.reward - a.reward)
+    .slice(0, 3);
 
   return (
     <div className="flex flex-col gap-8">
       {/* Header */}
       <div className="flex flex-col gap-5">
-        <Reveal y={8} className="flex items-center gap-2 text-[14px]">
-          <Link href="/tasks" className="link-underline text-muted transition-colors hover:text-fg">
-            Marketplace
-          </Link>
-          <ChevronRight size={14} className="text-faint" />
-          <span className="text-fg/80">{task.categoryLabel}</span>
+        <Reveal y={8}>
+          <Breadcrumbs items={[{ name: "Home", path: "/" }, { name: "Marketplace", path: "/tasks" }, { name: task.title }]} />
         </Reveal>
         <Reveal y={8} delay={0.05} className="flex flex-wrap items-center gap-2">
           <span
@@ -231,6 +258,7 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
               "Cancelled · refunded"
             )}
           </span>
+          <span className="mono-label inline-flex items-center rounded-full px-3 py-1.5 !text-[10.5px] text-gold-2 shadow-[inset_0_0_0_1px_rgb(216_179_108/0.3)]">{task.categoryLabel}</span>
           {sealed && (
             <span className="mono-label inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 !text-[10.5px] text-fg/80 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.13)]">
               <Lock size={11} /> Entries sealed until close
@@ -327,10 +355,11 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
               {judging && <JudgeStage total={data.submissions.length} scored={liveScored} scoring={live.scoring.size} engine={appState.judge ? (appState.judge.engine === "ai" ? "AI judge" : "offline judge") : undefined} />}
             </AnimatePresence>
             {subs.length === 0 ? (
-              <Empty className="flex flex-col items-center gap-3">
-                <PixelIcon name="monkey" px={3} motion="bob" />
-                No entries yet. Be the first{demoMode ? ", or summon the crowd" : ""}.
-              </Empty>
+              <EmptyState icon="monkey" title="No entries yet">
+                {task.status === "open"
+                  ? `Be the first${demoMode ? ", or summon the crowd" : ""}. Entries stay sealed until the task closes, so nobody can copy yours.`
+                  : "Nobody entered this task before it closed."}
+              </EmptyState>
             ) : (
               <div className="flex flex-col gap-3">
                 {subs.map((s) => {
@@ -453,6 +482,25 @@ export default function ArenaPage({ params }: { params: Promise<{ task: string }
           </p>
         </aside>
       </div>
+
+      {more.length > 0 && (
+        <section aria-labelledby="more-tasks" className="flex flex-col gap-4 border-t border-line pt-10">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h2 id="more-tasks" className="text-[19px] font-semibold tracking-tight">
+              More open tasks{more.some((t) => t.category === task.category) ? ` in ${task.categoryLabel}` : ""}
+            </h2>
+            <Link href="/tasks" className="link-underline text-[14px] text-muted hover:text-fg">
+              See all tasks
+            </Link>
+          </div>
+          <div className="grid gap-3 lg:grid-cols-3">
+            {more.map((t, i) => (
+              <TaskCard key={t.pubkey} task={t} index={i} compact />
+            ))}
+          </div>
+        </section>
+      )}
+      <RelatedLinks links={pages("rules", "leaderboard", "benchmarks")} />
     </div>
   );
 }

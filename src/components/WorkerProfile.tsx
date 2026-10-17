@@ -6,7 +6,12 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check, Copy, Link2, Pencil } from "lucide-react";
 import { Counter, Kinetic, Reveal, Scramble, Spotlight } from "@/components/fx/motion";
 import { PixelIcon } from "@/components/fx/PixelIcon";
-import { Avatar, Container, Empty, ExplorerLink, ScoreBar, Skeleton, TierBadge, cx } from "@/components/ui";
+import { Avatar, Container, Empty, EmptyState, ExplorerLink, ScoreBar, Skeleton, TierBadge, cx } from "@/components/ui";
+import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
+import { RelatedLinks } from "@/components/RelatedLinks";
+import { pages } from "@/lib/links";
+import { track } from "@/lib/client/analytics";
+import { toast } from "@/components/Toast";
 import { getJSON } from "@/lib/client/api";
 import { useApp } from "@/components/Providers";
 import { useAccount } from "@/components/auth/Account";
@@ -59,13 +64,25 @@ export function WorkerProfile({ worker }: { worker: string }) {
   const copy = (what: "link" | "code", text: string) => {
     navigator.clipboard?.writeText(text);
     setCopied(what);
+    toast.success(what === "link" ? "Profile link copied" : "Code copied");
+    if (what === "link") track("profile_shared");
     setTimeout(() => setCopied(null), 1400);
   };
 
   if (err && !data)
     return (
       <Container>
-        <Empty>{err}</Empty>
+        <EmptyState
+          icon="fire"
+          title="This profile didn't load"
+          actions={
+            <Link href="/leaderboard" className="btn btn-line h-11 px-5">
+              See the leaderboard
+            </Link>
+          }
+        >
+          {err}
+        </EmptyState>
       </Container>
     );
   if (!data) {
@@ -131,6 +148,7 @@ const rep = await program.account.reputation.fetch(pda);`;
             </span>
           </motion.div>
           <div className="min-w-0 flex-1">
+            <Breadcrumbs items={[{ name: "Home", path: "/" }, { name: "Leaderboard", path: "/leaderboard" }, { name: display }]} className="mb-4" />
             <Kinetic text={display} className="display text-[clamp(2.8rem,6vw,4.8rem)]" />
             <Reveal delay={0.2} className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px] text-muted">
               {prof?.handle && <span className="font-semibold text-fg">@{prof.handle}</span>}
@@ -293,6 +311,7 @@ const rep = await program.account.reputation.fetch(pda);`;
             </Reveal>
           </aside>
         </div>
+        <RelatedLinks links={pages("tasks", "leaderboard", "signin")} className="mt-6" />
       </Container>
     </>
   );
@@ -328,6 +347,7 @@ function OrgProfile({ profile, wallet, display }: { profile: PublicProfile; wall
         <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-7 px-4 py-14 sm:px-6 md:flex-row md:items-center lg:px-8">
           <Avatar id={wallet} name={display} size={112} />
           <div className="min-w-0 flex-1">
+            <Breadcrumbs items={[{ name: "Home", path: "/" }, { name: "Leaderboard", path: "/leaderboard" }, { name: display }]} className="mb-4" />
             <div className="label">Organisation</div>
             <Kinetic text={display} className="display mt-3 text-[clamp(2.8rem,6vw,4.8rem)]" />
             <Reveal delay={0.2} className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px] text-muted">
@@ -357,6 +377,7 @@ function OrgProfile({ profile, wallet, display }: { profile: PublicProfile; wall
           <div className="text-[19px] font-semibold tracking-tight">Tasks</div>
           {tasks.length === 0 ? <Empty>No tasks posted yet.</Empty> : tasks.map((t, i) => <TaskCard key={t.pubkey} task={t} index={i} />)}
         </div>
+        <RelatedLinks links={pages("tasks", "business", "rules")} className="mt-6" />
       </Container>
     </>
   );

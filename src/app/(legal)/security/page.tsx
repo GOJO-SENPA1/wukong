@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { Doc, List, Mail } from "@/components/legal/Doc";
 
-export const metadata: Metadata = {
-  title: "Security · Wukong",
-  description: "How to report a vulnerability in Wukong's app, API, judge or Solana program.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Security",
+  description: "How to report a vulnerability in Wukong's app, API, AI judge or Solana program, and what we promise researchers in return.",
+  path: "/security",
+  type: "article",
+});
 
 const sections = [
   {

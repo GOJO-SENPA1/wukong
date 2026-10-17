@@ -8,7 +8,7 @@ import { DATA_DIR } from "./env";
 //     disk is read-only and every request may land on a different instance.
 //   JSON file in DATA_DIR (default): local runs and single-container hosts.
 
-export type Coll = "briefs" | "submissions" | "reports" | "taskMeta" | "names" | "taskTxs";
+export type Coll = "briefs" | "submissions" | "reports" | "taskMeta" | "names" | "taskTxs" | "tallies";
 export type Release = () => Promise<void>;
 
 export interface Backend {
@@ -23,6 +23,10 @@ export interface Backend {
   lock(name: string, ttlMs: number): Promise<Release | null>;
   /** Count a hit in a fixed window; returns the count so far in this window. */
   hit(name: string, windowMs: number): Promise<number>;
+  /** Add one to each named counter in a group (e.g. one day's events); the group expires after ttlDays. */
+  tally(group: string, fields: string[], ttlDays: number): Promise<void>;
+  /** Every counter in a group. */
+  tallies(group: string): Promise<Record<string, number>>;
 }
 
 // Fixed-window counters for the file backend (single process, so memory is enough).
@@ -42,7 +46,7 @@ function memoryHit(name: string, windowMs: number): number {
 // ---------- JSON file
 
 type Shape = Record<Coll, Record<string, unknown>>;
-const COLLS: Coll[] = ["briefs", "submissions", "reports", "taskMeta", "names", "taskTxs"];
+const COLLS: Coll[] = ["briefs", "submissions", "reports", "taskMeta", "names", "taskTxs", "tallies"];
 const empty = (): Shape => Object.fromEntries(COLLS.map((c) => [c, {}])) as Shape;
 
 function fileBackend(): Backend {
@@ -98,6 +102,13 @@ function fileBackend(): Backend {
       return null;
     },
     hit: async (name, windowMs) => memoryHit(name, windowMs),
+    tally: async (group, fields) =>
+      mutate((s) => {
+        const g = ((s.tallies[group] as Record<string, number> | undefined) ??= {});
+        for (const f of fields) g[f] = (g[f] ?? 0) + 1;
+        s.tallies[group] = g;
+      }),
+    tallies: async (group) => ({ ...((load().tallies[group] as Record<string, number> | undefined) ?? {}) }),
   };
 }
 
@@ -200,6 +211,20 @@ function redisBackend(url: string): Backend {
       const n = await op((c) => c.incr(key));
       if (n === 1) await op((c) => c.pExpire(key, windowMs));
       return n;
+    },
+    async tally(group, fields, ttlDays) {
+      if (!fields.length) return;
+      const key = `${prefix}tally:${group}`;
+      await op((c) => {
+        const m = c.multi();
+        for (const f of fields) m.hIncrBy(key, f, 1);
+        m.expire(key, ttlDays * 86_400);
+        return m.exec();
+      });
+    },
+    async tallies(group) {
+      const raw = await op((c) => c.hGetAll(`${prefix}tally:${group}`));
+      return Object.fromEntries(Object.entries(raw).map(([f, v]) => [f, Number(v)]));
     },
   };
 }

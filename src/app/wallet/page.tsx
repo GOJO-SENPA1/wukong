@@ -13,6 +13,7 @@ import { PixelIcon } from "@/components/fx/PixelIcon";
 import { burst } from "@/components/fx/Overlay";
 import { Container, ExplorerLink, Kicker, Skeleton, Spinner, cx } from "@/components/ui";
 import { getJSON, postJSON, runAction } from "@/lib/client/api";
+import { toast } from "@/components/Toast";
 import { toUsdc } from "@/lib/format";
 
 interface Balances {
@@ -43,8 +44,8 @@ export default function WalletPage() {
   }, [load]);
   useEffect(() => {
     if (!address) return setQr(null);
-    QRCode.toDataURL(address, { margin: 1, width: 360, color: { dark: "#07080C", light: "#F1EDE4" } })
-      .then(setQr)
+    QRCode.toString(address, { type: "svg", margin: 1, color: { dark: "#07080C", light: "#F1EDE4" } })
+      .then((svg) => setQr(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`))
       .catch(() => setQr(null));
   }, [address]);
 
@@ -139,7 +140,7 @@ export default function WalletPage() {
             <div className="mt-5 flex flex-col items-center gap-5 sm:flex-row sm:items-start">
               <div className="shrink-0 rounded-2xl bg-fg p-2.5 shadow-[0_20px_40px_-20px_rgb(0_0_0/0.9)]">
                 {qr ? (
-                  <img src={qr} alt="QR code of your wallet address" width={164} height={164} className="block rounded-lg" />
+                  <img src={qr} alt="QR code of your wallet address" width={164} height={164} decoding="async" className="block rounded-lg" />
                 ) : (
                   <div className="h-[164px] w-[164px] animate-pulse rounded-lg bg-bg/10" />
                 )}
@@ -208,11 +209,13 @@ function Withdraw({ max, onDone }: { max: number; onDone: () => void }) {
     try {
       const { sig } = await runAction(signer, { kind: "withdraw", to, amountUsdc: Math.floor(n * 1_000_000) / 1_000_000 });
       setMsg({ ok: true, text: `Sent ${n} USDC.`, sig });
+      toast.success(`Sent ${n} USDC`, "The transfer is confirmed on Solana.");
       burst(btn.current, { count: 14 });
       setAmount("");
       onDone();
     } catch (e) {
       setMsg({ ok: false, text: (e as Error).message });
+      toast.error("Withdrawal failed", (e as Error).message);
     } finally {
       setBusy(false);
     }
@@ -278,6 +281,7 @@ function Faucet({ address, company, onDone }: { address: string; company: boolea
           try {
             await postJSON("/api/faucet", { address, role: company ? "company" : "worker" });
             setDone(true);
+            toast.success("Test funds sent", "They should show in your balance in a few seconds.");
             burst(btn.current, { count: 12 });
             onDone();
           } catch (e) {

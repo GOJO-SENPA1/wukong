@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { A, Doc, List, Mail } from "@/components/legal/Doc";
 import { LEGAL } from "@/lib/legal";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy · Wukong",
-  description: "What Wukong collects, what is public on-chain, who processes it and the choices you have.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Privacy Policy",
+  description: "What Wukong collects, what is public on-chain, who processes it, how cookies and analytics work, and the choices you have.",
+  path: "/privacy",
+  type: "article",
+});
 
 const sections = [
   {
@@ -19,7 +22,10 @@ const sections = [
           what is on the blockchain can&apos;t be deleted.
         </li>
         <li>AI models read briefs and entries to judge them. We don&apos;t use your entries to train AI models unless you opt in.</li>
-        <li>We don&apos;t sell your data, and we don&apos;t use advertising or analytics trackers.</li>
+        <li>
+          We don&apos;t sell your data and don&apos;t use advertising trackers. Only if you allow it, we count anonymous visits and actions as daily totals, with no
+          cookies and nothing that identifies you.
+        </li>
       </List>
     ),
   },
@@ -56,6 +62,14 @@ const sections = [
         </li>
         <li>
           <b>Organisation invitations:</b> the email and organisation name we approve for an organisation account.
+        </li>
+        <li>
+          <b>Messages:</b> if you use the <A href="/contact">contact form</A>, your name, email address, topic and message, delivered to our inbox so we can reply.
+        </li>
+        <li>
+          <b>Anonymous analytics, only with your consent:</b> which kind of page was viewed and which steps were completed (such as posting a task or sending an
+          entry), counted as daily totals. Task and profile ids are removed from page addresses, and nothing is linked to you, your account, your wallet or your IP
+          address.
         </li>
         <li>
           <b>Technical data:</b> IP address and request details, used for security and rate limiting and kept in short-lived server logs.
@@ -101,8 +115,8 @@ const sections = [
     body: (
       <p>
         Where data-protection law such as the GDPR applies, we rely on: performing our contract with you (running your account, tasks and payouts); our legitimate
-        interests (keeping Wukong secure, preventing abuse and improving the service); your consent where we ask for it (such as optional AI-training use); and legal
-        obligations.
+        interests (keeping Wukong secure, preventing abuse, answering your messages and improving the service); your consent where we ask for it (such as anonymous
+        analytics and optional AI-training use); and legal obligations.
       </p>
     ),
   },
@@ -127,7 +141,7 @@ const sections = [
           <li>Privy: sign-in and embedded wallets.</li>
           <li>Our database and hosting providers: accounts, profiles, briefs, entries and reports.</li>
           <li>AI model providers: judging briefs and entries.</li>
-          <li>Resend: email delivery.</li>
+          <li>Resend: email delivery, including messages sent through the contact form.</li>
           <li>Solana RPC providers: reading and sending blockchain transactions.</li>
         </List>
         <p>
@@ -144,6 +158,8 @@ const sections = [
       <List>
         <li>Account and profile data: while your account is open, and for a short period after, unless the law requires longer.</li>
         <li>Briefs, entries and reports: while Wukong runs, because they back published results that the on-chain hashes point to.</li>
+        <li>Contact messages: as long as the conversation needs, then deleted within a year.</li>
+        <li>Anonymous analytics totals: up to 400 days.</li>
         <li>Server logs: kept briefly for security.</li>
         <li>On-chain records: permanent, and outside our control.</li>
       </List>
@@ -169,10 +185,20 @@ const sections = [
     id: "storage",
     title: "Cookies and browser storage",
     body: (
-      <p>
-        We use only what Wukong needs to work: Privy&apos;s sign-in storage, and local browser storage for things like your entries&apos; drafts, the account you last used
-        and whether you&apos;ve seen the welcome screen. We don&apos;t use advertising or analytics cookies.
-      </p>
+      <>
+        <p>
+          <b>Essential:</b> Privy&apos;s sign-in storage, and local browser storage for things like your entries&apos; drafts, the account you last used and whether
+          you&apos;ve seen the welcome screen. Wukong needs these to work, so they don&apos;t need consent. We also keep one small cookie, <code>wk_consent</code>, for
+          180 days to remember your cookie choice.
+        </p>
+        <p>
+          <b>Optional analytics:</b> off until you allow it. When on, your browser sends anonymous events (described above) to our own server. They use no cookies and
+          go to no third party. If your browser sends a Global Privacy Control or Do Not Track signal, we treat it as a no.
+        </p>
+        <p>
+          We don&apos;t use advertising cookies. You can change your choice at any time with <b>Cookie preferences</b> in the footer of every page.
+        </p>
+      </>
     ),
   },
   {
@@ -200,6 +226,7 @@ const sections = [
 export default function PrivacyPage() {
   return (
     <Doc
+      updated="17 October 2026"
       kicker="Legal"
       title={
         <>

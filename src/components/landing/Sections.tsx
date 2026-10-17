@@ -12,6 +12,8 @@ import { Countdown, Kicker, Skeleton, cx } from "@/components/ui";
 import { toUsdc } from "@/lib/format";
 import type { SpriteName } from "@/lib/fx/sprites";
 import type { TaskCard } from "@/lib/server/views";
+import { FAQ } from "@/lib/faq";
+import { track } from "@/lib/client/analytics";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -527,37 +529,6 @@ export function Pricing() {
 }
 
 /* ---------- questions */
-const FAQ = [
-  {
-    q: "Do I need crypto to use Wukong?",
-    a: "No. Sign up with Google or email and a Solana wallet is created for you. Add USDC by transfer, or connect Phantom if you already have a wallet.",
-  },
-  {
-    q: "What if no entry is good enough?",
-    a: "Every task has a quality bar. If no entry scores 25 or more, the whole reward goes back to you from escrow, with no fee.",
-  },
-  {
-    q: "Who is the judge, and can it be gamed?",
-    a: "An AI judge applies the category's public rubric to every entry. Integrity checks run first: copies, hidden instructions and spam are capped. Each score and a hash of its report go on-chain, so anyone can verify them.",
-  },
-  {
-    q: "How do I get an organisation account?",
-    a: "Email help@wukonghq.xyz with your organisation's name, website and the email you'll sign in with. We approve organisations by hand, usually within a working day, so every task comes from a real company. Freelancers just sign up.",
-  },
-  {
-    q: "Can freelancers post tasks, or organisations enter them?",
-    a: "No. Organisations post tasks and follow who entered and how they scored. Freelancers enter tasks and get paid. Keeping the sides apart stops anyone from judging their own work.",
-  },
-  {
-    q: "How do freelancers cash out?",
-    a: "Winnings arrive as USDC in the freelancer's own wallet the moment judging ends. From there they can hold, send or cash out through any exchange.",
-  },
-  {
-    q: "Which tasks work best?",
-    a: "Anything where many attempts beat one: copy and taglines, translation, small coding tasks, data labeling and research.",
-  },
-];
-
 export function Faq() {
   const [open, setOpen] = useState(0);
   return (
@@ -633,13 +604,14 @@ export function FinalCta() {
                 href={r === "company" ? "/tasks/new" : "/business"}
                 className="btn btn-red h-13 px-7 text-[15px]"
                 onMouseEnter={(e) => burst(e.currentTarget, { count: 8 })}
+                onClick={() => track("cta_click", { cta: r === "company" ? "final Post a task" : "final Hire the crowd" })}
               >
                 {r === "company" ? "Post a task" : "Hire the crowd"} <ArrowRight size={18} />
               </Link>
             </Magnetic>
           )}
           {r !== "company" && (
-            <Link href="/tasks" className={cx("btn h-13 px-7 text-[15px]", r === "worker" ? "btn-red" : "btn-line")}>
+            <Link href="/tasks" className={cx("btn h-13 px-7 text-[15px]", r === "worker" ? "btn-red" : "btn-line")} onClick={() => track("cta_click", { cta: "final Find work" })}>
               Find work
             </Link>
           )}

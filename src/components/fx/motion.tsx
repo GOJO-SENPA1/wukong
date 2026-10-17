@@ -24,9 +24,22 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { cx } from "@/components/ui";
+import { clsx as cx } from "clsx";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+/**
+ * The visitor's reduced-motion setting, but false until after hydration. The
+ * server can't know the setting, so anything that renders differently because of
+ * it must agree with the server on the first pass, then update. (Animations
+ * themselves follow the setting through MotionConfig in the root layout.)
+ */
+export function useReducedMotionSafe(): boolean {
+  const reduce = useReducedMotion();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return mounted && !!reduce;
+}
 
 /** Fades and slides its children in the first time they scroll into view. */
 export function Reveal({
@@ -50,16 +63,8 @@ export function Reveal({
   once?: boolean;
   style?: CSSProperties;
 }) {
-  const reduce = useReducedMotion();
+  // Reduced motion is handled by MotionConfig: the slide is skipped and only the fade remains.
   const M = motion[as] as typeof motion.div;
-  if (reduce) {
-    const Tag = as as ElementType;
-    return (
-      <Tag className={className} style={style}>
-        {children}
-      </Tag>
-    );
-  }
   return (
     <M
       className={className}
@@ -123,7 +128,6 @@ export function Kinetic({
   as?: "h1" | "h2" | "h3" | "p" | "div" | "span";
   inView?: boolean;
 }) {
-  const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const seen = useInView(ref, { once: true, margin: "0px 0px -10% 0px" });
   const go = !inView || seen;
@@ -141,7 +145,7 @@ export function Kinetic({
               <span key={wi} className="inline-block overflow-hidden pb-[0.1em] pr-[0.04em] align-bottom">
                 <motion.span
                   className={cx("inline-block", hot && accent)}
-                  initial={reduce ? false : { y: "105%" }}
+                  initial={{ y: "105%" }}
                   animate={go ? { y: "0%" } : undefined}
                   transition={{ duration: 1, ease: EASE, delay: delay + i * stagger }}
                 >
@@ -255,7 +259,7 @@ export function Tilt({
   style?: CSSProperties;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const px = useMotionValue(0.5);
   const py = useMotionValue(0.5);
   const rx = useSpring(useTransform(py, [0, 1], [max, -max]), { stiffness: 180, damping: 18 });
@@ -455,7 +459,7 @@ export function Parallax({ children, speed = 0.15, className }: { children: Reac
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const y = useTransform(scrollYProgress, [0, 1], [`${speed * 100}%`, `${-speed * 100}%`]);
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   return (
     <motion.div ref={ref} className={className} style={{ y: reduce ? 0 : y }}>
       {children}

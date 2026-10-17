@@ -2,7 +2,12 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { clsx as cx } from "clsx";
 import { Kicker } from "@/components/ui";
+import { RelatedLinks } from "@/components/RelatedLinks";
+import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { LEGAL, LEGAL_PAGES } from "@/lib/legal";
+import { pages, type PageKey } from "@/lib/links";
+import { breadcrumbLd, type Crumb } from "@/lib/seo";
 
 /** A legal or policy document: heading, date, a contents list built from its sections, then the sections. */
 export function Doc({
@@ -11,15 +16,23 @@ export function Doc({
   lede,
   current,
   sections,
+  updated = LEGAL.updated,
 }: {
   kicker: string;
   title: ReactNode;
   lede: ReactNode;
   current: string;
   sections: { id: string; title: string; body: ReactNode }[];
+  /** When this page last changed, if later than the shared date. */
+  updated?: string;
 }) {
+  const name = LEGAL_PAGES.find((p) => p.href === current)?.label ?? kicker;
+  const crumbs: Crumb[] = [{ name: "Home", path: "/" }, { name }];
+  const related = (["terms", "privacy", "rules", "security", "contact", "benchmarks"] as PageKey[]).filter((k) => `/${k}` !== current).slice(0, 3);
   return (
     <div className="flex flex-col gap-12">
+      <JsonLd data={breadcrumbLd(crumbs)} />
+      <Breadcrumbs items={crumbs} className="-mb-6" />
       <nav aria-label="Policies" className="flex flex-wrap gap-2">
         {LEGAL_PAGES.map((p) => (
           <Link
@@ -39,7 +52,7 @@ export function Doc({
         <Kicker>{kicker}</Kicker>
         <h1 className="display mt-4 text-[clamp(2.6rem,6vw,4.4rem)]">{title}</h1>
         <p className="mt-5 max-w-2xl text-[16px] leading-relaxed text-muted">{lede}</p>
-        <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-faint">Last updated {LEGAL.updated}</p>
+        <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-faint">Last updated {updated}</p>
       </header>
       <div className="grid gap-12 lg:grid-cols-[220px_minmax(0,1fr)]">
         <nav aria-label="On this page" className="hidden lg:block">
@@ -68,11 +81,16 @@ export function Doc({
             Questions about this page? Email{" "}
             <a className="text-fg underline decoration-line-2 underline-offset-4 hover:decoration-gold" href={`mailto:${LEGAL.contact}`}>
               {LEGAL.contact}
-            </a>
+            </a>{" "}
+            or use the{" "}
+            <Link className="text-fg underline decoration-line-2 underline-offset-4 hover:decoration-gold" href="/contact">
+              contact form
+            </Link>
             .
           </p>
         </div>
       </div>
+      <RelatedLinks title="Related pages" links={pages(...related)} />
     </div>
   );
 }

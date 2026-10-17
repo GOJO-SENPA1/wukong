@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { A, Doc, List, Mail } from "@/components/legal/Doc";
 import { LEGAL } from "@/lib/legal";
 
-export const metadata: Metadata = {
-  title: "Terms of Service · Wukong",
-  description: "The agreement for posting tasks, entering them, judging and payouts on Wukong.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Terms of Service",
+  description: "The agreement for posting tasks, entering them, judging and payouts on Wukong, the competitive work marketplace on Solana.",
+  path: "/terms",
+  type: "article",
+});
 
 const L = LEGAL;
 

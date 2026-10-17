@@ -11,6 +11,8 @@ import { burst } from "@/components/fx/Overlay";
 import { Avatar, ExplorerLink, Spinner, cx } from "@/components/ui";
 import { categoryById } from "@/lib/categories";
 import { postJSON, runAction } from "@/lib/client/api";
+import { track } from "@/lib/client/analytics";
+import { toast } from "@/components/Toast";
 import { fmtUsdc, toUsdc } from "@/lib/format";
 import { sha256Hex } from "@/lib/hash";
 import { stakeRefunded } from "@/lib/rules";
@@ -181,10 +183,13 @@ export function SubmitPanel({
       });
       await runAction(signer, { kind: "submit", task: taskKey, contentHash: hash });
       burst(btn.current, { icons: ["coin", "monkey", "coin"], count: 16 });
+      toast.success("Entry submitted", "It's sealed on-chain until the task closes. You'll see your score when judging ends.");
+      track("entry_submitted");
       onDone(content);
       setContent("");
     } catch (e) {
       setErr((e as Error).message);
+      toast.error("Entry not submitted", (e as Error).message);
     } finally {
       setBusy(false);
     }
@@ -392,6 +397,8 @@ export function ShareBlink({ taskKey, cluster }: { taskKey: string; cluster?: st
         onClick={() => {
           navigator.clipboard?.writeText(action);
           setCopied(true);
+          toast.success("Blink link copied", "Paste it in a post on X or anywhere Blinks unfurl.");
+          track("blink_copied");
           setTimeout(() => setCopied(false), 1400);
         }}
       >
