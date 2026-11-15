@@ -1,0 +1,13 @@
+{
+  "id": "P033",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "I have a freelancer I trust for copy and I'd just call them. Paying 55 to run a contest where most entries get nothing, on an unaudited new platform paid in USDC, is more hassle than a small task is worth.",
+  "objection": "The 10% fee plus the reward is more than I would spend on a small task, and I'd have to set up USDC on Solana for a platform nobody I know has used.",
+  "would_change_my_mind": "A colleague or a freelancer I already trust vouching for it, and being able to pay by card instead of USDC.",
+  "price_too_cheap": 15,
+  "price_cheap": 30,
+  "price_expensive": 55,
+  "price_too_expensive": 90
+}

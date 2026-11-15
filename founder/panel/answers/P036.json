@@ -1,0 +1,13 @@
+{
+  "id": "P036",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "I'd just prompt a model myself or hand it to the team or a freelancer I already trust. Paying 55 USDC for a contest where most entries go unpaid isn't how I buy small jobs.",
+  "objection": "Why not just use ChatGPT, or hire the one freelancer I already trust? Plus I'd have to fund in USDC on Solana, with a brand-new, unaudited product judged by an AI I don't know.",
+  "would_change_my_mind": "A free first task where the winning entry clearly beats what I get from a model in ten minutes, with no crypto setup on my side.",
+  "price_too_cheap": 5,
+  "price_cheap": 15,
+  "price_expensive": 40,
+  "price_too_expensive": 75
+}

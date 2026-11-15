@@ -1,0 +1,13 @@
+{
+  "id": "P035",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "other",
+  "reason": "I like trying new tools and the first task is free, so I'd run one small pilot for fun. I wouldn't pay for a second one until I'd seen what came back.",
+  "objection": "I don't want to deal with crypto or a wallet to pay for a small task. Setting up USDC on Solana is a hassle, and the product is unaudited and invite-only. If I pay 55 and only the top entries get paid, I could end up with a bunch of scored reports and nothing I can use.",
+  "would_change_my_mind": "Paying by card, with no wallet or USDC needed. For me that is the difference between a one-off pilot and something I'd use regularly.",
+  "price_too_cheap": 10,
+  "price_cheap": 25,
+  "price_expensive": 70,
+  "price_too_expensive": 120
+}

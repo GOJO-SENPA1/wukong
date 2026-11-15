@@ -1,0 +1,13 @@
+{
+  "id": "P037",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "I'd want to look at it, but I'm not putting 55 USDC into an unaudited new product from a small team I can't check, for a task where only the winner gets paid. I'd rather ask a model for a draft and pay a freelancer I can see reviews for.",
+  "objection": "Unaudited, invitation-only, tiny team, and I have to fund a Solana wallet in USDC just to post one small task. I can't find reviews or track record, and I don't know who is behind it.",
+  "would_change_my_mind": "A free trial task I could run end to end, plus visible past tasks with public scores and reasons, named people behind it, and a card or invoice payment option instead of needing a wallet.",
+  "price_too_cheap": 10,
+  "price_cheap": 25,
+  "price_expensive": 55,
+  "price_too_expensive": 100
+}
