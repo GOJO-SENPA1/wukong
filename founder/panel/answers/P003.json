@@ -1,0 +1,13 @@
+{
+  "id": "P003",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "I'd ask Claude for the draft first and only pay a person if it's not good enough. Paying 55 USDC for a pool where everyone but the winner works for free feels like spec work, and I'd be funding it in crypto on an unaudited new product I can't get through my org's finance.",
+  "objection": "Everyone who doesn't win works for free, which feels like spec work, and I'd be locking real money in USDC on Solana with a team that has no audit and no track record. I don't know if an AI judge's rubric score matches what I'd actually call good.",
+  "would_change_my_mind": "A free trial where I see real entries judged against my rubric and the winning one clearly beats what Claude gives me, plus a way to pay by card and a reference from another organiser who used it.",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 45,
+  "price_too_expensive": 70
+}

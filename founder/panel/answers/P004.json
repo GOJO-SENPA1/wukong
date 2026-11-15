@@ -1,0 +1,13 @@
+{
+  "id": "P004",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "values",
+  "reason": "I won't set up a wallet or hold USDC for a business purchase, and that rules it out before I even look at the rest. Even if it were in dollars, writing a rubric for every task is extra work and I can get a first draft from a model for free.",
+  "objection": "It's paid only in USDC on Solana and I avoid crypto for anything business-related. On top of that, I'd have to write a good rubric, only the top entries get paid, and it's unaudited and invite-only.",
+  "would_change_my_mind": "Let me pay by card or invoice in dollars, with a ready-made rubric template so I don't have to write one from scratch.",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 45,
+  "price_too_expensive": 80
+}
