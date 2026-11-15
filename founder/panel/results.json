@@ -1,0 +1,281 @@
+{
+ "business": "Wukong (a competitive work marketplace where the buyer locks a reward and an AI judge scores the entries)",
+ "seed": 2026,
+ "dealt": 40,
+ "answered": 20,
+ "skipped": [
+  [
+   "P021",
+   "missing"
+  ],
+  [
+   "P022",
+   "missing"
+  ],
+  [
+   "P023",
+   "missing"
+  ],
+  [
+   "P024",
+   "missing"
+  ],
+  [
+   "P025",
+   "missing"
+  ],
+  [
+   "P026",
+   "missing"
+  ],
+  [
+   "P027",
+   "missing"
+  ],
+  [
+   "P028",
+   "missing"
+  ],
+  [
+   "P029",
+   "missing"
+  ],
+  [
+   "P030",
+   "missing"
+  ],
+  [
+   "P031",
+   "missing"
+  ],
+  [
+   "P032",
+   "missing"
+  ],
+  [
+   "P033",
+   "missing"
+  ],
+  [
+   "P034",
+   "missing"
+  ],
+  [
+   "P035",
+   "missing"
+  ],
+  [
+   "P036",
+   "missing"
+  ],
+  [
+   "P037",
+   "missing"
+  ],
+  [
+   "P038",
+   "missing"
+  ],
+  [
+   "P039",
+   "missing"
+  ],
+  [
+   "P040",
+   "missing"
+  ]
+ ],
+ "buys": 4,
+ "passes": 16,
+ "buy_rate": 0.2,
+ "by_segment": [
+  [
+   "Marketing or content lead at an SMB or agency",
+   5,
+   0.4
+  ],
+  [
+   "Web3 project ops or community manager",
+   3,
+   0.3333333333333333
+  ],
+  [
+   "Startup or small-team founder / ops lead",
+   8,
+   0.125
+  ],
+  [
+   "Community, event or education organiser (career centre, conference, nonprofit)",
+   4,
+   0.0
+  ]
+ ],
+ "by_behaviour": [
+  [
+   "Early adopter",
+   2,
+   1.0
+  ],
+  [
+   "Budget-tight, wants proof",
+   2,
+   0.5
+  ],
+  [
+   "Asks for a sample, reads reviews",
+   2,
+   0.5
+  ],
+  [
+   "AI first",
+   5,
+   0.0
+  ],
+  [
+   "Hires a freelancer they already trust",
+   5,
+   0.0
+  ],
+  [
+   "Avoids anything crypto",
+   3,
+   0.0
+  ],
+  [
+   "Does it in-house",
+   1,
+   0.0
+  ]
+ ],
+ "by_income": [
+  [
+   "$120,000 and up",
+   8,
+   0.25
+  ],
+  [
+   "under $86,000",
+   6,
+   0.16666666666666666
+  ],
+  [
+   "$86,000 to $120,000",
+   6,
+   0.16666666666666666
+  ]
+ ],
+ "why_not": [
+  [
+   "trust",
+   5,
+   [
+    "I can't tell who is really behind this, and I'd be explaining USDC on Solana and an unaudited product to whoever signs off on my budget. I'd try ChatGPT or Claude first and only pay a person if that falls short.",
+    "I have freelancers I already trust and I go to them first. I'm not going to put company money into an unaudited smart contract on a brand new platform and then have to explain that to my boss."
+   ],
+   [
+    "P001",
+    "P002"
+   ]
+  ],
+  [
+   "values",
+   4,
+   [
+    "I'd just ask Claude for the draft first, and only pay someone if it's not good enough. A contest where everyone who doesn't win works for free feels like spec work, and I don't want my org tied to that.",
+    "Everything is paid in USDC on Solana, and I won't set up a wallet or hold stablecoins for a business purchase. On top of that, writing a rubric for every task is more work than just editing a model's first draft myself."
+   ],
+   [
+    "P003",
+    "P004"
+   ]
+  ],
+  [
+   "habit",
+   4,
+   [
+    "I already have a freelancer I trust for copy and translation, and for anything small I'd just ask them or use ChatGPT. I'm not going to put my organisation's money on a new platform that pays in USDC on Solana.",
+    "My backlog of small content and translation jobs goes to ChatGPT or Claude first, and I only pay a person when the draft isn't good enough. A contest where most entrants get nothing still feels like spec work to me, and I don't want to run that on my community's name."
+   ],
+   [
+    "P005",
+    "P006"
+   ]
+  ],
+  [
+   "convenience",
+   2,
+   [
+    "I'd hand a small task like this to an intern or the team. Paying in USDC on Solana means setting up a wallet, and that's more hassle than the task is worth.",
+    "Paying in USDC on Solana means setting up a wallet and learning crypto just to get a 30 dollar translation done. I have a backlog, but I would rather pay a freelancer by card than deal with that."
+   ],
+   [
+    "P009",
+    "P017"
+   ]
+  ],
+  [
+   "price",
+   1,
+   [
+    "For a small task, 33 USDC all-in plus the work of writing a rubric and checking entries is more than I would pay one freelancer I can vet myself. I also have to explain USDC on Solana to whoever signs off my spend, and I can't do that for an unaudited product."
+   ],
+   [
+    "P018"
+   ]
+  ]
+ ],
+ "why_yes": [
+  [
+   "trust",
+   2,
+   [
+    "The first task is free and my spend is capped at the reward, so I can try it without risking budget. I would post one small copy task and judge it by the public scores and reasons before paying for a second.",
+    "The first task is free and the spend is capped, so I'd try one small copy task to see if the judge's scores make sense. I wouldn't pay for a second one until I've seen what comes back."
+   ],
+   [
+    "P013",
+    "P014"
+   ]
+  ],
+  [
+   "need",
+   1,
+   [
+    "The first task is free and I like piloting new tools, so I'd try one copy task with a real brief just to see how the judge scores. I wouldn't pay for a second one until I've seen the entries and the score reasons."
+   ],
+   [
+    "P011"
+   ]
+  ],
+  [
+   "other",
+   1,
+   [
+    "The first task is free and I have a backlog of small translation jobs, so I'd run one as a pilot for fun. I wouldn't put my own money in until I've seen what comes back."
+   ],
+   [
+    "P019"
+   ]
+  ]
+ ],
+ "flip": [
+  "Card or invoice payment, a named organisation or real references from other nonprofits, and an independent audit. A free first task I could run with no money from my budget would also get me to try it once.",
+  "An independent audit, plus a way to pay by card or invoice and a few references from marketing leads at real companies who have used it.",
+  "Pay in plain dollars by card, an independent audit done, and proof that losing entrants get something, plus a couple of real organisations like mine who ran a task and were happy.",
+  "Let me pay by card or invoice in dollars, and handle the rubric fully for me.",
+  "Being able to pay by card or invoice, an independent audit, and a couple of references from organisations like mine. The free first task might get me to try one small thing, but only if I don't have to touch crypto.",
+  "If AI drafts clearly failed on a specific job, such as niche-language translation with native-level checking, and the free first task showed a winning entry beating my AI draft. Entrants being paid something just for entering would help too.",
+  "Let me pay by card or invoice in dollars, with no wallet and no stablecoin on my side, plus a receipt I can hand to finance.",
+  "A colleague at another organisation I trust telling me they used it and got work they were happy with, plus a way to pay by card or invoice and a human who signs off on the winner.",
+  "Let me pay by card or invoice with no wallet, and have an independent audit done. A free first task I could try without touching crypto would also help.",
+  "Pay by card or invoice in dollars with no wallet, plus an independent audit and a fee for every submitter who meets the bar, not only the winner.",
+  "Paying by card with a normal invoice I can expense, an independent audit, and a case study from another marketing lead showing entries that beat what my trusted freelancer delivers.",
+  "An independent audit, plus a way to pay by card or invoice so I don't touch crypto. Seeing a few real buyers like me with finished tasks would also help.",
+  "A referral from another founder I trust who has used it, plus a free first task I can run with no crypto wallet or USDC on my side, so I can check the output quality before I put real money in.",
+  "Let me pay by card or invoice with no wallet, and show me a sample of real winning entries on a task like mine. The free first task would get me to look if I did not need a wallet.",
+  "An independent audit, a few real reviews from other organisations, and a way to pay by card with no crypto wallet. A free first task would get me to try it once.",
+  "A free first task that gave me a better result than my own AI draft, with a USDC-free payment option such as a card. I'd also want to see a few finished tasks like mine first."
+ ],
+ "purchases_first_month_per_buyer": 1.0,
+ "price_answers": 20
+}
