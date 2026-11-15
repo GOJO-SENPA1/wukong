@@ -1,0 +1,13 @@
+{
+  "id": "P022",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "I can get a draft from Claude in two minutes for free, and I'd only pay a person if that wasn't good enough. I can't tell who is behind Wukong, and I'm not putting USDC on Solana into an unaudited new product.",
+  "objection": "I cannot tell who is behind this or whether it is legitimate. It has no audit and no track record, and I'd have to lock real money in crypto up front. Only the winners get paid, and I'm not sure an AI judge would score copy the way I would.",
+  "would_change_my_mind": "A named team with real people and a track record, a few public examples of finished tasks I could check, and a way to pay by card. A free first task with no funds locked would also let me try it.",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 45,
+  "price_too_expensive": 80
+}

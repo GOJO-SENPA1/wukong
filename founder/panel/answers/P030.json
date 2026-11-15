@@ -1,0 +1,13 @@
+{
+  "id": "P030",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "55 USDC for a small task I could get a first draft of from a model for free, and only the top entries get paid so I might get nothing usable for it. I'm budget-tight and want to see a sample first, and this is unaudited, invitation-only and needs USDC on Solana.",
+  "objection": "The 10% fee plus the reward is more than I would spend on a small task, and with winner-takes-all I am paying for a contest, not a guaranteed deliverable. No audit and no track record yet.",
+  "would_change_my_mind": "A free trial task where I see real scored entries and a usable result before paying anything, plus a total cost under about 25 USDC.",
+  "price_too_cheap": 5,
+  "price_cheap": 15,
+  "price_expensive": 30,
+  "price_too_expensive": 50
+}

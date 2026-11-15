@@ -1,0 +1,13 @@
+{
+  "id": "P026",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "I already ask Claude or ChatGPT for a first draft, and for anything that needs a human I have a freelancer I trust. Paying 55 USDC where most entries go unpaid, judged by an AI, on an unaudited product, is more hassle than my current setup.",
+  "objection": "Why not just use ChatGPT, or the one freelancer I already trust? An AI judge scoring AI-assisted entries feels circular, and I'd be locking USDC into a new, unaudited product I can't vouch for.",
+  "would_change_my_mind": "A free first task that actually beats my own AI draft on a real job, plus an independent audit or a few public examples where the winning entry was clearly better than what I could get from a model.",
+  "price_too_cheap": 10,
+  "price_cheap": 25,
+  "price_expensive": 55,
+  "price_too_expensive": 100
+}
