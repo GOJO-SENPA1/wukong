@@ -1,0 +1,13 @@
+{
+  "id": "P016",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "I have a backlog of small jobs, but I'd go to a freelancer I already trust or ask for a referral. I don't know this platform, I'd have to fund it in USDC on Solana, and it hasn't been audited.",
+  "objection": "I can't tell who is really behind this or whether it's legitimate. It's one security researcher, there's no audit, and I'd be sending crypto to a platform I've never used for work I'd normally hand to someone I know.",
+  "would_change_my_mind": "A referral from another founder I trust who has used it, plus a free first task I can run with no crypto wallet or USDC on my side, so I can check the output quality before I put real money in.",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 45,
+  "price_too_expensive": 80
+}

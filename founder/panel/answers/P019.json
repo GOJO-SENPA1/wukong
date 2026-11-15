@@ -1,0 +1,13 @@
+{
+  "id": "P019",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "other",
+  "reason": "The first task is free and I have a backlog of small translation jobs, so I'd run one as a pilot for fun. I wouldn't put my own money in until I've seen what comes back.",
+  "objection": "Everyone who doesn't win works for free, which feels like spec work. Why would good translators or writers bother, and will the entries be any good? Also it's one guy, unaudited, paying in USDC on Solana.",
+  "would_change_my_mind": "Seeing real past tasks where the winning entries were good, and a clear reason contributors keep coming back.",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 45,
+  "price_too_expensive": 80
+}

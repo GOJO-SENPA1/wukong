@@ -1,0 +1,13 @@
+{
+  "id": "P015",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "I'd try ChatGPT or Claude first, and for a small copy job I wouldn't lock USDC on Solana into a brand new, unaudited product. I'd also have to explain a crypto payment to whoever approves my freelancer spend.",
+  "objection": "My money sits in a smart contract from a very new product nobody has audited, paid in USDC on Solana, and I'd have to justify that to my boss or finance. The open code and the free first task help, but a pre-audit cap doesn't fix that.",
+  "would_change_my_mind": "An independent audit, plus a way to pay by card or invoice so I don't touch crypto. Seeing a few real buyers like me with finished tasks would also help.",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 45,
+  "price_too_expensive": 80
+}

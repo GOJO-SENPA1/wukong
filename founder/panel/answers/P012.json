@@ -1,0 +1,13 @@
+{
+  "id": "P012",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "I already have a freelancer I trust and I'd go to them or just use ChatGPT for a small job like this. I'm not going to put a new, unaudited platform paid in USDC on Solana in front of my boss.",
+  "objection": "I'm accountable for every dollar. Paying in USDC on an unaudited platform I've never heard of, with a judge that's an AI, is hard to explain or expense, and a freelancer I know gives me a revision, not a lottery of sealed entries.",
+  "would_change_my_mind": "Paying by card with a normal invoice I can expense, an independent audit, and a case study from another marketing lead showing entries that beat what my trusted freelancer delivers.",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 45,
+  "price_too_expensive": 80
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P011",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "need",
+  "reason": "The first task is free and I like piloting new tools, so I'd try one copy task with a real brief just to see how the judge scores. I wouldn't pay for a second one until I've seen the entries and the score reasons.",
+  "objection": "Writing a good rubric for each task is extra effort for me, and I'm not sure an AI judge can score copy quality the way I would. It's also USDC on Solana with no audit, so paying for it would be a hassle with finance.",
+  "would_change_my_mind": "Seeing a sample task where the winning entry was clearly good copy I'd actually use, and being able to pay by card instead of USDC.",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 45,
+  "price_too_expensive": 80
+}

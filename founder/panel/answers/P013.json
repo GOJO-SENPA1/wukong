@@ -1,0 +1,13 @@
+{
+  "id": "P013",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "trust",
+  "reason": "The first task is free and my spend is capped at the reward, so I can try it without risking budget. I would post one small copy task and judge it by the public scores and reasons before paying for a second.",
+  "objection": "Everyone who does not win works for free, and that feels like spec work. I would worry good writers skip it, and that an AI judge from an unaudited, invite-only product picks the wrong winner.",
+  "would_change_my_mind": "",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 45,
+  "price_too_expensive": 80
+}
