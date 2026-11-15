@@ -1,0 +1,13 @@
+{
+  "id": "P017",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "I would have to set up a Solana wallet and buy USDC just to get a 50-dollar translation done, and the product is new, invite-only and unaudited. I would rather pay a freelancer by card and see a sample first.",
+  "objection": "I do not want to deal with crypto or a wallet to pay for a small task, and I would be locking 55 dollars into an unaudited platform before I have seen any output.",
+  "would_change_my_mind": "Pay by card with no wallet, plus the free trial task actually delivered and a sample of a past task with the scored entries so I can see the quality before I put in my own money.",
+  "price_too_cheap": 10,
+  "price_cheap": 25,
+  "price_expensive": 55,
+  "price_too_expensive": 90
+}

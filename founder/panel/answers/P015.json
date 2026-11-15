@@ -1,0 +1,13 @@
+{
+  "id": "P015",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "I'd just ask Claude for the draft first, and I'm not locking 55 USDC in a contract from an unaudited, invitation-only product when I have to account for every freelancer dollar. Winner-takes-all also means I'd pay for one result while the rest is wasted.",
+  "objection": "Money locked in a smart contract from a very new, unaudited product, paid in USDC on Solana that my finance person has no process for. I can't expense it or explain it to my boss if it goes wrong.",
+  "would_change_my_mind": "An independent audit of the contract, a card or invoice payment option with a receipt, and a free trial task where I see real scored entries before I put in my own money.",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 45,
+  "price_too_expensive": 80
+}

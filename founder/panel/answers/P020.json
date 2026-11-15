@@ -1,0 +1,13 @@
+{
+  "id": "P020",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "For a 50 USDC task I would just ask Claude for the draft and only pay a person if it came back bad. 55 USDC with only the top entries paid, plus USDC on Solana, is more hassle and money than a small task is worth to me.",
+  "objection": "The 10% fee plus the reward is more than I would spend on a small task, and the AI-written draft is free. It is also a new, unaudited product, and I would be locking real money into it before anyone has done anything.",
+  "would_change_my_mind": "A free first task where I put in no money of my own and the output clearly beats what Claude gives me, with a total cost well under 20 USDC.",
+  "price_too_cheap": 5,
+  "price_cheap": 12,
+  "price_expensive": 30,
+  "price_too_expensive": 50
+}

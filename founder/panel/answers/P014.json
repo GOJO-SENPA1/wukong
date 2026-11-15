@@ -1,0 +1,13 @@
+{
+  "id": "P014",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "A new, unaudited marketplace where I have to lock USDC on Solana up front and write a rubric myself is too much effort and risk for a small task I can get a first draft of from a model or a freelancer. I'd want to see real reviews and who is behind it first.",
+  "objection": "Writing a good rubric for each task is extra effort for me, and I'm locking real money into an unaudited product from a small team with no reviews I can check, with only an AI judge deciding who gets paid.",
+  "would_change_my_mind": "A free sample task I can run with a rubric template, plus public reviews from other founders and a clear picture of who runs it, and the option to pay by card instead of USDC.",
+  "price_too_cheap": 10,
+  "price_cheap": 25,
+  "price_expensive": 60,
+  "price_too_expensive": 120
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P012",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "I already have a freelancer I trust for copy, and for quick stuff I use ChatGPT. I'm not going to move budget I have to account for onto an unaudited new platform where I pay in USDC.",
+  "objection": "Winner-takes-all means most entries are throwaway and I'm judged by an AI I don't know. If something goes wrong I have to explain to my boss why I sent crypto to an unaudited startup instead of just paying my freelancer.",
+  "would_change_my_mind": "A free first task that shows a result clearly better than my freelancer or ChatGPT, plus a way to pay by card and an invoice I can expense.",
+  "price_too_cheap": 15,
+  "price_cheap": 30,
+  "price_expensive": 70,
+  "price_too_expensive": 110
+}

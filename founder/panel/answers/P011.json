@@ -1,0 +1,13 @@
+{
+  "id": "P011",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "other",
+  "reason": "The free pilot is the hook: I like trying new tools and one small task costs me nothing. I would not pay the 55 USDC after that unless the free run showed me something clearly better than a model draft.",
+  "objection": "Writing a good rubric for every task is extra work for me, and I have to pay in USDC on Solana, which I would have to set up. It is also unaudited, invite-only and run by a small team, so I would not put real money in yet.",
+  "would_change_my_mind": "A ready-made rubric template for copy tasks, so I don't have to write one from scratch, plus paying by card instead of USDC.",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 55,
+  "price_too_expensive": 120
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P018",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "I'm accountable for every freelancer dollar, and paying about 55 USDC for a small task where only the winner gets paid, on an unaudited, invitation-only product with no reviews, is hard to justify. The free trial is tempting, but I'd want proof first, and I'd have to set up a USDC wallet on Solana just to try it.",
+  "objection": "It's new, unaudited and has no reviews or track record I can check, and I'd be locking real money in crypto that I'd have to explain to whoever I report to. The 10% fee on top of the reward makes a small task cost more than I'd normally pay a freelancer.",
+  "would_change_my_mind": "Sample judged results from real tasks with public scores I can read, a few named customers or reviews I can verify, and a way to pay by card or invoice instead of USDC. An independent audit would also help.",
+  "price_too_cheap": 15,
+  "price_cheap": 30,
+  "price_expensive": 50,
+  "price_too_expensive": 70
+}
