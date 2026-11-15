@@ -3,11 +3,11 @@
   "buys": false,
   "purchases_first_month": 0,
   "reason_code": "values",
-  "reason": "I won't set up a wallet or hold USDC for a business purchase, so this is dead on arrival. And winner-takes-all feels like spec work to me, where most people who put in effort get nothing.",
-  "objection": "It's crypto-only (USDC on Solana) and I avoid that entirely. On top of that it's unaudited, invite-only and from a tiny team, and I'd be paying 55 for something I can get from a freelancer for a fixed fee without the spec-work ethics problem.",
-  "would_change_my_mind": "Pay by card or invoice in dollars with no wallet on my side, plus a track record or an audit and fair pay for entrants, not only the winners.",
-  "price_too_cheap": 15,
-  "price_cheap": 30,
-  "price_expensive": 80,
-  "price_too_expensive": 150
+  "reason": "I won't set up a wallet or hold USDC for a business purchase, so this is closed to me before I look at anything else. Even without that, a contest where everyone but the winner works for free feels like spec work and I don't want my name on it.",
+  "objection": "It's USDC on Solana, and I don't do crypto. On top of that, paying only the top entries is spec work, and it's an unaudited product from one person.",
+  "would_change_my_mind": "Pay by card or invoice in dollars with no wallet, plus an independent audit and a fee for every submitter who meets the bar, not only the winner.",
+  "price_too_cheap": 10,
+  "price_cheap": 25,
+  "price_expensive": 60,
+  "price_too_expensive": 120
 }

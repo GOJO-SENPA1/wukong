@@ -1,0 +1,101 @@
+{
+ "n": 40,
+ "seed": 2026,
+ "customer": {
+  "business": "Wukong (a competitive work marketplace where the buyer locks a reward and an AI judge scores the entries)",
+  "target": "People who buy small, measurable tasks for a small organisation: copy, translation, data labeling, small coding jobs, structured research. Founders and ops leads at startups, content and marketing leads, community, event and education organisers, and web3 project ops.",
+  "where": "Online, English-speaking buyers worldwide",
+  "age": [
+   26,
+   55
+  ],
+  "segments": [
+   {
+    "name": "Startup or small-team founder / ops lead",
+    "share": 0.35,
+    "income": [
+     60000,
+     180000
+    ]
+   },
+   {
+    "name": "Marketing or content lead at an SMB or agency",
+    "share": 0.25,
+    "income": [
+     55000,
+     130000
+    ]
+   },
+   {
+    "name": "Community, event or education organiser (career centre, conference, nonprofit)",
+    "share": 0.25,
+    "income": [
+     40000,
+     110000
+    ]
+   },
+   {
+    "name": "Web3 project ops or community manager",
+    "share": 0.15,
+    "income": [
+     50000,
+     140000
+    ]
+   }
+  ],
+  "behaviours": [
+   {
+    "name": "Hires a freelancer they already trust",
+    "share": 0.2,
+    "how": "Goes to a referral or a past freelancer first and rarely tries a new platform."
+   },
+   {
+    "name": "AI first",
+    "share": 0.2,
+    "how": "Asks ChatGPT or Claude for the draft, and pays a person only when the result is not good enough."
+   },
+   {
+    "name": "Budget-tight, wants proof",
+    "share": 0.15,
+    "how": "Spends small amounts and wants to see a sample or a track record before paying anything."
+   },
+   {
+    "name": "Asks for a sample, reads reviews",
+    "share": 0.12,
+    "how": "Checks who is behind a service, looks for reviews and a real website before trusting it."
+   },
+   {
+    "name": "Early adopter",
+    "share": 0.13,
+    "how": "Likes trying new tools and will run a small pilot for fun if it costs little."
+   },
+   {
+    "name": "Avoids anything crypto",
+    "share": 0.1,
+    "how": "Will not set up a wallet or hold stablecoins for a business purchase."
+   },
+   {
+    "name": "Does it in-house",
+    "share": 0.1,
+    "how": "Gives small jobs to interns, volunteers or the team instead of buying."
+   }
+  ],
+  "objections": [
+   "I do not want to deal with crypto or a wallet to pay for a small task",
+   "Why not just use ChatGPT, or hire the one freelancer I already trust?",
+   "Everyone who does not win works for free, and that feels like spec work",
+   "Can an AI judge really tell good work from bad for my taste and brand?",
+   "I cannot tell who is behind this, or whether it is legitimate",
+   "The 10% fee plus the reward is more than I would spend on a small task",
+   "Writing a good rubric for each task is extra effort for me",
+   "Money locked in a smart contract from a very new, unaudited product worries me"
+  ],
+  "habits": [
+   "you have a backlog of small content or translation jobs nobody has time for",
+   "you check a few tools a week and ignore most cold emails",
+   "you have asked a model for a first draft of something this month",
+   "you are accountable to someone for every dollar you spend on freelancers"
+  ]
+ },
+ "pitch": "Wukong, a work marketplace at wukonghq.xyz. You post a small, measurable task (copy with limits, a translation, a labeling set, a coding job with tests) and lock the reward, paid in USDC, before anyone starts.\nMany people submit sealed entries. An AI judge scores every entry against a rubric published up front, and each score is public with a written reason.\nOnly the top entries are paid (winner takes all, or 50/30/20); the rest get a scored report. Wukong takes a 10% fee from the reward. A typical small task is a 50 USDC reward, so the all-in cost to you is about 55 USDC. If no entry clears the quality bar, you are refunded.\nOrganisations join by invitation, it is a new product with a small team, and it has not been independently audited. You would fund with USDC on Solana.\nTry one task for free, with a small reward that the founder helps you set up."
+}

@@ -2,12 +2,12 @@
   "id": "P009",
   "buys": false,
   "purchases_first_month": 0,
-  "reason_code": "habit",
-  "reason": "I'd rather have someone on the team or an intern do a small task than set up a Solana wallet and pay 55 USDC for a contest where maybe nobody wins. It's not worth the hassle for a small job.",
-  "objection": "Paying in USDC on Solana means a wallet and crypto handling just to buy a small task, and it's an unaudited new product that only lets in invited organisations. I'd also pay a fee for sealed entries where most of the entrants get nothing, and I don't trust an AI judge to pick what I'd actually pick.",
-  "would_change_my_mind": "Let me pay by card or invoice with no wallet, and show me a few finished tasks where the AI judge's winner was clearly good. I'd still try the free task if the team really sets it up for me.",
+  "reason_code": "convenience",
+  "reason": "I'd hand a small task like this to an intern or the team. Paying in USDC on Solana means setting up a wallet, and that's more hassle than the task is worth.",
+  "objection": "I don't want to deal with crypto or a wallet to pay for a small task. On top of that, it's unaudited, run by one person, and I'd have to trust an AI judge to score the work.",
+  "would_change_my_mind": "Let me pay by card or invoice with no wallet, and have an independent audit done. A free first task I could try without touching crypto would also help.",
   "price_too_cheap": 8,
   "price_cheap": 20,
-  "price_expensive": 45,
-  "price_too_expensive": 80
+  "price_expensive": 50,
+  "price_too_expensive": 90
 }

@@ -1,0 +1,13 @@
+{
+  "id": "P007",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "values",
+  "reason": "I don't do crypto. I'm not setting up a Solana wallet or holding USDC to pay for a 50 dollar task, and I'd have to explain that to whoever signs off on my spend.",
+  "objection": "I'd have to set up a wallet and hold stablecoins just to buy a small task. It's also unaudited, invite-only, and a new product, and I can't put that on the books when I'm accountable for every freelancer dollar.",
+  "would_change_my_mind": "Let me pay by card or invoice in dollars, with no wallet and no USDC on my side, plus a receipt I can hand to finance.",
+  "price_too_cheap": 15,
+  "price_cheap": 30,
+  "price_expensive": 70,
+  "price_too_expensive": 120
+}

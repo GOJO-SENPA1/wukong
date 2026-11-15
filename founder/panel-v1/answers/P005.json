@@ -1,0 +1,13 @@
+{
+  "id": "P005",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "I have a freelancer I already trust and I'm not moving a nonprofit's money onto a new platform that nobody has audited. I'd also have to explain USDC on Solana to my finance person, and that alone kills it.",
+  "objection": "I'm accountable for every dollar. A brand-new, unaudited platform where I pay in crypto and only the winner gets paid is hard to justify, and I can't tell my board why I didn't just call my freelancer or use ChatGPT.",
+  "would_change_my_mind": "Pay by card or invoice instead of USDC, plus a reference from another organisation like mine that has used it, with the free trial task run for me so there is no risk.",
+  "price_too_cheap": 15,
+  "price_cheap": 30,
+  "price_expensive": 70,
+  "price_too_expensive": 110
+}

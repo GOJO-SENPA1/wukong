@@ -1,0 +1,13 @@
+{
+  "id": "P006",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "My backlog is small copy and translation jobs, and I just ask Claude for a draft and fix it myself. Paying 55 USDC for a contest where most entries get nothing feels like spec work, and I'm not sending money to an unaudited new product.",
+  "objection": "Everyone who doesn't win works for free, so good people will skip it. I'd be paying 55 USDC for a pile of entries judged by an AI that I can't check, on a platform nobody has audited.",
+  "would_change_my_mind": "An independent audit, plus a free first task where I can see the AI judge's scores and reasons on real entries and they beat what I get from Claude in ten minutes.",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 45,
+  "price_too_expensive": 80
+}

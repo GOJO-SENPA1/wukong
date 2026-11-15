@@ -1,0 +1,211 @@
+{
+ "business": "Wukong (a competitive work marketplace where the buyer locks a reward and an AI judge scores the entries)",
+ "seed": 2026,
+ "dealt": 40,
+ "answered": 40,
+ "skipped": [],
+ "buys": 5,
+ "passes": 35,
+ "buy_rate": 0.125,
+ "by_segment": [
+  [
+   "Web3 project ops or community manager",
+   6,
+   0.3333333333333333
+  ],
+  [
+   "Marketing or content lead at an SMB or agency",
+   10,
+   0.2
+  ],
+  [
+   "Community, event or education organiser (career centre, conference, nonprofit)",
+   10,
+   0.1
+  ],
+  [
+   "Startup or small-team founder / ops lead",
+   14,
+   0.0
+  ]
+ ],
+ "by_behaviour": [
+  [
+   "Early adopter",
+   5,
+   1.0
+  ],
+  [
+   "AI first",
+   8,
+   0.0
+  ],
+  [
+   "Hires a freelancer they already trust",
+   8,
+   0.0
+  ],
+  [
+   "Avoids anything crypto",
+   4,
+   0.0
+  ],
+  [
+   "Does it in-house",
+   4,
+   0.0
+  ],
+  [
+   "Budget-tight, wants proof",
+   6,
+   0.0
+  ],
+  [
+   "Asks for a sample, reads reviews",
+   5,
+   0.0
+  ]
+ ],
+ "by_income": [
+  [
+   "$102,000 and up",
+   14,
+   0.21428571428571427
+  ],
+  [
+   "under $83,000",
+   13,
+   0.07692307692307693
+  ],
+  [
+   "$83,000 to $102,000",
+   13,
+   0.07692307692307693
+  ]
+ ],
+ "why_not": [
+  [
+   "trust",
+   20,
+   [
+    "I can't tell who is behind this or whether it's legitimate, and I'd have to explain a crypto payment to whoever signs off on my budget. My first move is to ask ChatGPT or Claude for the draft anyway, and I only pay a person if that isn't good enough.",
+    "I go to a freelancer I already trust, and I answer for every dollar. Locking money in a contract on a brand-new, unaudited product isn't something I'd explain to my boss. Winner-takes-all also means I pay 55 USDC and might get nothing usable."
+   ],
+   [
+    "P001",
+    "P002"
+   ]
+  ],
+  [
+   "habit",
+   9,
+   [
+    "I have a freelancer I already trust and I'm not moving a nonprofit's money onto a new platform that nobody has audited. I'd also have to explain USDC on Solana to my finance person, and that alone kills it.",
+    "My backlog is small copy and translation jobs, and I just ask Claude for a draft and fix it myself. Paying 55 USDC for a contest where most entries get nothing feels like spec work, and I'm not sending money to an unaudited new product."
+   ],
+   [
+    "P005",
+    "P006"
+   ]
+  ],
+  [
+   "values",
+   4,
+   [
+    "I won't set up a wallet or hold USDC for a business purchase, and that rules it out before I even look at the rest. Even if it were in dollars, writing a rubric for every task is extra work and I can get a first draft from a model for free.",
+    "I don't do crypto. I'm not setting up a Solana wallet or holding USDC to pay for a 50 dollar task, and I'd have to explain that to whoever signs off on my spend."
+   ],
+   [
+    "P004",
+    "P007"
+   ]
+  ],
+  [
+   "price",
+   2,
+   [
+    "For a 50 USDC task I would just ask Claude for the draft and only pay a person if it came back bad. 55 USDC with only the top entries paid, plus USDC on Solana, is more hassle and money than a small task is worth to me.",
+    "55 USDC for a small task I could get a first draft of from a model for free, and only the top entries get paid so I might get nothing usable for it. I'm budget-tight and want to see a sample first, and this is unaudited, invitation-only and needs USDC on Solana."
+   ],
+   [
+    "P020",
+    "P030"
+   ]
+  ]
+ ],
+ "why_yes": [
+  [
+   "other",
+   2,
+   [
+    "The free pilot is the hook: I like trying new tools and one small task costs me nothing. I would not pay the 55 USDC after that unless the free run showed me something clearly better than a model draft.",
+    "I like trying new tools and the first task is free, so I'd run one small pilot for fun. I wouldn't pay for a second one until I'd seen what came back."
+   ],
+   [
+    "P011",
+    "P035"
+   ]
+  ],
+  [
+   "trust",
+   2,
+   [
+    "I like trying new tools and the first task is free with the founder helping, so I would run one small pilot for fun. I would not put real money in until I have seen how the judge scores things.",
+    "I'd take the free pilot task because it costs me nothing and I like trying new tools. I wouldn't pay real money for a second one until I've seen how the judge scores and whether the winning entry is actually usable."
+   ],
+   [
+    "P031",
+    "P034"
+   ]
+  ],
+  [
+   "need",
+   1,
+   [
+    "I always have a pile of small translation and content jobs, and a free first task is a cheap way to try something new. I'd run one pilot for fun, but I'm not committing real budget until I see how it goes."
+   ],
+   [
+    "P019"
+   ]
+  ]
+ ],
+ "flip": [
+  "Named founders I can verify, a few real nonprofit or education customers I can contact, and a way to pay by card or invoice instead of USDC. The free trial task would help, but only once I can tell the company is real.",
+  "A referral from someone I trust who has used it, plus an independent audit, and a way to pay by card so I don't have to handle USDC. The free first task would also have to cost me nothing in real money.",
+  "A free trial where I see real entries judged against my rubric and the winning one clearly beats what Claude gives me, plus a way to pay by card and a reference from another organiser who used it.",
+  "Let me pay by card or invoice in dollars, with a ready-made rubric template so I don't have to write one from scratch.",
+  "Pay by card or invoice instead of USDC, plus a reference from another organisation like mine that has used it, with the free trial task run for me so there is no risk.",
+  "An independent audit, plus a free first task where I can see the AI judge's scores and reasons on real entries and they beat what I get from Claude in ten minutes.",
+  "Let me pay by card or invoice in dollars, with no wallet and no USDC on my side, plus a receipt I can hand to finance.",
+  "A referral from another organiser I know who has used it, plus a human reviewing the winner before payout, a card or invoice payment option, and an independent audit.",
+  "Let me pay by card or invoice with no wallet, and show me a few finished tasks where the AI judge's winner was clearly good. I'd still try the free task if the team really sets it up for me.",
+  "Pay by card or invoice in dollars with no wallet on my side, plus a track record or an audit and fair pay for entrants, not only the winners.",
+  "A free first task that shows a result clearly better than my freelancer or ChatGPT, plus a way to pay by card and an invoice I can expense.",
+  "A free first task where I can see real scored entries and the judge's written reasons on a past task, with no crypto setup or money from me up front.",
+  "A free sample task I can run with a rubric template, plus public reviews from other founders and a clear picture of who runs it, and the option to pay by card instead of USDC.",
+  "An independent audit of the contract, a card or invoice payment option with a receipt, and a free trial task where I see real scored entries before I put in my own money.",
+  "A named team with a public track record, plus a referral from someone I trust who has used it. The free first task, with no funds from me at risk, would let me test it.",
+  "Pay by card with no wallet, plus the free trial task actually delivered and a sample of a past task with the scored entries so I can see the quality before I put in my own money.",
+  "Sample judged results from real tasks with public scores I can read, a few named customers or reviews I can verify, and a way to pay by card or invoice instead of USDC. An independent audit would also help.",
+  "A free first task where I put in no money of my own and the output clearly beats what Claude gives me, with a total cost well under 20 USDC.",
+  "A real named team and company, reviews or case studies from organisations I can check, and a free first task where I can see a sample of the scored results before I put in any money.",
+  "A named team with real people and a track record, a few public examples of finished tasks I could check, and a way to pay by card. A free first task with no funds locked would also let me try it.",
+  "Let me pay by credit card or invoice in dollars, with no wallet on my side. I'd also want a couple of reference customers like me and proof that it beats ChatGPT or my usual freelancer.",
+  "Card payment with no wallet, plus a free first task they run for me end to end, with proof that the winning entries beat what a model gives me for free.",
+  "Seeing real finished tasks with sample winning entries and their scores, and being able to pay by card or invoice instead of USDC. The free trial task would also have to be genuinely free and not need a crypto wallet.",
+  "A free first task that actually beats my own AI draft on a real job, plus an independent audit or a few public examples where the winning entry was clearly better than what I could get from a model.",
+  "A referral from someone I know who has used it, plus named founders and an independent audit or escrow proof. The free trial task would also help, but only if I can run it without funding any USDC.",
+  "Named founders I can check, a real task I can look at from a company I recognise, and a free trial where the founder sets everything up and I put in no USDC. I'd also want to see the rubric and a few example scored entries before I commit.",
+  "The free trial task, if I could see real past tasks with the judge's scores and reasons first, and the free task showed the judge ranking entries the way I would.",
+  "A free trial task where I see real scored entries and a usable result before paying anything, plus a total cost under about 25 USDC.",
+  "An independent audit of the contract, plus reviews from other organisations like mine. The free trial being set up and run by the founder with no funds of mine locked would let me test it with no risk.",
+  "A colleague or a freelancer I already trust vouching for it, and being able to pay by card instead of USDC.",
+  "A free first task where the winning entry clearly beats what I get from a model in ten minutes, with no crypto setup on my side.",
+  "A free trial task I could run end to end, plus visible past tasks with public scores and reasons, named people behind it, and a card or invoice payment option instead of needing a wallet.",
+  "A referral from another organiser I trust who has used it, plus the option to pay by card or invoice and a free first task where someone else handles the setup.",
+  "Pay by card with no wallet, plus a few real sample tasks with scored results I can look at before I put anything in. The free first task would only get me to look if it needs no crypto setup at all.",
+  "Named founders with real track records, plus a reference from another startup I know that has used it. A free trial where I don't have to fund anything from my own wallet would get me to try it once."
+ ],
+ "purchases_first_month_per_buyer": 1.0,
+ "price_answers": 40
+}

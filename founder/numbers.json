@@ -1,0 +1,26 @@
+{
+  "business": "Wukong (platform fee on settled tasks)",
+  "unit": "settled task",
+  "price": 3.00,
+  "variable": [
+    {"label": "AI judge inference (about 10 entries x 3 samples)", "cost": 0.10},
+    {"label": "Solana transactions and RPC share", "cost": 0.08},
+    {"label": "Emails and notifications", "cost": 0.02},
+    {"label": "Human review and appeals (avg minutes per task)", "cost": 1.00}
+  ],
+  "fixed_monthly": [
+    {"label": "Hosting, database, RPC, email, domain", "cost": 60},
+    {"label": "Founder stipend (assumption, set to 0 to see the no-salary case)", "cost": 1000}
+  ],
+  "startup": [
+    {"label": "Independent security audit of the Anchor program (ESTIMATE, get 3 quotes)", "cost": 15000},
+    {"label": "Legal entity, terms, privacy policy (estimate)", "cost": 1000},
+    {"label": "Mainnet deploy rent and fees (estimate)", "cost": 500},
+    {"label": "Pilot rewards the founder funds: 10 free tasks x $30", "cost": 300},
+    {"label": "Launch marketing and tools (estimate)", "cost": 500}
+  ],
+  "days_per_month": 30,
+  "capacity_per_day": 200,
+  "plan_per_day": 12,
+  "ramp_per_day": [0.2, 0.3, 0.5, 0.8, 1.2, 1.8, 2.5, 3.5, 5, 7, 9, 12]
+}
