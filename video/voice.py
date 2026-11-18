@@ -1,16 +1,19 @@
-"""Synthesize the voiceover with Piper and derive the film's timing from it.
+"""Synthesize the voiceover with edge-tts and derive the film's timing from it.
 
-Every line of script.json is spoken separately, trimmed, and laid on a
-timeline; word times are estimated inside each line (pauses at punctuation
-are detected in the audio, words in between are spread by length). Writes:
-  timing.js   window.TIMING, read by film.html (committed, so a render works without Piper)
+Every line of script.json is spoken separately; word-level timestamps come
+directly from the TTS engine (no guessing from audio energy). Writes:
+  timing.js   window.TIMING, read by film.html (committed so render works without TTS)
   vo/vo.wav   the voiceover track at 48 kHz (input to audio.py)
 
-  python voice.py --model en-us-ryan-high.onnx [--piper path/to/piper]
+  python voice.py [--voice en-US-AndrewNeural] [--rate +0%] [--pitch +0Hz]
+
+Voices: en-US-AndrewNeural (warm/confident, default), en-US-BrianNeural (casual),
+        en-US-GuyNeural (passionate), en-US-ChristopherNeural (authoritative)
 """
 import argparse
+import asyncio
+import io
 import json
-import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -23,19 +26,46 @@ HERE = Path(__file__).parent
 SR = 48000
 
 
-def synth(piper, model, text, length_scale):
-    with tempfile.NamedTemporaryFile(suffix=".wav") as f:
+async def synth_line(text, voice, rate, pitch):
+    """Speak one line, return (audio_f32_48k, word_boundaries)."""
+    import edge_tts
+
+    comm = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch, boundary="WordBoundary")
+    audio_chunks = []
+    words = []
+
+    async for chunk in comm.stream():
+        if chunk["type"] == "audio":
+            audio_chunks.append(chunk["data"])
+        elif chunk["type"] == "WordBoundary":
+            words.append({
+                "text": chunk["text"],
+                "offset": chunk["offset"] / 10_000_000,
+                "duration": chunk["duration"] / 10_000_000,
+            })
+
+    mp3_data = b"".join(audio_chunks)
+    with tempfile.NamedTemporaryFile(suffix=".mp3") as tmp_mp3, \
+         tempfile.NamedTemporaryFile(suffix=".wav") as tmp_wav:
+        tmp_mp3.write(mp3_data)
+        tmp_mp3.flush()
         subprocess.run(
-            [piper, "-m", model, "-f", f.name, "--length-scale", str(length_scale), "--sentence-silence", "0.18"],
-            input=text.encode(), check=True, capture_output=True,
+            ["ffmpeg", "-y", "-loglevel", "error", "-i", tmp_mp3.name,
+             "-ar", str(SR), "-ac", "1", "-f", "wav", tmp_wav.name],
+            check=True, capture_output=True,
         )
-        sr, a = wavfile.read(f.name)
+        sr, a = wavfile.read(tmp_wav.name)
+
     a = a.astype(np.float32) / 32768.0
     if a.ndim > 1:
         a = a.mean(axis=1)
-    from math import gcd
-    g = gcd(SR, sr)
-    return resample_poly(a, SR // g, sr // g).astype(np.float32)
+    if sr != SR:
+        from math import gcd
+        g = gcd(SR, sr)
+        a = resample_poly(a, SR // g, sr // g).astype(np.float32)
+
+    a = trim(a)
+    return a, words
 
 
 def envelope(a, hop=480):
@@ -47,84 +77,79 @@ def envelope(a, hop=480):
 def trim(a):
     env, hop = envelope(a)
     on = np.where(env > env.max() * 0.03)[0]
+    if len(on) == 0:
+        return a
     s = max(0, on[0] * hop - 960)
     e = min(len(a), (on[-1] + 1) * hop + 1920)
     return a[s:e]
 
 
-def speech_segments(a):
-    env, hop = envelope(a)
-    voiced = env > env.max() * 0.04
-    segs, start = [], None
-    for i, v in enumerate(voiced):
-        if v and start is None:
-            start = i
-        if not v and start is not None:
-            segs.append([start, i])
-            start = None
-    if start is not None:
-        segs.append([start, len(voiced)])
-    return [(s * hop / SR, e * hop / SR) for s, e in segs]
-
-
-def word_times(text, a):
-    """Phrases split at punctuation map onto the widest silences; words share a phrase by length."""
-    phrases = [p.strip() for p in re.split(r"(?<=[,.;:?!])\s+", text) if p.strip()]
-    segs = speech_segments(a)
-    dur = len(a) / SR
-    if len(phrases) > 1 and len(segs) >= len(phrases):
-        gaps = sorted(range(len(segs) - 1), key=lambda i: segs[i + 1][0] - segs[i][1], reverse=True)
-        cuts = sorted(gaps[: len(phrases) - 1])
-        bounds, s0 = [], segs[0][0]
-        for c in cuts:
-            bounds.append((s0, segs[c][1]))
-            s0 = segs[c + 1][0]
-        bounds.append((s0, segs[-1][1]))
-    else:
-        bounds = [(segs[0][0], segs[-1][1])] if len(phrases) == 1 else None
-        if bounds is None:
-            total = sum(len(p) for p in phrases)
-            bounds, t = [], 0.0
-            for p in phrases:
-                bounds.append((t, t + dur * len(p) / total))
-                t += dur * len(p) / total
-    words = []
-    for p, (b0, b1) in zip(phrases, bounds):
-        ws = p.split()
-        weights = [len(re.sub(r"[^\w]", "", w)) + 1.5 for w in ws]
-        total, t = sum(weights), b0
-        for w, k in zip(ws, weights):
-            d = (b1 - b0) * k / total
-            words.append({"w": w, "t0": round(t, 3), "t1": round(t + d, 3)})
+def map_words(display_text, tts_words, timeline_offset, audio_duration):
+    """Map TTS word boundaries onto display text words, adjusted to timeline position."""
+    display_words = display_text.split()
+    if not tts_words:
+        total = sum(len(w) + 1 for w in display_words)
+        t = 0.0
+        result = []
+        for w in display_words:
+            d = audio_duration * (len(w) + 1) / total
+            result.append({"w": w, "t0": round(timeline_offset + t, 3), "t1": round(timeline_offset + t + d, 3)})
             t += d
-    return words
+        return result
+
+    tts_audio_end = max(w["offset"] + w["duration"] for w in tts_words) if tts_words else audio_duration
+    scale = audio_duration / tts_audio_end if tts_audio_end > 0 else 1.0
+
+    result = []
+    ti = 0
+    for dw in display_words:
+        dw_clean = dw.strip(".,;:?!\"'()-")
+        if ti < len(tts_words):
+            tw = tts_words[ti]
+            t0 = tw["offset"] * scale
+            t1 = (tw["offset"] + tw["duration"]) * scale
+            result.append({"w": dw, "t0": round(timeline_offset + t0, 3), "t1": round(timeline_offset + t1, 3)})
+            ti += 1
+        else:
+            prev = result[-1] if result else {"t1": 0}
+            result.append({"w": dw, "t0": round(prev["t1"], 3), "t1": round(prev["t1"] + 0.15, 3)})
+
+    return result
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", required=True)
-    ap.add_argument("--piper", default="piper")
+    ap.add_argument("--voice", default="en-US-AndrewNeural")
+    ap.add_argument("--rate", default="+0%")
+    ap.add_argument("--pitch", default="+0Hz")
     args = ap.parse_args()
 
     script = json.loads((HERE / "script.json").read_text())
     v = script["voice"]
     t = v["lead"]
     track, lines, scenes = [], {}, []
-    for si, scene in enumerate(script["scenes"]):
+
+    for scene in script["scenes"]:
         s_start = t
-        for li, line in enumerate(scene["lines"]):
-            a = trim(synth(args.piper, args.model, line.get("say", line["text"]), v["lengthScale"]))
-            words = word_times(line["text"], a)
+        for line in scene["lines"]:
+            speak_text = line.get("say", line["text"])
+            a, tts_words = asyncio.run(synth_line(speak_text, args.voice, args.rate, args.pitch))
+            audio_dur = len(a) / SR
+
+            words = map_words(line["text"], tts_words, t, audio_dur)
+
             lines[line["id"]] = {
                 "scene": scene["id"], "text": line["text"],
-                "start": round(t, 3), "end": round(t + len(a) / SR, 3),
-                "words": [{**w, "t0": round(t + w["t0"], 3), "t1": round(t + w["t1"], 3)} for w in words],
+                "start": round(t, 3), "end": round(t + audio_dur, 3),
+                "words": words,
             }
             track.append((t, a))
-            t += len(a) / SR + v["gapAfterLine"] + line.get("hold", 0)
-            print(f"{line['id']:>8}  {lines[line['id']]['start']:6.2f}–{lines[line['id']]['end']:6.2f}  {line['text']}")
+            t += audio_dur + v["gapAfterLine"] + line.get("hold", 0)
+            print(f"{line['id']:>8}  {lines[line['id']]['start']:6.2f}-{lines[line['id']]['end']:6.2f}  {line['text']}")
+
         t += v["gapAfterScene"] - v["gapAfterLine"]
         scenes.append({"id": scene["id"], "start": round(s_start, 3)})
+
     duration = round(t + v["tail"], 3)
     for i, s in enumerate(scenes):
         s["end"] = scenes[i + 1]["start"] if i + 1 < len(scenes) else duration
@@ -132,7 +157,7 @@ def main():
     out = np.zeros(int(duration * SR) + SR, dtype=np.float32)
     for start, a in track:
         i = int(start * SR)
-        out[i : i + len(a)] += a
+        out[i: i + len(a)] += a
     out = out[: int(duration * SR)]
     out *= 0.89 / max(1e-6, np.abs(out).max())
     (HERE / "vo").mkdir(exist_ok=True)
@@ -143,7 +168,7 @@ def main():
         "// Generated by voice.py from script.json: when each scene, line and word is spoken.\n"
         f"window.TIMING = {json.dumps(timing, indent=1)};\n"
     )
-    print(f"duration {duration:.2f}s → timing.js, vo/vo.wav")
+    print(f"duration {duration:.2f}s -> timing.js, vo/vo.wav")
 
 
 if __name__ == "__main__":
